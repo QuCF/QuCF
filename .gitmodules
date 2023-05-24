@@ -1,0 +1,3 @@
+[submodule "external/QuEST"]
+	path = external/QuEST
+	url = https://github.com/QuEST-Kit/QuEST.git
