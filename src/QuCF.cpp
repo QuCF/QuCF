@@ -78,7 +78,6 @@ void QuCF__::read_constants(YISS istr)
     string word, constant_name;
     qreal constant_value;
     YMIX::print_log( "Reading constants...");
-
     try
     {
         while(istr >> word)

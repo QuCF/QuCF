@@ -254,8 +254,18 @@ class QCircuit{
     /**
      * @brief store qubit indices to the output vector \p ids_target.
      * The qubits start from the less singificant one.
+     * @param ids_target: target qubits;
      */ 
     void read_reg_int(YISS istr, YVI ids_target, YCB flag_sort = true, YCS word_start=std::string());
+
+    /**
+     * @param ids_target: target qubits;
+     * @param ids_target_e: all other qubits in the registers found in the pattern;
+    */
+    void read_reg_int(
+        YISS istr, YVI ids_target, YVI ids_target_e,
+        YCB flag_sort = true, YCS word_start=std::string()
+    );
 
     /**
      * @param ids_control: all control qubits; 
@@ -759,7 +769,23 @@ class QCircuit{
 private:
     qreal get_value_from_word(YCS word);
     void  qsvt_read_parameters(YCS filename, QSVT_pars& data);
+    
 
+    inline void get_id_qu_pattern(int& id_qu, YCS word, YCI nq_reg)
+    {
+        id_qu = get_value_from_word(word);
+        if(id_qu < 0)
+            id_qu = nq_reg + id_qu;
+
+        if(id_qu >= nq_reg)
+            throw std::string("\nqubit index, " + std::to_string(id_qu) + 
+                ", is larger than the register size (" + std::to_string(nq_reg) + ")\n");
+    }
+
+    void read_reg_int_CORE(
+        YISS istr, YVI ids_target, YVI ids_target_e,
+        YCB flag_sort = true, YCS word_start=std::string(), YCB flag_e = false
+    );
 
 
 private:

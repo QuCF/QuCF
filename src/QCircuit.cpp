@@ -875,6 +875,38 @@ void QCircuit::read_end_element(YISS istr, YVI ids_control, YVI ids_x, YVVI ids_
             );
         }
 
+        if(YMIX::compare_strings(word, "control_e"))
+        {
+            vector<int> ids_0_control;
+            read_reg_int(istr, ids_control, ids_0_control);
+            ids_x.insert(
+                ids_x.end(), 
+                ids_0_control.begin(), 
+                ids_0_control.end()
+            );
+            ids_control.insert(
+                ids_control.end(), 
+                ids_0_control.begin(), 
+                ids_0_control.end()
+            );
+        }
+
+        if(YMIX::compare_strings(word, "ocontrol_e"))
+        {
+            vector<int> ids_0_control;
+            read_reg_int(istr, ids_0_control, ids_control);
+            ids_x.insert(
+                ids_x.end(), 
+                ids_0_control.begin(), 
+                ids_0_control.end()
+            );
+            ids_control.insert(
+                ids_control.end(), 
+                ids_0_control.begin(), 
+                ids_0_control.end()
+            );
+        }
+        
         if(YMIX::compare_strings(word, "control_it"))
         {
             YVIv ids_local;
@@ -896,10 +928,26 @@ void QCircuit::read_end_element(YISS istr, YVI ids_control, YVI ids_x, YVVI ids_
 
 void QCircuit::read_reg_int(YISS istr, YVI ids_target, YCB flag_sort, YCS word_start)
 {
+    vector<int> ids_target_e;
+    read_reg_int_CORE(istr, ids_target, ids_target_e, flag_sort, word_start, false);
+}
+
+
+void QCircuit::read_reg_int(YISS istr, YVI ids_target, YVI ids_target_e, YCB flag_sort, YCS word_start)
+{
+    read_reg_int_CORE(istr, ids_target, ids_target_e, flag_sort, word_start, true);
+}
+
+
+void QCircuit::read_reg_int_CORE(
+    YISS istr, YVI ids_target, YVI ids_target_e, 
+    YCB flag_sort, YCS word_start, YCB flag_e
+){
     string reg_name, word;
     bool flag_read_reg_name = false;
     int n_regs, integer_qu, n_bitA;
     int nq_reg;
+    size_t pos1 = string::npos;
 
     if(word_start.empty())
         istr >> word;
@@ -921,27 +969,92 @@ void QCircuit::read_reg_int(YISS istr, YVI ids_target, YCB flag_sort, YCS word_s
     // within every register, one can have several qubits
     for(unsigned i_reg = 0; i_reg < n_regs; i_reg++)
     {
-        if(flag_read_reg_name) istr >> reg_name;
+        if(flag_read_reg_name) 
+            istr >> reg_name;
+
+        pos1 = reg_name.find("[",0);
+        if(pos1 != string::npos)
+        {
+            word = reg_name.substr(pos1);
+            reg_name = reg_name.substr(0, size(reg_name) - size(word));
+        }
+        else
+            word = "";
+   
         if(!YMIX::is_present(regnames_, reg_name))
             throw "no register with the name " + reg_name;
 
         try
         {
-            istr >> word;
-            integer_qu = get_value_from_word(word);
+            bool flag_empty = false;
 
             auto reg_chosen = regs_[reg_name];
             nq_reg = reg_chosen.size();
-            if(integer_qu < 0)
-                integer_qu = (1 << nq_reg) + integer_qu;
+            if(word.empty())
+                istr >> word;
+            pos1 = word.find("[",0);
 
-            vector<short> binArray(nq_reg);
-            YMATH::intToBinary(integer_qu, binArray);
+            // read an integer -> convert into a bistring 
+            // -> target qubits are qubits in the unit states;
+            if(pos1 == string::npos)
+            {
+                integer_qu = get_value_from_word(word);
+                if(integer_qu < 0)
+                    integer_qu = (1 << nq_reg) + integer_qu;
 
-            n_bitA = binArray.size();
-            for(unsigned id_bit = 0; id_bit < n_bitA; id_bit++)
-                if(binArray[n_bitA - id_bit - 1] == 1)
-                    ids_target.push_back(reg_chosen[id_bit]);
+                vector<short> binArray(nq_reg);
+                YMATH::intToBinary(integer_qu, binArray);
+
+                n_bitA = binArray.size();
+                for(unsigned id_bit = 0; id_bit < n_bitA; id_bit++)
+                    if(binArray[n_bitA - id_bit - 1] == 1)
+                        ids_target.push_back(reg_chosen[id_bit]);
+                    else if(flag_e)
+                        ids_target_e.push_back(reg_chosen[id_bit]);
+            }
+            // read an array of qubits;
+            // the least significant qubit in a register has an index = 0;
+            else
+            {
+                word = word.substr(pos1+1); // remove "["
+                if(word.empty())
+                    istr >> word;
+
+                auto pos2 = word.find("]",0);
+                int id_qu;
+                vector<int> array_qu_e = vector<int>(reg_chosen);
+                while(pos2 == string::npos)
+                {
+                    get_id_qu_pattern(id_qu, word, nq_reg);
+                    ids_target.push_back(reg_chosen[id_qu]);
+                    if(flag_e)
+                        array_qu_e.erase(
+                            find(array_qu_e.begin(), array_qu_e.end(), reg_chosen[id_qu])
+                        );
+
+                    istr >> word;
+                    pos2 = word.find("]",0);
+                }
+                word = word.substr(0, size(word)-1); // remove "]"
+                if(word.empty())
+                    flag_empty = true;
+
+                if(!flag_empty)
+                {
+                    get_id_qu_pattern(id_qu, word, nq_reg);
+                    ids_target.push_back(reg_chosen[id_qu]);
+                    if(flag_e) 
+                        array_qu_e.erase(
+                            find(array_qu_e.begin(), array_qu_e.end(), reg_chosen[id_qu])
+                        );
+                }
+                
+                if(flag_e)
+                {
+                    for(auto qu_e: array_qu_e)
+                        ids_target_e.push_back(qu_e);
+                }
+            }
         }
         catch(YCS e)
         {
