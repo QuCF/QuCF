@@ -251,12 +251,14 @@ namespace YMATH{
             qreal** get_pointer();
 
             /**
-             * @brief Create and return 1-D pointer to the matrix
+             * @brief Create and return 1-D pointer to the matrix.
+             * Matrix elements in the resulting 1D-vector are arranged in the row-major format.
              */
             qreal* get_1d_pointer();
 
             /**
-             * @brief Get a pointer to a transposed matrix
+             * @brief Get a pointer to a transposed matrix.
+             * Matrix elements in the resulting 1D-vector are arranged in the column-major format.
              */
             qreal* get_1d_transposed_pointer();
 

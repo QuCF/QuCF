@@ -151,6 +151,12 @@ void QuCF__::read_options(YISS istr)
                 istr >> YGV::tex_circuit_length;
                 continue;
             }
+
+            if(YMIX::compare_strings(word, "flag_matrix"))
+            {
+                istr >> flag_matrix_;
+                continue;
+            }
         }
 
         // correct the printing options:
@@ -328,6 +334,8 @@ void QuCF__::read_circuit_structure(YISS istr)
     // --- gates in the circuit ---
     while(istr >> word)
     {
+        // cout << "word: " << word << endl;
+
         if(YMIX::compare_strings(word, "END_CIRCUIT_STRUCTURE"))
             break;
 
@@ -352,6 +360,9 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
     qreal par_gate, par_gate2;
      
     istr >> gate_name;
+
+    // cout << "here: " << gate_name << endl;
+
     try
     {
         if(oc->read_structure<X__>(gate_name, istr, flag_inv)) return;
@@ -479,7 +490,6 @@ void QuCF__::read_subcircuit(YISS istr, YPQC oc, YCB flag_inv)
     unsigned nq_sub;
     bool flag_skip = false;
     bool flag_plain = false;
-    bool flag_end_circuit = false;
 
     istr >> subcircuit_name;
     if(ocs_.find(subcircuit_name) == ocs_.end())
@@ -561,11 +571,6 @@ void QuCF__::read_subcircuit(YISS istr, YPQC oc, YCB flag_inv)
         oc->copy_gates_from(oc_sub, ids_q, YSB(nullptr), flag_inv, ids_control);
         oc->x(ids_x);
     }
-
-    if(!flag_end_circuit)
-        while(istr >> word)
-            if(YMIX::compare_strings(word, "end_circuit"))
-                break;
 }
 
 
@@ -735,6 +740,12 @@ void QuCF__::launch()
 
     hfo_.close();
 
+    // -------------------------------------------------------------------------------------------
+    // --- Matrix construction ---
+    if(flag_matrix_)
+        calc_matrix(u_work);
+    
+    // -------------------------------------------------------------------------------------------
     // --- Analyse and Store if necessary initial and output states of the circuit ---
     int count_init_state = 0;
     if(flag_init_state_file_)
@@ -880,4 +891,126 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
         }
         hfo_.close(); 
     }
+}
+
+
+void QuCF__::calc_matrix(shared_ptr<QCircuit>& u_work)
+{
+    // throughout the function, we assume that all nonancilla qubits are less significant
+    // than any ancilla qubit;
+    YMIX::print_log("\nCompute the circuit matrix");
+
+    uint32_t n_all_qubits = u_work->get_n_qubits();
+    uint32_t n_anc_qubits = u_work->get_na();
+    uint32_t n_nonanc_qubits = n_all_qubits - n_anc_qubits;
+    uint32_t N_matrix = 1 << n_nonanc_qubits;
+    uint32_t N2 = N_matrix * N_matrix;
+
+    // first register name -> register of a higher priority:
+    vector<string> reg_names_nonanc;
+    vector<int> n_qubits;
+    u_work->get_nonancilla_regs(reg_names_nonanc, n_qubits);
+    int N_reg = reg_names_nonanc.size();
+
+    // take all possible input states in the nonancilla qubits and
+    // compute the output states:
+    YMIX::YTimer timer_comp;
+    timer_comp.Start();
+
+    YMATH::YMatrix A_real(N_matrix, N_matrix, true);
+    YMATH::YMatrix A_imag(N_matrix, N_matrix, true);
+
+    // one input state for each row index:
+    for(uint32_t ir = 0; ir < N_matrix; ir++)
+    {
+        // reset the circuit:
+        u_work->empty_binary_states();
+        u_work->reset_qureg();
+
+        // set an initial quantum state:
+        vector<short> binArray(n_nonanc_qubits);
+        YMATH::intToBinary(ir, binArray);
+
+        // cout << "\n--------- row = " << ir << " ------------" << endl;
+
+        int shift = 0;
+        for(int ireg = 0; ireg < N_reg; ireg++)
+        {
+            string reg_name = reg_names_nonanc[ireg];
+            int nq_reg      = n_qubits[ireg];
+            auto reg_chosen = u_work->get_regs()[reg_name];
+
+            // cout << "\n" << reg_name << " with " << nq_reg << endl;
+            // cout << "chosen qubits: ";
+            // for(auto ii = 0; ii < reg_chosen.size(); ii++)
+            //     cout << reg_chosen[ii] << " ";
+
+            vector<short> reg_bitstring(nq_reg);
+            copy(
+                binArray.begin() + shift, 
+                binArray.begin() + shift + nq_reg,
+                reg_bitstring.begin()
+            );
+
+            // cout << "bistring: ";
+            // for(auto ii = 0; ii < reg_bitstring.size(); ii++)
+            //     cout << reg_bitstring[ii] << " ";
+
+            vector<int> reg_state;
+            for(int id_bit = 0; id_bit < nq_reg; id_bit++)
+                if(reg_bitstring[nq_reg - id_bit - 1] == 1)
+                    reg_state.push_back(id_bit);
+
+            // cout << "\nqubits: ";
+            // for(auto ii = 0; ii < reg_state.size(); ii++)
+            //     cout << reg_state[ii] << " ";
+            // cout << endl;
+
+            u_work->set_reg_state(reg_name, reg_state);
+            shift += nq_reg;
+        }
+        u_work->set_init_binary_state();
+
+        // compute an output state:
+        string stop_point_name;
+        int id_current_gate = 0;
+        u_work->generate(stop_point_name, id_current_gate);
+
+        // get the output state:
+        YMIX::StateVectorOut out_state;
+        u_work->get_state(out_state, true);
+
+        // convert bitstrings to columns, 
+        // convert amplitudes to values of matrix elements:
+        int i_state = -1;
+        for(auto one_state: out_state.states)
+        {
+            i_state++;
+            Complex one_ampl = out_state.ampls[i_state];
+            int id_column = YMATH::binaryToInt(one_state);
+
+            // cout << "\n ---" << endl;
+            // cout << "ic: " << id_column << endl;
+            // cout << "ampl: " << one_ampl.real << " + " <<  one_ampl.imag << "*i" << endl;
+
+            A_real(ir, id_column) = one_ampl.real;
+            A_imag(ir, id_column) = one_ampl.imag;
+        }
+    }
+    timer_comp.Stop();
+    YMIX::print_log("duration: " + timer_comp.get_dur_str_s());
+    YMIX::print_log("");
+
+
+    // save the matrix to the .hdf5 file:
+    hfo_.open_w();
+
+    hfo_.add_group("matrix");
+    hfo_.add_scalar(u_work->get_name(), "name-oracle", "matrix");
+    hfo_.add_scalar(N_matrix, "N"s, "matrix"s);
+
+    hfo_.add_array(A_real.get_1d_pointer(), N2, "real", "matrix"s);
+    hfo_.add_array(A_imag.get_1d_pointer(), N2, "imag", "matrix"s);
+
+    hfo_.close();
 }

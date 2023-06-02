@@ -9,12 +9,6 @@ public:
     /**
      * @param[in] project_name  is a project name that defines names of input and output files.
      * @param[in] path_to_inputs is path to input files.
-    //  * @param[in] flag_compute_output if True, compute output states, otherwise only input states
-    //  * @param[in] flag_print_output if True, print output states on screen;
-    //  * @param[in] flag_circuit print or not .circuit files;
-    //  * @param[in] flag_tex print or not .tex files;
-    //  * @param[in] flag_layers to calculate or not the layer for each gate;
-    //  * @param[in] flag_hdf5  to create the hdf5 file;
      */
     QuCF__(
         const QuESTEnv& env, 
@@ -46,6 +40,8 @@ private:
     qreal get_value_from_word(YCS word);
     void  calc(std::shared_ptr<QCircuit>& u_work, YCI count_init_state);
 
+    void calc_matrix(std::shared_ptr<QCircuit>& u_work);
+
 private:
     // dictionary with constants to create the oracle:
     std::map<std::string, qreal> constants_; 
@@ -59,8 +55,17 @@ private:
     std::vector<qreal> init_ampl_vec_real_;
     std::vector<qreal> init_ampl_vec_imag_;
 
-    // true if the initial state is read from the .init_state file:
+    // if true, the initial state is read from the .init_state file:
     bool flag_init_state_file_;
+
+    /**
+     * true: construct a matrix, where
+     * positions of matrix elements are indicated by nonancilla state bistrings,
+     * and elements' values are indicated by the state amplitudes
+     * (only states entangled with zero-ancilla states are considered);
+     * the resulting matrix is written to the .hdf5 file;
+     */ 
+    bool flag_matrix_;
 
     /**
      * none          - do not compute/print any output states (no printing on the sceen);
@@ -80,8 +85,6 @@ private:
 
     // QSVT data
     std::map<std::string, QSVT_pars> qsvt_data_;
-
-
 };
 #endif
 

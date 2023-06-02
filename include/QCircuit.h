@@ -176,6 +176,11 @@ class QCircuit{
      * @param id_q id of the qubit to set to 1.
      */
     void set_qubit_state(YCU id_q);
+
+    /**
+     * @brief Set all qubits with id from \p ids_qs to 1.
+     * @param ids_qs ids of the qubits to set to 1.
+     */
     void set_qubit_state(YCVI ids_qs);
 
     /**
@@ -252,14 +257,15 @@ class QCircuit{
     );
 
     /**
-     * @brief store qubit indices to the output vector \p ids_target.
+     * @brief store indices of qubits found in a register pattern to the output vector \p ids_target.
      * The qubits start from the less singificant one.
-     * @param ids_target: target qubits;
+     * @param ids_target: qubits found in the register pattern;
+     * @param flag_sort: if true, sort \p ids_target in non-descending order.
      */ 
     void read_reg_int(YISS istr, YVI ids_target, YCB flag_sort = true, YCS word_start=std::string());
 
     /**
-     * @param ids_target: target qubits;
+     * @param ids_target: qubits found in the register pattern;
      * @param ids_target_e: all other qubits in the registers found in the pattern;
     */
     void read_reg_int(
@@ -278,12 +284,14 @@ class QCircuit{
         YVVI ids_control_it, YVVI ids_x_it, 
         YCU id_element
     );
-    inline void read_end_gate(YISS istr, YVI ids_control, YVI ids_x, YVVI ids_control_it, YVVI ids_x_it)
-    {
+    inline void read_end_gate(
+        YISS istr, YVI ids_control, YVI ids_x, YVVI ids_control_it, YVVI ids_x_it
+    ){
         read_end_element(istr, ids_control, ids_x, ids_control_it, ids_x_it, 0);
     }
-    inline void read_end_subcircuit(YISS istr, YVI ids_control, YVI ids_x, YVVI ids_control_it, YVVI ids_x_it)
-    {
+    inline void read_end_subcircuit(
+        YISS istr, YVI ids_control, YVI ids_x, YVVI ids_control_it, YVVI ids_x_it
+    ){
         read_end_element(istr, ids_control, ids_x, ids_control_it, ids_x_it, 1);
     }
 
@@ -765,6 +773,19 @@ class QCircuit{
      * @brief Get a number of ancilla qubits in the circuit. 
      */
     inline uint32_t get_na() const {return ancs_.size();}
+
+
+    /**
+     * Get names of nonancilla registers in the circuit.
+     * @param reg_names_nonanc vector with names of nonancilla registers
+     * ordered from the most to the least significant register
+     * @param n_qubits is a vector with number of qubits in each nonancilla register:
+     * order in the same way as @param reg_names_nonanc.
+    */
+    void get_nonancilla_regs(
+        std::vector<std::string>& reg_names_nonanc,
+        YVI n_qubits
+    );
 
 private:
     qreal get_value_from_word(YCS word);
