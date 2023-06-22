@@ -80,7 +80,7 @@ void BaseTool__::read_input_file(YS data, YCS file_name)
     if(file_name_res.empty()) file_name_res = ifname_;
 
     ifstream ff(file_name_res);
-    if(!ff.is_open()) throw "Error: Here there is not a file: " + file_name_res;
+    if(!ff.is_open()) throw "Error: the file [" + file_name_res + "] does not exist.";
     data = string((istreambuf_iterator<char>(ff)), istreambuf_iterator<char>());
     ff.close();
 

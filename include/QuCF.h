@@ -26,7 +26,7 @@ private:
     void read_constants(YISS str);
     void read_options(YISS str);
     void read_circuit_declaration(YISS istr);
-    void read_circuit_structure(YISS istr);
+    void read_circuit_structure(YISS istr, YSQ* oc_ext = nullptr);
     void read_main_circuit(YISS istr);
     void read_gate(YISS istr, YPQC oc, YCB flag_inv=false);
 
@@ -35,6 +35,12 @@ private:
      * @param flag_inv: if true, inverse subcircuit will be inserted to the parent circuit.
     */
     void read_subcircuit(YISS istr, YPQC oc, YCB flag_inv=false);
+
+    /**
+     * Read gates from another .oracle file
+    */
+    void read_gates_from_file(YISS istr, YPQC oc);
+
     void read_state(YISS istr);
     void read_state_init_file();
     qreal get_value_from_word(YCS word);

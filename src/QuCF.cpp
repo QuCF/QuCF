@@ -21,6 +21,8 @@ QuCF__::QuCF__(
 
     flag_prob_ = false;
 
+    flag_matrix_ = false;
+
     read_data();
 }
 
@@ -312,24 +314,33 @@ void QuCF__::read_circuit_declaration(YISS istr)
 }
 
 
-void QuCF__::read_circuit_structure(YISS istr)
+void QuCF__::read_circuit_structure(YISS istr, YSQ* oc_ext)
 {
     string word;
     string curr_circuit_name;
     int n_regs, n_qubits_in_reg;
 
     // choose the circuit according to its name:
-    istr >> word;
-    YMIX::print_log("Reading structure of the circuit " + word, 0, true);
-    if(ocs_.find(word) == ocs_.end()) 
+    YSQ oc;
+    if(oc_ext == nullptr)
     {
-        YMIX::print_log(
-            "Warning: No circuit with the name " + word + " has been declared. Skip it.", 1
-        );
-        return;
+        istr >> word;
+        YMIX::print_log("Reading structure of the circuit " + word, 0, true);
+        if(ocs_.find(word) == ocs_.end()) 
+        {
+            YMIX::print_log(
+                "Warning: No circuit with the name " + word + " has been declared. Skip it.", 1
+            );
+            return;
+        }
+        curr_circuit_name = word;
+        // YSQ oc = ocs_[curr_circuit_name];
+        oc = ocs_[curr_circuit_name];
     }
-    curr_circuit_name = word;
-    YSQ oc = ocs_[curr_circuit_name];
+    else
+    {
+        oc = *oc_ext;
+    }  
 
     // --- gates in the circuit ---
     while(istr >> word)
@@ -350,6 +361,15 @@ void QuCF__::read_circuit_structure(YISS istr)
 
         if(YMIX::compare_strings(word, "icircuit"))
             read_subcircuit(istr, oc, true);
+
+        if(YMIX::compare_strings(word, "file"))
+            read_gates_from_file(istr, oc);
+
+        if(YMIX::compare_strings(word, "with"))
+            oc->read_global_control(istr);
+
+        if(YMIX::compare_strings(word, "end_with"))
+            oc->remove_globall_control();
     }
 }
 
@@ -572,6 +592,21 @@ void QuCF__::read_subcircuit(YISS istr, YPQC oc, YCB flag_inv)
         oc->x(ids_x);
     }
 }
+
+
+void QuCF__::read_gates_from_file(YISS istr, YPQC oc)
+{
+    string data;
+    string file_name;
+    istr >> file_name;
+    file_name += ".oracle";
+    read_input_file(data, file_name);
+
+    istringstream istr_file(data);
+    read_circuit_structure(istr_file, &oc);
+}
+
+
 
 
 void QuCF__::read_main_circuit(YISS istr)

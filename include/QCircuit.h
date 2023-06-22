@@ -250,11 +250,23 @@ class QCircuit{
     );
     void read_structure_gate_qsvt(
         YISS istr, YCS path_in, 
-        std::map<std::string, 
-        YSQ>& ocs, 
+        std::map<std::string, YSQ>& ocs, 
         YCB flag_inv, 
         std::map<std::string, QSVT_pars>& map_qsvt_data
     );
+
+    inline void read_global_control(YISS istr)
+    {
+        YVIv ids_control, ids_x;
+        read_with_block(istr, ids_control, ids_x);
+        blocks_ids_control_.push_back(ids_control);
+        blocks_ids_x_.push_back(ids_x);
+    }
+    inline void remove_globall_control()
+    {
+        blocks_ids_control_.pop_back();
+        blocks_ids_x_.pop_back();
+    }
 
     /**
      * @brief store indices of qubits found in a register pattern to the output vector \p ids_target.
@@ -293,6 +305,11 @@ class QCircuit{
         YISS istr, YVI ids_control, YVI ids_x, YVVI ids_control_it, YVVI ids_x_it
     ){
         read_end_element(istr, ids_control, ids_x, ids_control_it, ids_x_it, 1);
+    }
+    inline void read_with_block(YISS istr, YVI ids_control, YVI ids_x)
+    {
+        YVVIv ids_control_it, ids_x_it; // not used;
+        read_end_element(istr, ids_control, ids_x, ids_control_it, ids_x_it, 2);
     }
 
     template<class TGate>
@@ -874,6 +891,12 @@ private:
 
     // names of unique gates:
     std::vector<std::string> unique_gates_names_;
+
+    // blocks with global qubits for zero- and unit-control:
+    std::vector<YVIv> blocks_ids_control_;
+
+    // blocks with global qubits for the zero-control:
+    std::vector<YVIv> blocks_ids_x_;
 };
 
 

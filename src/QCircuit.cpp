@@ -94,6 +94,9 @@ QCircuit::QCircuit(YCCQ oc, YCS cname)
     tex_lines_ = vector<vector<string>>(oc->tex_lines_);
     tex_qubit_names_ = vector<string>(oc->tex_qubit_names_);
 
+    blocks_ids_control_ = std::vector<YVIv>(oc->blocks_ids_control_);
+    blocks_ids_x_       = std::vector<YVIv>(oc->blocks_ids_x_);
+
     create_circ_file();
     create_tex_file();
     save_regs();
@@ -603,6 +606,9 @@ void QCircuit::reset()
     gates_.clear();
     id_start_ = 0;
 
+    blocks_ids_control_.clear();
+    blocks_ids_x_.clear();
+
     destroyQureg(c_, env_);
     c_ = createQureg(nq_, env_);
 
@@ -630,7 +636,6 @@ void QCircuit::set_init_binary_state(const bool& flag_mpi_bcast)
             if(ib_state_.empty())
                 ib_state_ = vector<short>(nq);
     }
-
     long long int ii = YMATH::binaryToInt(ib_state_);
     initClassicalState(c_, ii);
 }
@@ -848,6 +853,42 @@ void QCircuit::read_end_element(
     YISS istr, YVI ids_control, YVI ids_x, YVVI ids_control_it, YVVI ids_x_it, YCU id_element
 ){
     std::string word;
+
+    if(id_element != 2)
+    {
+        // if(~blocks_ids_x_.empty())
+        // {
+        //     for(YVIv& ids_x_global: blocks_ids_x_)
+        //         ids_x.insert(
+        //             ids_x.end(), 
+        //             ids_x_global.begin(), 
+        //             ids_x_global.end()
+        //         );
+        // }
+        // if(~blocks_ids_control_.empty())
+        // {
+        //     for(YVIv& ids_control_global: blocks_ids_control_)
+        //         ids_control.insert(
+        //             ids_control.end(), 
+        //             ids_control_global.begin(), 
+        //             ids_control_global.end()
+        //         );
+        // }
+
+        for(YVIv& ids_x_global: blocks_ids_x_)
+            ids_x.insert(
+                ids_x.end(), 
+                ids_x_global.begin(), 
+                ids_x_global.end()
+            );
+        for(YVIv& ids_control_global: blocks_ids_control_)
+            ids_control.insert(
+                ids_control.end(), 
+                ids_control_global.begin(), 
+                ids_control_global.end()
+            );
+    }
+    
     while(istr >> word)
     {
         if(id_element == 0)
@@ -859,6 +900,9 @@ void QCircuit::read_end_element(
                 // cout << "heree" << endl;
                 return;
             }
+        if(id_element == 2)
+            if(YMIX::compare_strings(word, "do"))
+                return;
 
         if(YMIX::compare_strings(word, "control"))
             read_reg_int(istr, ids_control);
