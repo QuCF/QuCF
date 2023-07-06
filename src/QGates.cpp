@@ -32,18 +32,18 @@ void Gate__::correct_qubits(YCVI regs)
 {
     int old_q = 0;
     auto ts = YVIv(ts_);
-    auto cs = YVIv(cs_);
-    auto conds = YVIv(conds_);
+    auto cs_unit = YVIv(cs_unit_);
+    auto cs_zero = YVIv(cs_zero_);
     for(auto& xx: regs)
     {
         change_element(ts,     ts_,     old_q, xx);
-        change_element(cs,     cs_,     old_q, xx);
-        change_element(conds,  conds_,  old_q, xx);
+        change_element(cs_unit, cs_unit_, old_q, xx);
+        change_element(cs_zero, cs_zero_, old_q, xx);
         ++old_q;
     } 
     ts_ = YVIv(ts);
-    cs_ = YVIv(cs);
-    conds_ = YVIv(conds);
+    cs_unit_ = YVIv(cs_unit);
+    cs_zero_ = YVIv(cs_zero);
 }
 
 

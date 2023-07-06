@@ -397,40 +397,34 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
 
         if(oc->read_structure<Rc__>(gate_name, istr, par_gate, par_gate2, flag_inv)) return;
 
-
-        if(YMIX::compare_strings(gate_name, "condR"))
-        {
-            oc->read_structure_gate_condR_split(istr, path_inputs_, flag_inv);
-            return;
-        }
         if(YMIX::compare_strings(gate_name, YVSv{"incrementor", "adder1"}))
         {
-            oc->read_structure_gate_adder1(istr, path_inputs_, flag_inv);
+            oc->read_structure_gate_adder_subtractor(istr, path_inputs_, flag_inv, 1);
             return;
         }
         if(YMIX::compare_strings(gate_name, "adder2"))
         {
-            oc->read_structure_gate_adder2(istr, path_inputs_, flag_inv);
+            oc->read_structure_gate_adder_subtractor(istr, path_inputs_, flag_inv, 2);
             return;
         }
         if(YMIX::compare_strings(gate_name, "adder3"))
         {
-            oc->read_structure_gate_adder3(istr, path_inputs_, flag_inv);
+            oc->read_structure_gate_adder_subtractor(istr, path_inputs_, flag_inv, 3);
             return;
         }
         if(YMIX::compare_strings(gate_name, YVSv{"decrementor", "subtractor1"}))
         {
-            oc->read_structure_gate_subtractor1(istr, path_inputs_, flag_inv);
+            oc->read_structure_gate_adder_subtractor(istr, path_inputs_, flag_inv, -1);
             return;
         }
         if(YMIX::compare_strings(gate_name, "subtractor2"))
         {
-            oc->read_structure_gate_subtractor2(istr, path_inputs_, flag_inv);
+            oc->read_structure_gate_adder_subtractor(istr, path_inputs_, flag_inv, -2);
             return;
         }
         if(YMIX::compare_strings(gate_name, "subtractor3"))
         {
-            oc->read_structure_gate_subtractor3(istr, path_inputs_, flag_inv);
+            oc->read_structure_gate_adder_subtractor(istr, path_inputs_, flag_inv, -3);
             return;
         }
         if(YMIX::compare_strings(gate_name, "adder"))
@@ -582,14 +576,11 @@ void QuCF__::read_subcircuit(YISS istr, YPQC oc, YCB flag_inv)
         }
 
         // read the end of the subcircuit (control qubits) and find the end_circuit keyword:
-        YVIv ids_control, ids_x;
-        YVVIv ids_control_it, ids_x_it;
-        oc->read_end_subcircuit(istr, ids_control, ids_x, ids_control_it, ids_x_it);
+        YVIv ids_unit, ids_zero;
+        oc->read_end_subcircuit(istr, ids_unit, ids_zero);
 
         // add gates from the subcircuit to the parent circuit:
-        oc->x(ids_x);
-        oc->copy_gates_from(oc_sub, ids_q, YSB(nullptr), flag_inv, ids_control);
-        oc->x(ids_x);
+        oc->copy_gates_from(oc_sub, ids_q, YSB(nullptr), ids_unit, ids_zero, flag_inv);
     }
 }
 
@@ -605,8 +596,6 @@ void QuCF__::read_gates_from_file(YISS istr, YPQC oc)
     istringstream istr_file(data);
     read_circuit_structure(istr_file, &oc);
 }
-
-
 
 
 void QuCF__::read_main_circuit(YISS istr)

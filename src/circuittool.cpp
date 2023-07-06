@@ -137,6 +137,14 @@ CircuitTool__::~CircuitTool__()
             iss >> controls[i];
 
         iss >> word;
+        if(!YMIX::compare_strings(word, "ocontrols"))
+            throw string("Line " + to_string(counter_line) + ": the keyword ocontrols is absent.");
+        iss >> n;
+        vector<int> ocontrols(n);
+        for(auto i = 0; i < n; i++)
+            iss >> ocontrols[i];
+
+        iss >> word;
         if(!YMIX::compare_strings(word, "pars"))
             throw string("Line " + to_string(counter_line) + ": the keyword pars is absent.");
         iss >> n;
@@ -165,7 +173,7 @@ CircuitTool__::~CircuitTool__()
         if(YMIX::compare_strings(gate_name, "Rc"))
             gate = make_shared<Rc__>(targets[0], pars[0], pars[1]);
 
-        gate->add_control_qubits(controls);
+        gate->add_control_qubits(controls, ocontrols);
         gate->set_flag_start(flag_start);
         gate->set_layer(id_layer);
         if(flag_conj) gate->conjugate_transpose();

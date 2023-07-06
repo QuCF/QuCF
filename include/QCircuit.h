@@ -91,14 +91,16 @@ class QCircuit{
      * @param box a ghost gate to indicate boundaries where 
      *  gates from the circuit \p circ are placed into the current circuit.
      * @param flag_inv if true, first get conjugate transpose gates from \p circ. 
-     * @param cs control qubits that should control each gate from \p circ.
+     * @param cs_unit unit-control qubits that should control each gate from \p circ.
+     * @param cs_zero zero-control qubits that should control each gate from \p circ.
      */
     void copy_gates_from(
         YCCQ circ, 
         YCVI regs_new, 
         YCCB box = std::shared_ptr<const Box__>(nullptr),
-        YCB flag_inv = false,
-        YCVI cs = YVIv {}
+        YCVI cs_unit = YVIv {},
+        YCVI cs_zero = YVIv {},
+        YCB flag_inv = false
     );
 
     /**
@@ -219,22 +221,14 @@ class QCircuit{
 
     void read_structure_gate(
         YISS istr, YVI ids_target, qreal& par_gate, 
-        YVI ids_control, YVI ids_x, 
-        YVVI ids_control_it, YVVI ids_x_it
+        YVI ids_unit, YVI ids_zero
     );
     void read_structure_gate(
         YISS istr, YVI ids_target, qreal& par_gate1, qreal& par_gate2,
-        YVI ids_control, YVI ids_x, 
-        YVVI ids_control_it, YVVI ids_x_it
+        YVI ids_unit, YVI ids_zero
     );
     
-    void read_structure_gate_condR_split(YISS istr, YCS path_in, YCB flag_inv=false);
-    void read_structure_gate_adder1(YISS istr, YCS path_in, YCB flag_inv=false);
-    void read_structure_gate_adder2(YISS istr, YCS path_in, YCB flag_inv=false);
-    void read_structure_gate_adder3(YISS istr, YCS path_in, YCB flag_inv=false);
-    void read_structure_gate_subtractor1(YISS istr, YCS path_in, YCB flag_inv=false);
-    void read_structure_gate_subtractor2(YISS istr, YCS path_in, YCB flag_inv=false);
-    void read_structure_gate_subtractor3(YISS istr, YCS path_in, YCB flag_inv=false);
+    void read_structure_gate_adder_subtractor(YISS istr, YCS path_in, YCB flag_inv, YCI gate_type);
     void read_structure_gate_adder(YISS istr, YCS path_in, YCB flag_inv=false);
     void read_structure_gate_subtractor(YISS istr, YCS path_in, YCB flag_inv=false);
     void read_structure_gate_adder_qft(YISS istr, YCS path_in, YCB flag_inv=false);
@@ -257,15 +251,15 @@ class QCircuit{
 
     inline void read_global_control(YISS istr)
     {
-        YVIv ids_control, ids_x;
-        read_with_block(istr, ids_control, ids_x);
-        blocks_ids_control_.push_back(ids_control);
-        blocks_ids_x_.push_back(ids_x);
+        YVIv ids_unit, ids_zero;
+        read_with_block(istr, ids_unit, ids_zero);
+        blocks_ids_unit_.push_back(ids_unit);
+        blocks_ids_zero_.push_back(ids_zero);
     }
     inline void remove_globall_control()
     {
-        blocks_ids_control_.pop_back();
-        blocks_ids_x_.pop_back();
+        blocks_ids_unit_.pop_back();
+        blocks_ids_zero_.pop_back();
     }
 
     /**
@@ -286,71 +280,36 @@ class QCircuit{
     );
 
     /**
-     * @param ids_control: all control qubits; 
-     * @param ids_x: zero-control qubits;
-     * @param id_element: 0 - gate, 1 - subcircuit;
+     * Read the rest of a gate description, where control nodes are described.
+     * Add the control nodes to the corresponding vectors.
+     * @param ids_unit: unit qubits; 
+     * @param ids_zero: zero-control qubits;
+     * @param id_element: 0 - gate, 1 - subcircuit, 2 - the with-structure;
     */
-    void read_end_element(
-        YISS istr, 
-        YVI ids_control, YVI ids_x, 
-        YVVI ids_control_it, YVVI ids_x_it, 
-        YCU id_element
-    );
-    inline void read_end_gate(
-        YISS istr, YVI ids_control, YVI ids_x, YVVI ids_control_it, YVVI ids_x_it
-    ){
-        read_end_element(istr, ids_control, ids_x, ids_control_it, ids_x_it, 0);
-    }
-    inline void read_end_subcircuit(
-        YISS istr, YVI ids_control, YVI ids_x, YVVI ids_control_it, YVVI ids_x_it
-    ){
-        read_end_element(istr, ids_control, ids_x, ids_control_it, ids_x_it, 1);
-    }
-    inline void read_with_block(YISS istr, YVI ids_control, YVI ids_x)
+    void read_end_element(YISS istr, YVI ids_unit, YVI ids_zero, YCU id_element);
+    inline void read_end_gate(YISS istr, YVI ids_unit, YVI ids_zero)
     {
-        YVVIv ids_control_it, ids_x_it; // not used;
-        read_end_element(istr, ids_control, ids_x, ids_control_it, ids_x_it, 2);
+        read_end_element(istr, ids_unit, ids_zero, 0);
+    }
+    inline void read_end_subcircuit(YISS istr, YVI ids_unit, YVI ids_zero)
+    {
+        read_end_element(istr, ids_unit, ids_zero, 1);
+    }
+    inline void read_with_block(YISS istr, YVI ids_unit, YVI ids_zero)
+    {
+        read_end_element(istr, ids_unit, ids_zero, 2);
     }
 
     template<class TGate>
     inline bool read_structure(YCS gate_name, YISS istr, YCB flag_inv=false)
     {
-        std::vector<int> ids_target, ids_control, ids_x;
-        YVVIv ids_control_it, ids_x_it;
+        YVIv ids_target, ids_unit, ids_zero;
         if(YMIX::compare_strings(gate_name, TGate::name_shared_, std::vector<std::string> {"X", "Y", "Z", "H"}))
         {
             qreal par_gate = nan("1");
-            read_structure_gate(istr, ids_target, par_gate, ids_control, ids_x, ids_control_it, ids_x_it);
-
-            if(ids_control_it.empty())
-            {
-                x(ids_x);
-                for(auto const& id_target: ids_target) add_sqg<TGate>(id_target, ids_control, flag_inv);
-                x(ids_x);
-            }
-            // --- iterative control nodes ---
-            else
-            {
-                x(ids_x);
-                int count_target = -1;
-                
-                for(auto const& id_target: ids_target)
-                {
-                    ++count_target;
-
-                    YVIv ids_x_it_for_one_target, ids_control_res;
-                    create_control_nodes(
-                        count_target, ids_control_it, ids_x_it, ids_control, 
-                        ids_control_res, ids_x_it_for_one_target
-                    );
-
-                    // add X gates for ocontrol and add a single-target gate
-                    x(ids_x_it_for_one_target);
-                    add_sqg<TGate>(id_target, ids_control_res, flag_inv);
-                    x(ids_x_it_for_one_target);
-                } 
-                x(ids_x);
-            }
+            read_structure_gate(istr, ids_target, par_gate, ids_unit, ids_zero);
+            for(auto const& id_target: ids_target) 
+                add_sqg<TGate>(id_target, ids_unit, ids_zero, flag_inv);
             return true;
         }
         return false;
@@ -359,41 +318,12 @@ class QCircuit{
     template<class TGate>
     inline bool read_structure(YCS gate_name, YISS istr, qreal& par_gate, YCB flag_inv=false)
     {
-        std::vector<int> ids_target, ids_control, ids_x;
-        YVVIv ids_control_it, ids_x_it;
+        YVIv ids_target, ids_unit, ids_zero;
         if(YMIX::compare_strings(gate_name, TGate::name_shared_, std::vector<std::string> {"Rx", "Ry", "Rz", "Phase"}))
         {
-            read_structure_gate(istr, ids_target, par_gate, ids_control, ids_x, ids_control_it, ids_x_it);
-            if(ids_control_it.empty())
-            {
-                x(ids_x);
-                for(auto const& id_target: ids_target) add_sq_rg<TGate>(id_target, par_gate, ids_control, flag_inv);
-                x(ids_x);
-            }
-            // --- iterative control nodes ---
-            else
-            {
-                x(ids_x);
-                int count_target = -1;
-                
-                for(auto const& id_target: ids_target)
-                {
-                    ++count_target;
-
-                    YVIv ids_x_it_for_one_target, ids_control_res;
-                    create_control_nodes(
-                        count_target, ids_control_it, ids_x_it, ids_control, 
-                        ids_control_res, ids_x_it_for_one_target
-                    );
-
-                    // add X gates for ocontrol and add a single-qubit gate with a parameter
-                    x(ids_x_it_for_one_target);
-                    add_sq_rg<TGate>(id_target, par_gate, ids_control_res, flag_inv);
-                    x(ids_x_it_for_one_target);
-                } 
-                x(ids_x);
-            }
-            
+            read_structure_gate(istr, ids_target, par_gate, ids_unit, ids_zero);
+            for(auto const& id_target: ids_target) 
+                add_sq_rg<TGate>(id_target, par_gate, ids_unit, ids_zero, flag_inv);
             return true;
         }
         return false;
@@ -402,167 +332,82 @@ class QCircuit{
     template<class TGate>
     inline bool read_structure(YCS gate_name, YISS istr, qreal& par_gate1, qreal& par_gate2, YCB flag_inv=false)
     {
-        std::vector<int> ids_target, ids_control, ids_x;
-        YVVIv ids_control_it, ids_x_it;
+        YVIv ids_target, ids_unit, ids_zero;
         if(YMIX::compare_strings(gate_name, TGate::name_shared_, std::vector<std::string> {"Rc"}))
         {
-            read_structure_gate(istr, ids_target, par_gate1, par_gate2, ids_control, ids_x, ids_control_it, ids_x_it);
-            if(ids_control_it.empty())
-            {
-                x(ids_x);
-                for(auto const& id_target: ids_target) add_sq_rg<TGate>(id_target, par_gate1, par_gate2, ids_control, flag_inv);
-                x(ids_x);
-            }
-            // --- iterative control nodes ---
-            else
-            {
-                x(ids_x);
-                int count_target = -1;
-                
-                for(auto const& id_target: ids_target)
-                {
-                    ++count_target;
-
-                    YVIv ids_x_it_for_one_target, ids_control_res;
-                    create_control_nodes(
-                        count_target, ids_control_it, ids_x_it, ids_control, 
-                        ids_control_res, ids_x_it_for_one_target
-                    );
-
-                    // add X gates for ocontrol and add a single-qubit gate with a parameter
-                    x(ids_x_it_for_one_target);
-                    add_sq_rg<TGate>(id_target, par_gate1, par_gate2, ids_control_res, flag_inv);
-                    x(ids_x_it_for_one_target);
-                } 
-                x(ids_x);
-            }
-            
+            read_structure_gate(istr, ids_target, par_gate1, par_gate2, ids_unit, ids_zero);
+            for(auto const& id_target: ids_target) 
+                add_sq_rg<TGate>(id_target, par_gate1, par_gate2, ids_unit, ids_zero, flag_inv);
             return true;
         }
         return false;
     }
 
-    inline void create_control_nodes(
-        YCI count_target, YCVVI ids_control_it, YCVVI ids_x_it, YCVI ids_control, 
-        YVI ids_control_res, YVI ids_x_it_for_one_target
-    ){
-        // take a control node from each set: one set is one "control" or "ocontrol"
-        YVIv ids_c_it_for_one_target;
-        ids_x_it_for_one_target = YVIv {};
-        for(auto const& ids_c_set: ids_control_it) 
-            ids_c_it_for_one_target.push_back(ids_c_set[count_target]);
-        for(auto const& ids_x_set: ids_x_it)
-            ids_x_it_for_one_target.push_back(ids_x_set[count_target]);
-
-        // insert iterative control nodes to other control nodes
-        ids_control_res = YVIv(ids_control);
-        ids_control_res.insert(
-            ids_control_res.end(), 
-            ids_c_it_for_one_target.begin(), 
-            ids_c_it_for_one_target.end()
-        );
-    }
 
     // add a single-qubit gate with several control gates:
     template<class TGate>
-    YQCP add_sqg(YCI t, YVIv cs = {}, YCB flag_inv=false)
+    YQCP add_sqg(YCI t, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv=false)
     {
         YSG oo = std::make_shared<TGate>(t);
-        if(flag_inv) oo->conjugate_transpose();
-
-        if(!cs.empty())
-            oo->add_control_qubits(cs);
-        gates_.push_back(oo);
-
-        if(flag_layers_) oo_layers_->add_gate(oo);
-
+        add_sq_core(oo, cs_unit, cs_zero, flag_inv);
         return get_the_circuit();
     }
 
     // add a single-qubit gate with one parameter with several control nodes: 
     template<class TGate>
-    YQCP add_sq_rg(YCI t, YCQR a, YVIv cs = {}, YCB flag_inv=false)
+    YQCP add_sq_rg(YCI t, YCQR a, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv=false)
     {
         YSG oo = std::make_shared<TGate>(t, a);
-        if(flag_inv) oo->conjugate_transpose();
-
-        if(!cs.empty())
-            oo->add_control_qubits(cs);
-        gates_.push_back(oo);
-
-        if(flag_layers_) oo_layers_->add_gate(oo);
-
+        add_sq_core(oo, cs_unit, cs_zero, flag_inv);
         return get_the_circuit();
     }
 
     // add a single-qubit gate with two parameters and with several control nodes: 
     template<class TGate>
-    YQCP add_sq_rg(YCI t, YCQR a1, YCQR a2, YVIv cs = {}, YCB flag_inv=false)
+    YQCP add_sq_rg(YCI t, YCQR a1, YCQR a2, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv=false)
     {
         YSG oo = std::make_shared<TGate>(t, a1, a2);
-        if(flag_inv) oo->conjugate_transpose();
-
-        if(!cs.empty())
-            oo->add_control_qubits(cs);
-        gates_.push_back(oo);
-
-        if(flag_layers_) oo_layers_->add_gate(oo);
-
+        add_sq_core(oo, cs_unit, cs_zero, flag_inv);
         return get_the_circuit();
     }
 
+
     /** Set Pauli X gate at \p t target qubit. 
      * @param[in] t target qubit;
-     * @param[in] cs control qubits;
+     * @param[in] cs_unit 1-control qubits;
+     * @param[in] cs_zero 0-control qubits;
      * @return pointer to the circuit.
      * */
-    inline YQCP x(YCI t, YVIv cs = {}){ return add_sqg<X__>(t, cs); }
-    YQCP x(YCVI ts, YVIv cs = {});
+    inline YQCP x(YCI t, YCVI cs_unit = {}, YCVI cs_zero = {}){ return add_sqg<X__>(t, cs_unit, cs_zero); }
+    YQCP x(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {});
 
-    /** Set Pauli Y gate at \p t target qubit. 
-     * @param[in] t target qubit;
-     * @param[in] cs control qubits;
-     * @return pointer to the circuit.
-     * */
-    inline YQCP y(YCI t, YVIv cs = {}){ return add_sqg<Y__>(t, cs); }
-    YQCP y(YCVI ts, YVIv cs = {});
+    /** Set Pauli Y gate at \p t target qubit. */
+    inline YQCP y(YCI t, YCVI cs_unit = {}, YCVI cs_zero = {}){ return add_sqg<Y__>(t, cs_unit, cs_zero); }
+    YQCP y(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {});
 
-    /** Set Hadamard gate at \p t target qubit.  
-     * @param[in] t target qubit;
-     * @param[in] cs control qubits;
-     * @return pointer to the circuit. 
-     */
-    inline YQCP h(YCI t, YVIv cs = {}){ return add_sqg<H__>(t, cs); }
-    YQCP h(YCVI ts, YVIv cs = {});
+    /** Set Hadamard gate at \p t target qubit. */
+    inline YQCP h(YCI t, YCVI cs_unit = {}, YCVI cs_zero = {}){ return add_sqg<H__>(t, cs_unit, cs_zero); }
+    YQCP h(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {});
 
-    /** Set Pauli Z gate at \p t target qubit. 
-     * @param[in] t target qubit;
-     * @param[in] cs control qubits;
-     * @return pointer to the circuit.
-     * */
-    inline YQCP z(YCI t, YVIv cs = {}){ return add_sqg<Z__>(t, cs); }
-    YQCP z(YCVI ts, YVIv cs = {});
+    /** Set Pauli Z gate at \p t target qubit. */
+    inline YQCP z(YCI t, YCVI cs_unit = {}, YCVI cs_zero = {}){ return add_sqg<Z__>(t, cs_unit, cs_zero); }
+    YQCP z(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {});
 
     /** Set a Rx-rotation gate.   
      * @param[in] t target qubit;
      * @param[in] a angle to rotate on;
      * @return pointer to the circuit.
      * */
-    inline YQCP rx(YCI t, YCQR a, YVIv cs = {}, YCB flag_inv = false){ return add_sq_rg<Rx__>(t, a, cs, flag_inv); }
+    inline YQCP rx(YCI t, YCQR a, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false)
+    { return add_sq_rg<Rx__>(t, a, cs_unit, cs_zero, flag_inv); }
 
-    /** Set a Ry-rotation gate.   
-     * @param[in] t target qubit;
-     * @param[in] a angle to rotate on;
-     * @return pointer to the circuit.
-     * */
-    inline YQCP ry(YCI t, YCQR a, YVIv cs = {}, YCB flag_inv = false){ return add_sq_rg<Ry__>(t, a, cs, flag_inv); }
+    /** Set a Ry-rotation gate. */
+    inline YQCP ry(YCI t, YCQR a, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false)
+    { return add_sq_rg<Ry__>(t, a, cs_unit, cs_zero, flag_inv); }
 
-    /** Set a Rz-rotation gate.   
-     * @param[in] t target qubit;
-     * @param[in] a angle to rotate on;
-     * @return pointer to the circuit.
-     * */
-    inline YQCP rz(YCI t, YCQR a, YVIv cs = {}, YCB flag_inv = false){ return add_sq_rg<Rz__>(t, a, cs, flag_inv); }
+    /** Set a Rz-rotation gate. */
+    inline YQCP rz(YCI t, YCQR a, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false)
+    { return add_sq_rg<Rz__>(t, a, cs_unit, cs_zero, flag_inv); }
 
     /** Set the Rc-rotation gate: Ry(ay).Rz(az)   
      * @param[in] t target qubit;
@@ -570,39 +415,34 @@ class QCircuit{
      * @param[in] ay angle of the Ry-rotation;
      * @return pointer to the circuit.
      * */
-    inline YQCP rc(YCI t, YCQR az, YCQR ay, YVIv cs = {}, YCB flag_inv = false){ return add_sq_rg<Rc__>(t, az, ay, cs, flag_inv); }
+    inline YQCP rc(YCI t, YCQR az, YCQR ay, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false)
+    { return add_sq_rg<Rc__>(t, az, ay, cs_unit, cs_zero, flag_inv); }
 
     /** Set a phase shift gate.   
      * @param[in] t target qubit;
      * @param[in] a shift angle;
      * @return pointer to the circuit.
      * */
-    inline YQCP phase(YCI t, YCQR a, YVIv cs = {}, YCB flag_inv = false){ return add_sq_rg<Phase__>(t, a, cs, flag_inv); }
-
-    /**
-     * @brief Add a CNOT gate.
-     * @param[in] c control qubit;
-     * @param[in] t target qubit.
-     */
-    inline YQCP cnot(YCI c, YCI t){ return x(t, YVIv {c}); }
+    inline YQCP phase(YCI t, YCQR a, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false)
+    { return add_sq_rg<Phase__>(t, a, cs_unit, cs_zero, flag_inv); }
 
     /** @brief integer encoded to \p ts is incremented */
-    YQCP adder_1(YCVI ts, YCVI cs= {}, YCB flag_inv= false);
+    YQCP adder_1(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv= false);
 
     /** @brief integer encoded to \p ts + 2 */
-    YQCP adder_2(YCVI ts, YCVI cs= {}, YCB flag_inv= false);
+    YQCP adder_2(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv= false);
 
     /** @brief integer encoded to \p ts + 3 */
-    YQCP adder_3(YCVI ts, YCVI cs= {}, YCB flag_inv= false);
+    YQCP adder_3(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv= false);
 
     /** @brief integer encoded to \p ts is decremented */
-    YQCP subtractor_1(YCVI ts, YCVI cs = {}, YCB flag_inv= false);
+    YQCP subtractor_1(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv= false);
 
     /** @brief integer encoded to \p ts -2 */
-    YQCP subtractor_2(YCVI ts, YCVI cs= {}, YCB flag_inv= false);
+    YQCP subtractor_2(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv= false);
 
     /** @brief integer encoded to \p ts -3 */
-    YQCP subtractor_3(YCVI ts, YCVI cs= {}, YCB flag_inv= false);
+    YQCP subtractor_3(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv= false);
 
     /** @brief addition of two variables (v1 and v2) encoded to the registers \p ts1 and \p ts2;
      * the three registers, \p ts1, \p ts2 and \p ts3, must be of the same size;
@@ -613,7 +453,8 @@ class QCircuit{
      */
     YQCP adder(
         YCVI ts1, YCVI ts2, YCVI ts3, 
-        YCVI cs = {}, YCB flag_inv = false, YCB flag_box = false
+        YCVI cs_unit = {}, YCVI cs_zero = {},
+        YCB flag_inv = false, YCB flag_box = false
     );
 
 
@@ -626,7 +467,8 @@ class QCircuit{
      */
     YQCP subtractor(
         YCVI ts1, YCVI ts2, YCVI ts3, 
-        YCVI cs = {}, YCB flag_inv = false
+        YCVI cs_unit = {}, YCVI cs_zero = {},
+        YCB flag_inv = false
     );
 
 
@@ -637,7 +479,8 @@ class QCircuit{
      */
     YQCP adder_qft(
         YCVI qs_v1, YCVI qs_v2, YCI q_carry, 
-        YCVI cs = {}, YCB flag_inv = false, YCB flag_box = false
+        YCVI cs_unit = {}, YCVI cs_zero = {},
+        YCB flag_inv = false, YCB flag_box = false
     );
 
 
@@ -648,7 +491,8 @@ class QCircuit{
      */
     YQCP subtractor_qft(
         YCVI qs_v1, YCVI qs_v2, YCI q_sign, 
-        YCVI cs = {}, YCB flag_inv = false, YCB flag_box = false
+        YCVI cs_unit = {}, YCVI cs_zero = {},
+        YCB flag_inv = false, YCB flag_box = false
     );
 
 
@@ -660,7 +504,8 @@ class QCircuit{
      */
     YQCP adder_fixed(
         YCVI ids_target, YCI id_carry, YCU int_sub, 
-        YCVI cs = {}, YCB flag_inv = false, YCB flag_box = false
+        YCVI cs_unit = {}, YCVI cs_zero = {},
+        YCB flag_inv = false, YCB flag_box = false
     );
 
 
@@ -673,7 +518,8 @@ class QCircuit{
      */
     YQCP subtractor_fixed(
         YCVI ids_target, YCI id_carry, YCU int_sub, 
-        YCVI cs = {}, YCB flag_inv = false
+        YCVI cs_unit = {}, YCVI cs_zero = {},
+        YCB flag_inv = false
     );
 
 
@@ -686,18 +532,17 @@ class QCircuit{
      */
     YQCP comparator_fixed(
         YCVI ids_target, YCVI ids_carry, YCU int_sub, 
-        YCVI cs = {}, YCB flag_inv = false
+        YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false
     );
 
 
     /** @brief Add a swap operator between qubits \p t1 and \p t2. */
-    YQCP swap(YCI t1, YCI t2, YVIv cs = {});
+    YQCP swap(YCI t1, YCI t2, YCVI cs_unit = {}, YCVI cs_zero = {});
 
-    /** @brief Quantum Fourier circuit placed to the qubits \p ts and
-     *         controlled by the qubits \p cs;
+    /** @brief Quantum Fourier circuit placed to the qubits \p ts;
      * @param flag_box if true, draw the operator as a box, not as a circuit;
      */
-    YQCP quantum_fourier(YCVI ts, YCVI cs = {}, YCB flag_inv = false, YCB flag_box = false);
+    YQCP quantum_fourier(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false, YCB flag_box = false);
 
     /** @brief Create sin(x), where x_j = alpha_0 + j*dx, j = [0, Nx-1], Nx = 2^size(\p conds),
      * dx = 2*alpha / Nx.
@@ -711,7 +556,7 @@ class QCircuit{
         YCVI conds, 
         YCQR alpha_0, 
         YCQR alpha, 
-        YCVI cs = {}, 
+        YCVI cs_unit = {}, YCVI cs_zero = {}, 
         YCB flag_inv = false, 
         YCB flag_box = false
     );
@@ -721,7 +566,6 @@ class QCircuit{
      *         which sits on the qubits \p ta.
      *         The eigenstate of the circuit is prepared by the operator \p INIT.
      *         The final estimation is written to the qubits \p ty.
-     *         The whole PE operator can be controlled by the qubits \p cs. 
      * @param flag_box if true, draw the operator as a box, not as a circuit;
      */ 
     YQCP phase_estimation(
@@ -729,7 +573,7 @@ class QCircuit{
         const std::shared_ptr<const QCircuit>& A, 
         const std::shared_ptr<const QCircuit>& INIT,
         YCVI ty, 
-        YCVI cs = {}, 
+        YCVI cs_unit = {}, YCVI cs_zero = {}, 
         YCB flag_inv = false,
         YCB flag_box = false
     );
@@ -737,7 +581,6 @@ class QCircuit{
 
     /** @brief QSVT inversion of the matrix encoded by the oracle \p BE, which sits on qubits \p qs_be.
      * The QSVT single rotations are placed at the qubit \p a_qsvt.
-     * The whole QSVT circuit is controlled by the qubits \p cs.
      * @param flag_box if true, draw the operator as a box, not as a circuit;
      */
     YQCP qsvt_def_parity(
@@ -745,7 +588,7 @@ class QCircuit{
         YCI a_qsvt,
         YCVI qs_be, 
         const std::shared_ptr<const QCircuit> BE,
-        YCVI cs = {}, 
+        YCVI cs_unit = {}, YCVI cs_zero = {}, 
         YCB flag_inv = false,
         YCB flag_box = false
     );
@@ -777,13 +620,6 @@ class QCircuit{
      */
     void get_state(YMIX::StateVectorOut& out, YCB flag_ZeroHighPriorAnc = false);
 
-    /**
-     * @brief Make the entire circuit controlled by qubit cs.
-     * @param cs new controlled qubits of the circuit.
-     */
-    void controlled(YCVI cs);
-    void controlled(YCI c);
-
     inline std::string get_name() const { return name_; }
 
     /**
@@ -807,6 +643,17 @@ class QCircuit{
 private:
     qreal get_value_from_word(YCS word);
     void  qsvt_read_parameters(YCS filename, QSVT_pars& data);
+
+
+    inline void add_sq_core(YSG& oo, YCVI cs_unit, YCVI cs_zero, YCB flag_inv)
+    {
+        if(flag_inv) 
+            oo->conjugate_transpose();
+        oo->add_control_qubits(cs_unit, cs_zero);
+        gates_.push_back(oo);
+        if(flag_layers_) 
+            oo_layers_->add_gate(oo);
+    }
     
 
     inline void get_id_qu_pattern(int& id_qu, YCS word, YCI nq_reg)
@@ -892,11 +739,11 @@ private:
     // names of unique gates:
     std::vector<std::string> unique_gates_names_;
 
-    // blocks with global qubits for zero- and unit-control:
-    std::vector<YVIv> blocks_ids_control_;
+    // blocks with global qubits for unit-control:
+    std::vector<YVIv> blocks_ids_unit_;
 
     // blocks with global qubits for the zero-control:
-    std::vector<YVIv> blocks_ids_x_;
+    std::vector<YVIv> blocks_ids_zero_;
 };
 
 

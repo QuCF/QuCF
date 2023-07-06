@@ -31,8 +31,8 @@ class Gate__
             tex_name_ = oo.tex_name_;
             
             ts_ = YVIv(oo.ts_);
-            cs_ = YVIv(oo.cs_);
-            conds_ = YVIv(oo.conds_);
+            cs_unit_ = YVIv(oo.cs_unit_);
+            cs_zero_ = YVIv(oo.cs_zero_);
 
             copy_matrix2(oo.u2_, this->u2_);
             if(oo.un_a_ != nullptr)
@@ -56,36 +56,53 @@ class Gate__
         virtual void generate(Qureg& oc){};
         virtual void write_to_file(YMIX::File& cf){ write_to_file_base(cf); };
 
-        /**
-         * @brief Add control qubits to the gate.
-         * @param[in] reg_control control qubits to add.
-         */
-        inline void add_control_qubits(YCVI reg_control)
+
+        inline void check_control_nodes(YCVI control_qubits)
         {
-            for(auto const& new_c: reg_control)
+            for(auto const& new_c: control_qubits)
             {
-                auto it = find(cs_.begin(), cs_.end(), new_c);
-                if (it != cs_.end())
+                auto it_unit = find(cs_unit_.begin(), cs_unit_.end(), new_c);
+                auto it_zero = find(cs_zero_.begin(), cs_zero_.end(), new_c);
+                if (it_unit != cs_unit_.end())
                 {
                     std::ostringstream sstr;
-                    sstr << "The gate " << name_ << " is already controlled by the qubit [" << new_c << "]";
+                    sstr << "The gate " << name_ << " is already unit-controlled by the qubit [" << new_c << "]";
+                    throw sstr.str();
+                }
+                if (it_zero != cs_zero_.end())
+                {
+                    std::ostringstream sstr;
+                    sstr << "The gate " << name_ << " is already zero-controlled by the qubit [" << new_c << "]";
                     throw sstr.str();
                 }
             } 
-            copy(reg_control.begin(), reg_control.end(), back_inserter(cs_));
         }
-        inline void add_control_qubits(YCI c)
+
+
+        /**
+         * @brief Add control qubits to the gate.
+         * @param[in] unit_control_qubits 1-control nodes to add.
+         * @param[in] zero_control_qubits 0-control nodes to add.
+         */
+        inline void add_control_qubits(YCVI unit_control_qubits, YCVI zero_control_qubits = {})
         {
-            cs_.push_back(c);
+            // unit-control nodes:
+            check_control_nodes(unit_control_qubits);
+            copy(unit_control_qubits.begin(), unit_control_qubits.end(), back_inserter(cs_unit_));
+
+            // zero-control nodes:
+            check_control_nodes(zero_control_qubits);
+            copy(zero_control_qubits.begin(), zero_control_qubits.end(), back_inserter(cs_zero_));
         }
 
         inline std::string get_name(){ return name_; }
 
         /**
-         * @brief E.g. the gate has target qubit [1] and control qubits [2,0].
-         * If new_pos = [3,2,1], then the target qubit is shifted as 1 -> 2,
-         * the control qubits are shifted as 2 -> 1, 0 -> 3.
-         * @param[in] new_pos new positions of target/control/conditional qubits. 
+         * @brief new_pos[id-qubit-position] = id-qubit-new-position
+         * E.g., assume a circuit has 3 qubits with indices 0,1,2.
+         * If @param new_pos = [4,8,6], then new qubit positions are:
+         * 0-> 4, 1->8, 2->6 (only possible if the niew circuit has al least 8+1 qubits).
+         * @param[in] new_pos new positions of qubits. 
          */
         void correct_qubits(YCVI new_pos);
 
@@ -95,10 +112,10 @@ class Gate__
         void get_gubits_act_on(YVI ids_qubit_act_on)
         {
             ids_qubit_act_on = YVIv(ts_);
-            if(!cs_.empty())
-                ids_qubit_act_on.insert(ids_qubit_act_on.end(), cs_.begin(), cs_.end());
-            if(!conds_.empty())
-                ids_qubit_act_on.insert(ids_qubit_act_on.end(), conds_.begin(), conds_.end());
+            if(!cs_unit_.empty())
+                ids_qubit_act_on.insert(ids_qubit_act_on.end(), cs_unit_.begin(), cs_unit_.end());
+            if(!cs_zero_.empty())
+                ids_qubit_act_on.insert(ids_qubit_act_on.end(), cs_zero_.begin(), cs_zero_.end());
         }
 
         void set_layer(const int64_t& id_layer){ id_layer_ = id_layer; }
@@ -110,7 +127,8 @@ class Gate__
         inline bool get_flag_conj(){ return flag_conj_; }
 
         void get_target_qubits(YVI ids_t){ ids_t = YVIv(ts_); }
-        void get_control_qubits(YVI ids_c){ ids_c = YVIv(cs_); }
+        void get_unit_control_qubits(YVI ids_c){ ids_c = YVIv(cs_unit_); }
+        void get_zero_control_qubits(YVI ids_c){ ids_c = YVIv(cs_zero_); }
 
         virtual void write_tex(
             std::vector<std::vector<std::string>>& tex_lines, 
@@ -131,10 +149,13 @@ class Gate__
             }    
         }
 
+        /**
+         * Set a multi-controlled unitary in the QuEST circuit.
+        */
         inline
-        void mc_st_u(Qureg& oc, YVI cs, YCI t, const ComplexMatrix2& u)
+        void mc_st_u(Qureg& oc, YCI t, YVI cs_unit, YVI cs_zero, const ComplexMatrix2& u)
         {
-            multiControlledUnitary(oc, &cs[0], cs.size(), t, u);
+            multiMixControlledUnitary(oc, &cs_unit[0], cs_unit.size(), t, u, &cs_zero[0], cs_zero.size());
         }
 
         inline
@@ -167,8 +188,12 @@ class Gate__
             for(auto& x: ts_)
                 cf << x << " ";
 
-            cf << "controls " << cs_.size() << " ";
-            for(auto& x: cs_)
+            cf << "controls " << cs_unit_.size() << " ";
+            for(auto& x: cs_unit_)
+                cf << x << " ";
+
+            cf << "ocontrols " << cs_zero_.size() << " ";
+            for(auto& x: cs_zero_)
                 cf << x << " ";
 
             cf << "pars " << pars_.size() << " ";
@@ -235,10 +260,15 @@ class Gate__
             YCI id_top_q
         ){
             std::string l_c_dir;
-            for(auto const& id_cq: cs_)
+            for(auto const& id_cq: cs_unit_)
             {
                 l_c_dir = std::to_string(id_cq - id_top_q);
                 tex_lines[nq - id_cq - 1][id_layer] = "&\\ctrl{" + l_c_dir + "}";
+            }
+            for(auto const& id_cq: cs_zero_)
+            {
+                l_c_dir = std::to_string(id_cq - id_top_q);
+                tex_lines[nq - id_cq - 1][id_layer] = "&\\octrl{" + l_c_dir + "}";
             }
         }
 
@@ -255,8 +285,8 @@ class Gate__
         std::string tex_name_;// gate name as it is shown in the. tex file;
 
         YVIv ts_; // target qubits;
-        YVIv cs_; // control qubits;
-        YVIv conds_; // condition qubits;
+        YVIv cs_unit_; // control qubits;
+        YVIv cs_zero_; // zero-control qubits;
 
         ComplexMatrix2 u2_; // matrix for a single-target gate;
         YVQv pars_; // parameters of the gate (e.g. angles);
@@ -290,11 +320,12 @@ public:
 class Box__ : public Gate__
 {
     public:
-        Box__(YCS name, YCVI ts, YCVI cs, YCS tex_name="") : Gate__(name)
+        Box__(YCS name, YCVI ts, YCVI cs_unit = YVIv{}, YCVI cs_zero = YVIv{}, YCS tex_name="") : Gate__(name)
         {
             type_ = "box";
             ts_ = ts;
-            cs_ = cs;
+            cs_unit_ = cs_unit;
+            cs_zero_ = cs_zero;
 
             if(!tex_name.empty())
                 tex_name_ = tex_name;
@@ -345,10 +376,10 @@ class X__ : public SQGate__
 
         void generate(Qureg& oc) 
         { 
-            if(cs_.empty())
+            if(cs_unit_.empty() && cs_zero_.empty())
                 pauliX(oc, ts_[0]);
             else
-                mc_st_u(oc, cs_, ts_[0], u2_); 
+                mc_st_u(oc, ts_[0], cs_unit_, cs_zero_, u2_); 
         }
 
         void conjugate_transpose(){}
@@ -363,9 +394,8 @@ class X__ : public SQGate__
             // gate the most-signficant target qubit:
             auto id_top_q = get_most_signif_target_qubit();
 
-            // combine the gate information:
-
-            if(cs_.size() > 0)
+            // gate keyword:
+            if(cs_unit_.size() > 0 || cs_zero_.size() > 0)
                 tex_lines[nq - id_top_q - 1][id_layer] = "&\\targ{}";
             else
                 tex_lines[nq - id_top_q - 1][id_layer] = "&\\gate{X}";
@@ -388,10 +418,10 @@ class Y__ : public SQGate__
 
         void generate(Qureg& oc) 
         { 
-            if(cs_.empty())
+            if(cs_unit_.empty() && cs_zero_.empty())
                 pauliY(oc, ts_[0]);
             else
-                mc_st_u(oc, cs_, ts_[0], u2_); 
+                mc_st_u(oc, ts_[0], cs_unit_, cs_zero_, u2_); 
         }
 
         void conjugate_transpose(){}
@@ -410,10 +440,10 @@ class Z__ : public SQGate__
 
         void generate(Qureg& oc) 
         { 
-            if(cs_.empty())
+            if(cs_unit_.empty() && cs_zero_.empty())
                 pauliZ(oc, ts_[0]);
             else
-                mc_st_u(oc, cs_, ts_[0], u2_); 
+                mc_st_u(oc, ts_[0], cs_unit_, cs_zero_, u2_); 
         }
 
         void conjugate_transpose(){}
@@ -432,10 +462,10 @@ class H__ : public SQGate__
 
         void generate(Qureg& oc) 
         { 
-            if(cs_.empty())
+            if(cs_unit_.empty() && cs_zero_.empty())
                 hadamard(oc, ts_[0]); 
             else 
-                mc_st_u(oc, cs_, ts_[0], u2_);
+                mc_st_u(oc, ts_[0], cs_unit_, cs_zero_, u2_);
         }
 
         void conjugate_transpose(){}
@@ -445,17 +475,17 @@ class H__ : public SQGate__
 };
 
 
-class sR__ : public SQGate__
+class sR__ : public SQGate__ // single-angle rotation
 {
     public:
         sR__(YCS name, YCI t, YCQR a) : SQGate__(name, t){ pars_.push_back(a); }
         YSG copy_gate() const { return std::make_shared<sR__>(*this); };
         void generate(Qureg& oc) 
         { 
-            if(cs_.empty())
+            if(cs_unit_.empty() && cs_zero_.empty())
                 unitary(oc, ts_[0], u2_); // take a general unitary function since the u2_ can be inversed;
             else 
-                mc_st_u(oc, cs_, ts_[0], u2_);
+                mc_st_u(oc, ts_[0], cs_unit_, cs_zero_, u2_);
         }
 };
 
