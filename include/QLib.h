@@ -2,7 +2,7 @@
 #define QLIB_H
 
 
-#include "../external/QuEST/QuEST/include/QuEST.h"
+#include "../submodules/QuEST/QuEST/include/QuEST.h"
 // #include "QuEST.h"
 
 #include <sstream>
