@@ -1,0 +1,58 @@
+CONSTANTS
+	nx  3
+	int_add1 4
+	int_add2 2
+END_CONSTANTS
+
+
+OPTIONS
+	sel_compute_output all  // none, all, zero-ancillae
+	sel_print_output   all // none, all, zero-ancillae
+	flag_circuit 0
+	flag_tex     1
+	tex_CL  16 
+
+	flag_matrix 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	U   3 y 4 1 w 2 0 x <nx> 0 
+END_CIRCUITS_DECLARATION
+
+
+
+MAIN_CIRCUIT   U       
+	INPUT_STATE  2 y 1  x 1  
+	INPUT_STATE  2 y 10 x 2
+	INPUT_STATE  2 y 1  x 4 
+END_MAIN_CIRCUIT
+
+CIRCUIT_STRUCTURE U
+	gate SubtractorFixed y -1 <int_add1> w[0] control x 1  end_gate
+	gate SubtractorFixed y -1 <int_add2> w[0] control x 2  end_gate
+
+	gate SubtractorFixed y -1 <int_add2> w[0] control x 4  end_gate
+	gate AdderFixed      y -1 <int_add2> w[0] control x 4  end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

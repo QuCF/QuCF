@@ -303,6 +303,8 @@ void CircuitTool__::launch()
         YMIX::YTimer timer;
         YMIX::StateVectorOut outF;
 
+        oc_to_launch_->allocate_circuit();
+
         // --- For consistency, store the initial state, which is always  |000..00> ---
         if(flag_hdf5_)
         {

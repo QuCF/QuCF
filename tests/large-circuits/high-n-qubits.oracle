@@ -1,0 +1,65 @@
+// /media/work/docs/codes/QuCF/QuCF/build_test_qucf/QuCF test ./ 
+
+CONSTANTS
+	nx  28
+END_CONSTANTS
+
+
+OPTIONS
+	sel_compute_output all  // none, all, zero-ancillae
+	sel_print_output   all // none, all, zero-ancillae
+	flag_circuit 0
+	flag_tex     1
+	tex_CL  16 
+
+	flag_matrix 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+    U1 1 r <nx> 0 
+	U2 1 r <nx> 0 
+	U  1 r <nx> 0 
+END_CIRCUITS_DECLARATION
+
+
+
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0  
+END_MAIN_CIRCUIT
+
+CIRCUIT_STRUCTURE U1
+	gate X r -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+CIRCUIT_STRUCTURE U2
+	gate H r 1   end_gate
+	gate H r[-1] end_gate
+END_CIRCUIT_STRUCTURE
+
+CIRCUIT_STRUCTURE U
+	circuit U1 -1 end_circuit 
+	circuit U2 -1 end_circuit
+	gate X r[1] end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

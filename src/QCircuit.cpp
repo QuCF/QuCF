@@ -48,7 +48,8 @@ void QCircuit::create(YCU nq)
     }
 
     nq_ = nq;
-    c_ = createQureg(nq_, env_);
+    flag_circuit_allocated_ = false;
+    // c_ = createQureg(nq_, env_);
 
     tex_noc_.resize(nq_, 1);
     tex_lines_.resize(nq_);
@@ -56,9 +57,16 @@ void QCircuit::create(YCU nq)
 
     create_circ_file();
     create_tex_file();
-    initZeroState(c_);
+    // initZeroState(c_);
 
     if(flag_layers_) oo_layers_ = make_shared<CircuitLayers__>(nq_);
+}
+
+void QCircuit::allocate_circuit()
+{
+    c_ = createQureg(nq_, env_);
+    // initZeroState(c_);
+    flag_circuit_allocated_ = true;
 }
 
 
@@ -72,8 +80,9 @@ QCircuit::QCircuit(YCCQ oc, YCS cname)
         name_ = cname;
     env_ = oc->env_;
     nq_ = oc->nq_;
-    c_ = createQureg(nq_, env_);
-    initZeroState(c_);
+    flag_circuit_allocated_ = false;
+    // c_ = createQureg(nq_, env_);
+    // initZeroState(c_);
 
     path_to_output_ = oc->path_to_output_;
     init_state_     = oc->init_state_;
@@ -114,7 +123,8 @@ QCircuit::QCircuit(YCCQ oc, YCS cname)
 QCircuit::~QCircuit()
 {
     finish_tex_file();
-    destroyQureg(c_, env_);
+    if(flag_circuit_allocated_)
+        destroyQureg(c_, env_);
     timer_.Stop();
     if(env_.rank == 0)
     {
@@ -257,8 +267,10 @@ void QCircuit::finish_tex_file()
 
 void QCircuit::generate()
 {
-    YMIX::YTimer timer;
+    if(!flag_circuit_allocated_)
+        throw string("The circuit [" + name_ + "] is not allocated in memory.");
 
+    YMIX::YTimer timer;
     auto start = gates_.begin() + id_start_;
     for(auto it = start; it != gates_.end(); ++it)
     {
@@ -270,6 +282,9 @@ void QCircuit::generate()
 
 void QCircuit::generate(string& stop_name, int& id_current)
 {
+    if(!flag_circuit_allocated_)
+        throw string("The circuit [" + name_ + "] is not allocated in memory.");
+
     auto start  = gates_.begin() + id_start_;
     auto it_end = gates_.end();
     stop_name = name_;
@@ -463,8 +478,6 @@ void QCircuit::insert_gates_from(const QCircuit* c, YCCB box)
 
 YVIv QCircuit::add_register(YCS name, YCU n_qubits, YCB flag_ancilla)
 {
-    int nq_tot = c_.numQubitsRepresented;
-
     unsigned shift = 0;
     for(auto const& reg_name: regnames_)
         shift += regs_[reg_name].size();
@@ -475,7 +488,7 @@ YVIv QCircuit::add_register(YCS name, YCU n_qubits, YCB flag_ancilla)
     // the last qubit is the most significant:
     YVIv qubits_positions(n_qubits);
     for(unsigned i = 0; i < n_qubits; ++i)
-        qubits_positions[i] = nq_tot - shift - n_qubits + i; // YINV
+        qubits_positions[i] = nq_ - shift - n_qubits + i; // YINV
 
     regs_[name] = qubits_positions;
 
@@ -601,6 +614,8 @@ void QCircuit::empty_binary_states()
 }
 void QCircuit::prepare_zero_init_state()
 {
+    if(!flag_circuit_allocated_)
+        throw string("The circuit [" + name_ + "] is not allocated in memory.");
     initZeroState(c_);
 }
 void QCircuit::reset()
@@ -611,32 +626,40 @@ void QCircuit::reset()
     blocks_ids_unit_.clear();
     blocks_ids_zero_.clear();
 
-    destroyQureg(c_, env_);
-    c_ = createQureg(nq_, env_);
-
-    if(init_state_.flag_defined)
-        reset_init_vector(init_state_);
-    else{
-        if(!ib_state_.empty())
-            set_init_binary_state();
+    if(flag_circuit_allocated_)
+    {
+        destroyQureg(c_, env_);
+        c_ = createQureg(nq_, env_);
+        if(init_state_.flag_defined)
+            reset_init_vector(init_state_);
+        else{
+            if(!ib_state_.empty())
+                set_init_binary_state();
+        }
     }
     unique_gates_names_.clear();
 }
 void QCircuit::reset_qureg()
 {
     id_start_ = 0;
-    destroyQureg(c_, env_);
-    c_ = createQureg(nq_, env_);
+    if(flag_circuit_allocated_)
+    {
+        destroyQureg(c_, env_);
+        allocate_circuit();
+    } 
+    else
+        allocate_circuit();
 }
 
 void QCircuit::set_init_binary_state(const bool& flag_mpi_bcast)
 {
+    if(!flag_circuit_allocated_)
+        throw string("The circuit [" + name_ + "] is not allocated in memory.");
     if(flag_mpi_bcast)
     {
-        int nq = c_.numQubitsRepresented;
         if(env_.rank > 0)
             if(ib_state_.empty())
-                ib_state_ = vector<short>(nq);
+                ib_state_ = vector<short>(nq_);
     }
     long long int ii = YMATH::binaryToInt(ib_state_);
     initClassicalState(c_, ii);
@@ -764,6 +787,8 @@ YQCP QCircuit::h(YCVI ts, YCVI cs_unit, YCVI cs_zero)
 
 void QCircuit::get_ref_to_state_vector(qreal*& state_real, qreal*& state_imag)
 {
+    if(!flag_circuit_allocated_)
+        throw string("The circuit [" + name_ + "] is not allocated in memory.");
     copyStateFromGPU(c_);
     state_real = c_.stateVec.real;
     state_imag = c_.stateVec.imag;
@@ -772,6 +797,8 @@ void QCircuit::get_ref_to_state_vector(qreal*& state_real, qreal*& state_imag)
 
 void QCircuit::get_state(YMIX::StateVectorOut& out, YCB flag_ZeroPriorAnc)
 {
+    if(!flag_circuit_allocated_)
+        throw string("The circuit [" + name_ + "] is not allocated in memory.");
     out.n_low_prior_qubits = flag_ZeroPriorAnc ? (nq_ - ancs_.size()): nq_;
     out.organize_state = get_standart_output_format();
     YMIX::Wavefunction_NonzeroProbability(c_, out);
@@ -1622,7 +1649,7 @@ YQCP QCircuit::adder(YCVI ts1, YCVI ts2, YCVI ts3, YCVI cs_unit, YCVI cs_zero, Y
     // --- copy the adder circuit to the current circuit ---
     auto box = YSB(nullptr);
     if(flag_box)
-        box = YMBo("ADD", ts_total, cs_unit, cs_zero, oracle_name_tex);
+        box = YMBo("ADD", ts_total, YVIv{}, YVIv{}, oracle_name_tex);
     copy_gates_from(
         oc_adder,
         ts_total,
@@ -1695,7 +1722,7 @@ YQCP QCircuit::adder_qft(
 
     auto box = YSB(nullptr);
     if(flag_box)
-        box = YMBo("ADDFIXED", ts_total, cs_unit, cs_zero, oracle_name_tex);
+        box = YMBo("ADDFIXED", ts_total, YVIv{}, YVIv{}, oracle_name_tex);
     copy_gates_from(
         oc_adder,
         ts_total,
@@ -1767,7 +1794,7 @@ YQCP QCircuit::adder_fixed(
 
     auto box = YSB(nullptr);
     if(flag_box)
-        box = YMBo("ADDFIXED", ts_total, cs_unit, cs_zero, oracle_name_tex);
+        box = YMBo("ADDFIXED", ts_total, YVIv{}, YVIv{}, oracle_name_tex);
     copy_gates_from(
         oc_adder,
         ts_total,
@@ -1854,7 +1881,7 @@ YQCP QCircuit::quantum_fourier(YCVI ts, YCVI cs_unit, YCVI cs_zero, YCB flag_inv
     // --- copy Fourier env. circuit to the current circuit ---
     auto box = YSB(nullptr);
     if(flag_box)
-        box = YMBo("F", ts, cs_unit, cs_zero, fourier_name_tex);
+        box = YMBo("F", ts, YVIv{}, YVIv{}, fourier_name_tex);
     copy_gates_from(
         oc_fourier,
         ts,
@@ -1909,7 +1936,7 @@ YQCP QCircuit::gate_sin(
     // --- copy the env. circuit to the current circuit ---
     auto box = YSB(nullptr);
     if(flag_box)
-        box = YMBo("SIN", qubits_tot, cs_unit, cs_zero, name_tex);
+        box = YMBo("SIN", qubits_tot, YVIv{}, YVIv{}, name_tex);
     copy_gates_from(
         oc_sin,
         qubits_tot,
@@ -2006,7 +2033,7 @@ YQCP QCircuit::phase_estimation(
 
     auto box = YSB(nullptr);
     if(flag_box)
-        box = YMBo("PE", circ_qubits, cs_unit, cs_zero, pe_name_tex);
+        box = YMBo("PE", circ_qubits, YVIv{}, YVIv{}, pe_name_tex);
     copy_gates_from(
         oc_pe,
         circ_qubits,
@@ -2041,7 +2068,7 @@ qreal QCircuit::get_value_from_word(YCS word)
 
 void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
 {
-    string filename = gate_name + FORMAT_QSP;
+    string filename = path_to_output_ + "/" + gate_name + FORMAT_QSP;
     ifstream ff_qsvt(filename);
     if(!ff_qsvt.is_open()) throw "Error: there is not the file: "s + filename;
 
@@ -2082,7 +2109,7 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
     YMIX::print_log("\nRead angles from the file: "s + data.filename_angles);
 
     YMIX::H5File ff;
-    ff.set_name(data.filename_angles);
+    ff.set_name(path_to_output_ + "/" + data.filename_angles);
     ff.open_r();
     ff.read_scalar(data.type, "polynomial_type", "basic");
     ff.read_scalar(data.eps_qsvt, "eps", "basic");

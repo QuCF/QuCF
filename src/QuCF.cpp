@@ -276,6 +276,8 @@ void QuCF__::read_circuit_declaration(YISS istr)
             else
             {
                 // cout << "HERE 2: circuit [" << circ_name << "]: " << flag_tex_ << endl;
+
+                // at this moment, circuits are NOT allocated in memory:
                 ocs_[circ_name] = make_shared<QCircuit>(
                     circ_name, env_, path_inputs_, nq_circ, 
                     constants_,
@@ -904,7 +906,7 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
             YMIX::print_log( "Calculating the probabilities... \n", 0, false, false);
             calcProbOfAllOutcomes(
                 &outProbs[0], 
-                oc_to_launch_->get_qureg(), 
+                u_work->get_qureg(), 
                 &focus_qubits_[0],
                 focus_qubits_.size()
             );

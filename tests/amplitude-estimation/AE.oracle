@@ -1,0 +1,105 @@
+// ../../../framework/build_oracle/oracletool GaussAE ./ 
+
+CONSTANTS
+	nx 		6       // describes half of the spatial domain;
+	Nx_half 	64
+	Nx_red 		63
+	Nx_qu 		32
+	nx_full 	7
+	alpha_0 	-1.00000000000000e+00
+	alpha 		1.01587301587302e+00
+
+	ny  6
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  10 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	INIT     1  						                    j    <nx_full> 0
+	U_BE     2  						           a_be 1 1 jred <nx>      0  // block-encoding oracle;
+	U_GAUSS  3  						a_qsvt 1 1 a_be 1 1 j    <nx_full> 0  // Gauss QSVT circuit;
+	PREP     5  		 m 1 1 sum 2 1  a_qsvt 1 1 a_be 1 1 j    <nx_full> 0  // Preparation circuit;
+	AA       5  		 m 1 1 sum 2 1  a_qsvt 1 1 a_be 1 1 j    <nx_full> 0  // Amplitude-Amplification circuit;
+	U_AE     6  y <ny> 1 m 1 1 sum 2 1  a_qsvt 1 1 a_be 1 1 j    <nx_full> 0  // AE circuit;
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   
+    U_AE        
+	INPUT_STATE  0
+	compute_prob    1   y -1
+END_MAIN_CIRCUIT
+
+
+// --- Initialization ---
+CIRCUIT_STRUCTURE INIT
+	gate H   j -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Block-Encoding oracle ---
+CIRCUIT_STRUCTURE U_BE
+	gate SIN a_be 1 <alpha_0> <alpha> jred -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U_GAUSS
+	circuit INIT   j -1          end_circuit
+    gate QSVT  gauss  a_qsvt 1  U_BE 2 a_be 1 j <Nx_red>  end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREP
+	circuit U_GAUSS 3 j -1 a_be -1 a_qsvt -1 end_circuit
+	gate X m 1 end_gate
+    gate X sum 1 control j <Nx_qu>   ocontrol 3 j <Nx_half>  a_be 1 a_qsvt 1  end_gate
+	gate X sum 2 control j <Nx_half> ocontrol 3 j <Nx_qu>    a_be 1 a_qsvt 1  end_gate
+	gate X m 1 ocontrol sum -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE AA
+	// sign change of the good state (state |1>)
+	gate  Z m 1 end_gate     
+	//
+	icircuit PREP 5 j -1 a_be -1 a_qsvt -1 sum -1 m -1 end_circuit
+	// sign change of the "bad" state (zero state):
+	gate X m 1 ocontrol 4 j -1 a_be -1 a_qsvt -1 sum -1 end_gate
+	gate Z m 1 ocontrol 4 j -1 a_be -1 a_qsvt -1 sum -1 end_gate
+	gate X m 1 ocontrol 4 j -1 a_be -1 a_qsvt -1 sum -1 end_gate
+	// 
+	circuit PREP 5 j -1 a_be -1 a_qsvt -1 sum -1 m -1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE  U_AE
+	gate  PE  5 j -1 a_be -1 a_qsvt -1 sum -1 m -1  AA  PREP  y -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

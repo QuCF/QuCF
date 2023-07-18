@@ -1,0 +1,111 @@
+// /media/work/docs/codes/QuCF/QuCF/build_test_qucf/QuCF test ./ 
+
+CONSTANTS
+	nx  3
+END_CONSTANTS
+
+
+OPTIONS
+	sel_compute_output all  // none, all, zero-ancillae
+	sel_print_output   all // none, all, zero-ancillae
+	flag_circuit 0
+	flag_tex     1
+	tex_CL  16 
+
+	flag_matrix 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	SU 2 y 2 1 x 3 0
+	SSU 2 y 1 1 w 2 0
+	U  3 y 4 1 w 2 0 x 3 0 
+END_CIRCUITS_DECLARATION
+
+
+
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0  
+
+	// INPUT_STATE  w -1
+	// INPUT_STATE  2 y 1 w -1
+
+	// INPUT_STATE  2 x 1 w 2
+	// INPUT_STATE  2 x 3 w 2
+	// INPUT_STATE  2 x 7 w 2
+
+	// INPUT_STATE 3 y 2 x 1 w 2  // to check the Z gate
+
+	// // --- for SWAP ---
+	// INPUT_STATE y[2]
+	// INPUT_STATE 2 y[3] x -1 
+	// INPUT_STATE 2 y[3] x 2 
+
+	// // --- Subcircuit ---
+	// INPUT_STATE x 1
+	// INPUT_STATE x 5
+	// INPUT_STATE 2 x 2 w 2
+	// INPUT_STATE 2 x 2 w 3
+	// INPUT_STATE 2 x 3 w 2
+	// INPUT_STATE 2 x -1 w 2
+
+	// --- Inverse subcircuit ---
+	INPUT_STATE 2 x 2 w 2
+END_MAIN_CIRCUIT
+
+CIRCUIT_STRUCTURE SU
+	gate X y 1 control_e x 1 end_gate
+	gate X y 2 control_e x 5 end_gate
+END_CIRCUIT_STRUCTURE
+
+CIRCUIT_STRUCTURE SSU
+	gate H y 1 ocontrol_e w 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE U
+	// // --- gate X ---
+	// gate X y 1                 ocontrol x -1 control w -1 end_gate
+	// gate X y[1] control_e w[1] ocontrol x[2] control x[0] end_gate
+
+	// // --- gate Y ---
+	// gate Y y 1                 ocontrol x -1 control w -1 end_gate
+
+	// // --- gate Z ---
+	// gate Z y[1] control_e w[1] ocontrol x[2] control x[0] end_gate
+
+	// // --- gate H ---
+	// gate H y 1                 ocontrol x -1 control w -1 end_gate 
+
+	// // --- gate Swap ---
+	// gate swap y[2] y[3] ocontrol w[1] control x[1] end_gate
+
+	// // --- Subcircuit ---
+	// circuit SU  2 x -1 y 3 end_circuit
+	// circuit SSU 2 w  3 y 4 control x[1] ocontrol x[2] end_circuit
+
+	// --- Inverse subcircuit ---
+	circuit SSU 2 w  3 y 4 control x[1] ocontrol x[2] end_circuit
+	icircuit SSU 2 w  3 y 4 control x[1] ocontrol x[2] end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

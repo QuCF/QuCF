@@ -1,0 +1,66 @@
+// $qucf sin ./ 
+
+CONSTANTS
+	nx 		6       // describes half of the spatial domain;
+	alpha_0 	-1.00000000000000e+00
+	// alpha 		1.01587301587302e+00
+	alpha 		0.0
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   zero-ancillae  // none, all, zero-ancillae
+	flag_tex     1
+	tex_CL  6 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	INIT  1 j <nx> 0
+	U     2 a_be 1 1 j <nx> 0  
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   
+    U       
+	INPUT_STATE  0
+	// INPUT_STATE  j -1
+	// INPUT_STATE  j[0 1 2 3 4]
+	// INPUT_STATE  j[-1]
+END_MAIN_CIRCUIT
+
+
+// --- Initialization ---
+CIRCUIT_STRUCTURE INIT
+	gate H   j -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- The final circuit ---
+CIRCUIT_STRUCTURE U
+	circuit INIT -1 end_circuit
+	gate SIN a_be 1 <alpha_0> <alpha> j -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

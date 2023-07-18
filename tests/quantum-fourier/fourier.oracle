@@ -1,0 +1,69 @@
+// $qucf fourier ./ 
+
+CONSTANTS
+	nx 		8      
+	alpha_0 	-1.00000000000000e+00
+	alpha 		1.01587301587302e+00
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     1
+	tex_CL  6 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	INIT     1  				     j <nx> 0
+	U_BE     2  		    a_be 1 1 j <nx> 0  // block-encoding oracle;
+	U        3   a_qsvt 1 1 a_be 1 1 j <nx> 0  // Gauss QSVT circuit;
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   
+    U        
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+// --- Initialization ---
+CIRCUIT_STRUCTURE INIT
+	gate H   j -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Block-Encoding oracle ---
+CIRCUIT_STRUCTURE U_BE
+	gate SIN a_be 1 <alpha_0> <alpha> j -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	circuit INIT   j -1          end_circuit
+    gate QSVT  gauss  a_qsvt 1  U_BE 2 a_be 1 j -1 end_gate
+	gate Fourier j -1 ocontrol 2 a_qsvt 1 a_be 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

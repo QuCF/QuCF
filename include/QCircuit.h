@@ -47,6 +47,7 @@ class QCircuit{
      * @param nq number of qubits to create (has to be > 0);
      */
     void create(YCU nq);
+    void allocate_circuit();
 
     void create_circ_file();
     void create_tex_file();
@@ -186,12 +187,12 @@ class QCircuit{
     void set_qubit_state(YCVI ids_qs);
 
     /**
-     * @brief Reset initial state of the circuit and remove all gates..
+     * @brief Reset initial state of the circuit and remove all gates.
      */
     void reset();
 
     /**
-     * @brief Reset only Qureg.
+     * @brief Reset Qureg. If the circuit is not yet allocated in memory, allocate it.
      */
     void reset_qureg();
 
@@ -735,6 +736,9 @@ private:
 
     // to calculate or not the layers;
     bool flag_layers_; 
+
+    // if the circuit is allocated in memory:
+    bool flag_circuit_allocated_;
 
     // names of unique gates:
     std::vector<std::string> unique_gates_names_;
