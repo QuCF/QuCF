@@ -14,3 +14,12 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
+
+
+QuCF uses slightly modified version of the QuEST toolkit.
+
+
+To compile QuCF, type:
+- cd QuCF/build_qucf
+- source tobuild
+- make
