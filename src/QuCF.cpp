@@ -734,9 +734,15 @@ void QuCF__::launch()
             hfo_.add_scalar(qsvt_data_one.type,     "type",   name_gr);
             hfo_.add_scalar(qsvt_data_one.eps_qsvt, "eps",    name_gr);
             hfo_.add_scalar(qsvt_data_one.parity,   "parity", name_gr);
+            hfo_.add_scalar(qsvt_data_one.rescaling_factor,   "rescaling_factor", name_gr);
             if(YMIX::compare_strings(qsvt_data_one.type, "matrix-inversion"))
             {
                 hfo_.add_scalar(qsvt_data_one.f_par, "kappa", name_gr);
+                hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
+            }
+            if(YMIX::compare_strings(qsvt_data_one.type, "xgaussian"))
+            {
+                hfo_.add_scalar(qsvt_data_one.f_par, "mu", name_gr);
                 hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
             }
             if(YMIX::compare_strings(qsvt_data_one.type, "gaussian-arcsin"))
@@ -769,7 +775,7 @@ void QuCF__::launch()
     // -------------------------------------------------------------------------------------------
     // --- Matrix construction ---
     if(flag_matrix_)
-        calc_matrix(u_work);
+        calc_matrix(u_work, false);
     
     // -------------------------------------------------------------------------------------------
     // --- Analyse and Store if necessary initial and output states of the circuit ---
@@ -920,7 +926,7 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
 }
 
 
-void QuCF__::calc_matrix(shared_ptr<QCircuit>& u_work)
+void QuCF__::calc_matrix(shared_ptr<QCircuit>& u_work, bool flag_sparse_format)
 {
     // throughout the function, we assume that all nonancilla qubits are less significant
     // than any ancilla qubit;
@@ -943,8 +949,8 @@ void QuCF__::calc_matrix(shared_ptr<QCircuit>& u_work)
     YMIX::YTimer timer_comp;
     timer_comp.Start();
 
-    YMATH::YMatrix A_real(N_matrix, N_matrix, true);
-    YMATH::YMatrix A_imag(N_matrix, N_matrix, true);
+    YMATH::YMatrix A_real(N_matrix, N_matrix, !flag_sparse_format);
+    YMATH::YMatrix A_imag(N_matrix, N_matrix, !flag_sparse_format);
 
     // one input state for each row index:
     for(uint32_t ir = 0; ir < N_matrix; ir++)
@@ -1026,7 +1032,6 @@ void QuCF__::calc_matrix(shared_ptr<QCircuit>& u_work)
     timer_comp.Stop();
     YMIX::print_log("duration: " + timer_comp.get_dur_str_s());
     YMIX::print_log("");
-
 
     // save the matrix to the .hdf5 file:
     hfo_.open_w();

@@ -1368,7 +1368,7 @@ void QCircuit::read_structure_gate_qsvt(
     // --- read QSVT ancilla ---
     read_reg_int(istr, ids_a_qsvt);
     if(YMIX::compare_strings(
-        data.type, YVSv{"matrix-inversion", "gaussian-arcsin"}
+        data.type, YVSv{"matrix-inversion", "gaussian-arcsin", "xgaussian"}
     ))
         if(ids_a_qsvt.size() != 1)
             throw "QSVT circuit of type ["s + data.type + "] must have only a single ancilla specific qubit."s;
@@ -2112,43 +2112,49 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
     ff.set_name(path_to_output_ + "/" + data.filename_angles);
     ff.open_r();
     ff.read_scalar(data.type, "polynomial_type", "basic");
+    ff.read_scalar(data.rescaling_factor, "rescaling_factor", "basic");
     ff.read_scalar(data.eps_qsvt, "eps", "basic");
     ff.read_scalar(data.f_par,    "par", "basic");
-
-    if(YMIX::compare_strings(data.type, "matrix-inversion"))
+    if(YMIX::compare_strings(data.type, std::vector<std::string> {"matrix-inversion", "xgaussian"}))
     {
         ff.read_vector(data.angles_phis_odd, "odd", "angles");
         data.parity = 1;
     }
-    if(YMIX::compare_strings(data.type, "gaussian-arcsin"))
+    else if(YMIX::compare_strings(data.type, "gaussian-arcsin"))
     {
         ff.read_vector(data.angles_phis_even, "even", "angles");
         data.parity = 0;
     }
-    if(YMIX::compare_strings(data.type, "hamiltonian-sim"))
+    else if(YMIX::compare_strings(data.type, "hamiltonian-sim"))
     {
         ff.read_scalar(data.nt,                 "nt", "basic");
         ff.read_vector(data.angles_phis_odd,   "odd", "angles");
         ff.read_vector(data.angles_phis_even, "even", "angles");
         data.parity = -1;
     }
+    else
+    {
+        throw string("QSVT polynomial type " + data.type + " is not recognized.");
+    }
     ff.close();
 
     // --- print resulting parameters ---
     stringstream istr;
     istr << "--- QSVT gate with the name: " << gate_name << " ---\n";
-    istr << "   QSVT type:  " << data.type     << ";\n";
-    istr << "   QSVT error: " << data.eps_qsvt << ";\n";
-    istr << "   Polynomial parity: "  << data.parity << ";\n";
-    if(YMIX::compare_strings(data.type, "matrix-inversion"))
+    istr << "   QSVT type:  "            << data.type  << ";\n";
+    istr << "   rescaling factor:  "     << data.rescaling_factor << ";\n";
+    istr << "   QSVT error: "            << data.eps_qsvt << ";\n";
+    istr << "   Polynomial parity: "     << data.parity << ";\n";
+    istr << "   Polynomial parameter: "  << data.f_par << ";\n";
+    if(YMIX::compare_strings(data.type, std::vector<std::string> {"matrix-inversion", "xgaussian"}))
     {
         istr << "   number of angles: " << data.angles_phis_odd.size() << ";\n";
-        istr << "   kappa: " << data.f_par << ";\n";
+        // istr << "   kappa: " << data.f_par << ";\n";
     }
     if(YMIX::compare_strings(data.type, "gaussian-arcsin"))
     {
         istr << "   number of angles: " << data.angles_phis_even.size() << ";\n";
-        istr << "   mu: " << data.f_par << ";\n";
+        // istr << "   mu: " << data.f_par << ";\n";
     }
     if(YMIX::compare_strings(data.type, "hamiltonian-sim"))
     {

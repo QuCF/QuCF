@@ -46,7 +46,10 @@ private:
     qreal get_value_from_word(YCS word);
     void  calc(std::shared_ptr<QCircuit>& u_work, YCI count_init_state);
 
-    void calc_matrix(std::shared_ptr<QCircuit>& u_work);
+    /**
+     * If flag_sparse_format = true, then store the matrix in the column
+    */
+    void calc_matrix(std::shared_ptr<QCircuit>& u_work, bool flag_sparse_format=false);
 
 private:
     // dictionary with constants to create the oracle:

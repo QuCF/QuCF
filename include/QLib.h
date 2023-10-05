@@ -142,6 +142,7 @@ struct QSVT_pars
 
     qreal eps_qsvt;
     qreal f_par;
+    qreal rescaling_factor;
 
     int parity;
 
@@ -306,6 +307,38 @@ namespace YMATH{
              * @param wc width of every column.
              */
             void print(int prec=3, bool flag_scientific=false, int wc=2);
+
+
+            /**
+             * Save a sparse version of the matrix.
+            */
+            void form_sparse_format(qreal* nz_values, int* nz_columns, int* nz_rows)
+            {
+                // count the number of nonzero values:
+                int Nnz = 0;
+                for(uint64_t ir = 0; ir < nr_; ir++)
+                    for(uint64_t ic = 0; ic < nc_; ic++)
+                        if(abs(a_[ir][ic]) > ZERO_ERROR)
+                            ++Nnz;
+
+                nz_values  = new qreal[Nnz];
+                nz_columns = new int[Nnz];
+                nz_rows    = new int[nr_+1];
+
+                uint64_t counter = 0;
+                for(int ir = 0; ir < nr_; ir++)
+                {
+                    nz_rows[ir] = counter;
+                    for(int ic = 0; ic < nc_; ic++)
+                        if(abs(a_[ir][ic]) > ZERO_ERROR)
+                        {
+                            nz_values[counter]  = a_[ir][ic];
+                            nz_columns[counter] = ic;
+                            ++counter;
+                        }
+                }
+                nz_rows[nr_] = Nnz;
+            }
 
         protected:
             /**
