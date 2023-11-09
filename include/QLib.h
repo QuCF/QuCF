@@ -146,7 +146,7 @@ struct QSVT_pars
 
     int parity;
 
-    uint32_t nt;
+    uint32_t n_repeat;
 };
 
 

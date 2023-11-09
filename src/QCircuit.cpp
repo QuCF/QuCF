@@ -1400,6 +1400,26 @@ void QCircuit::read_structure_gate_qsvt(
         qsvt_def_parity(data.angles_phis_even, ids_a_qsvt[0], ids_be, oc_be, ids_unit, ids_zero, flag_inv);
     if(data.parity == 1)
         qsvt_def_parity(data.angles_phis_odd, ids_a_qsvt[0], ids_be, oc_be, ids_unit, ids_zero, flag_inv); 
+    if(data.parity == -1)
+    {
+        auto c_unit_new = YVIv(ids_unit);
+        auto c_zero_new = YVIv(ids_zero);
+        c_unit_new.push_back(ids_a_qsvt[1]);
+        c_zero_new.push_back(ids_a_qsvt[1]);
+        for(int i_repeat = 0; i_repeat < data.n_repeat; i_repeat++)
+        {
+            h(ids_a_qsvt[1]);
+
+            // how to add control ??
+            qsvt_def_parity(data.angles_phis_even, ids_a_qsvt[0], ids_be, oc_be, c_unit_new, ids_zero,   flag_inv);
+            qsvt_def_parity(data.angles_phis_odd,  ids_a_qsvt[0], ids_be, oc_be, ids_unit,   c_zero_new, flag_inv);
+
+            h(ids_a_qsvt[1]);
+
+            // put a STOP gate !!! to extract data;
+        }
+        
+    }
 
     // store the QSVT data:
     map_qsvt_data[name_circuit] = data;
@@ -2088,6 +2108,11 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
             iss >> data.filename_angles;
             continue;
         }
+        if(YMIX::compare_strings(key_name, "n_repeat"))
+        {
+            iss >> data.n_repeat;
+            continue;
+        }
     }
     ff_qsvt.close();
 
@@ -2127,7 +2152,6 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
     }
     else if(YMIX::compare_strings(data.type, "hamiltonian-sim"))
     {
-        ff.read_scalar(data.nt,                 "nt", "basic");
         ff.read_vector(data.angles_phis_odd,   "odd", "angles");
         ff.read_vector(data.angles_phis_even, "even", "angles");
         data.parity = -1;
@@ -2161,7 +2185,7 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
         istr << "   number of angles: " << 
             data.angles_phis_odd.size() + data.angles_phis_even.size() << ";\n";
         istr << "   single time interval: " << data.f_par << ";\n";
-        istr << "   number of the time intervals: " << data.nt << ";\n";
+        istr << "   number of the time intervals: " << data.n_repeat << ";\n";
     }
     YMIX::print_log(istr.str());
 }

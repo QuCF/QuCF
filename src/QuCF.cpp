@@ -753,7 +753,7 @@ void QuCF__::launch()
             if(YMIX::compare_strings(qsvt_data_one.type, "hamiltonian-sim"))
             {
                 hfo_.add_scalar(qsvt_data_one.f_par, "dt", name_gr);
-                hfo_.add_scalar(qsvt_data_one.nt, "nt", name_gr);
+                hfo_.add_scalar(qsvt_data_one.n_repeat, "nt", name_gr);
                 hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
                 hfo_.add_scalar(qsvt_data_one.angles_phis_even, "angles-even", name_gr);
             }
