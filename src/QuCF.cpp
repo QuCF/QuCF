@@ -725,7 +725,8 @@ void QuCF__::launch()
         for(auto const& [name_qsvt_gate, qsvt_data_one] : qsvt_data_)
         {
             ++counter_qsvt;
-            string name_gr = "qsvt-"s + name_qsvt_gate;
+            // string name_gr = "qsvt-"s + name_qsvt_gate;
+            string name_gr = name_qsvt_gate;
 
             hfo_.add_scalar(name_gr, "name-"s + to_string(counter_qsvt), "qsvt");
 
@@ -750,12 +751,18 @@ void QuCF__::launch()
                 hfo_.add_scalar(qsvt_data_one.f_par, "mu", name_gr);
                 hfo_.add_scalar(qsvt_data_one.angles_phis_even, "angles-even", name_gr);
             }
-            if(YMIX::compare_strings(qsvt_data_one.type, "hamiltonian-sim"))
+            if(YMIX::compare_strings(qsvt_data_one.type, "QSVT-ham"))
             {
                 hfo_.add_scalar(qsvt_data_one.f_par, "dt", name_gr);
                 hfo_.add_scalar(qsvt_data_one.n_repeat, "nt", name_gr);
                 hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
                 hfo_.add_scalar(qsvt_data_one.angles_phis_even, "angles-even", name_gr);
+            }
+            if(YMIX::compare_strings(qsvt_data_one.type, "QSP-ham"))
+            {
+                hfo_.add_scalar(qsvt_data_one.f_par, "dt", name_gr);
+                hfo_.add_scalar(qsvt_data_one.n_repeat, "nt", name_gr);
+                hfo_.add_scalar(qsvt_data_one.angles_phis_arbitrary, "angles", name_gr);
             }
         }
     }
@@ -834,9 +841,21 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
     // --- Print output states ---
     if(!YMIX::compare_strings(sel_compute_output_, "none"))
     {
+        
         int id_current_gate = 0;
         string stop_point_name;
-        YMIX::StateVectorOut outF, outZ;
+        YMIX::StateVectorOut outF, outZ, outZ_qsp;
+
+        map<string, int> counters_t;
+        for(auto const& [name_qsvt_gate, qsvt_data_one] : qsvt_data_)
+        {
+            if(YMIX::compare_strings(qsvt_data_one.type, YVSv{"QSVT-ham", "QSP-ham"}))
+            {
+                counters_t[name_qsvt_gate] = -1;
+            }
+        }
+
+
         while(id_current_gate < u_work->get_n_gates())
         {
             // generate the circuit:
@@ -844,7 +863,7 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
             YMIX::print_log( "Calculating the circuit... ", 0, false, false);
             u_work->generate(stop_point_name, id_current_gate);
 
-            u_work->get_state(outZ, true);
+            u_work->get_state(outZ, true, false);
             if(YMIX::compare_strings(sel_compute_output_, "all"))
                 u_work->get_state(outF);
 
@@ -859,6 +878,29 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
                 YMIX::print_log(
                         "...Output zero-ancilla states after " + stop_point_name + ": \n" + outZ.str_wv
                 );
+
+            // Save results from each time step of QSP simulations:
+            if(stop_point_name.find("QSP-H") != string::npos)
+            {
+                auto pos1 = stop_point_name.find("<");
+                auto pos2 = stop_point_name.find(">");
+                string name_qsvt_gate = stop_point_name.substr(pos1+1, pos2-pos1-1);
+
+                counters_t[name_qsvt_gate] += 1;
+
+                u_work->get_state(outZ_qsp, true, true);
+
+                hfo_.open_w();
+                if(outZ_qsp.ampls.size() > 0)
+                {
+                    hfo_.add_vector(
+                        outZ_qsp.ampls,  
+                        "ampls-"s + to_string(counters_t[name_qsvt_gate]) + "-" + to_string(count_init_state), 
+                        name_qsvt_gate
+                    );
+                }
+                hfo_.close(); 
+            }
         }
 
         // --- Store the output state at the very end of the circuit ---
@@ -902,7 +944,7 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
             u_work->generate();
             timer_comp.Stop();
             YMIX::print_log( "duration: " + timer_comp.get_dur_str_s());
-        }// otherwise, the circuit has been already generated;
+        }// otherwise, the circuit has already been generated;
 
 
         hfo_.open_w();

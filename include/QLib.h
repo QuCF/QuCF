@@ -2,6 +2,7 @@
 #define QLIB_H
 
 
+
 #include "../submodules/QuEST/QuEST/include/QuEST.h"
 // #include "QuEST.h"
 
@@ -139,6 +140,7 @@ struct QSVT_pars
 
     YVQv angles_phis_even;
     YVQv angles_phis_odd;
+    YVQv angles_phis_arbitrary;
 
     qreal eps_qsvt;
     qreal f_par;
@@ -180,6 +182,7 @@ struct YGlobalVariables{
     static ComplexMatrix2 mRz(YCQR a);
     static ComplexMatrix2 mRc(YCQR az, YCQR ay);
     static ComplexMatrix2 mPhase(YCQR a);
+    static ComplexMatrix2 mPhaseZero(YCQR a);
 };
 
 // ------------------------------------------
@@ -469,10 +472,6 @@ namespace YMIX{
 
     /** Form a string representation of the statevector. */
     void getStrWavefunction(StateVectorOut& out);
-
-
-    /** Return states with non-zero probability. */
-    void Wavefunction_NonzeroProbability(const Qureg& qq, StateVectorOut& out);
 
 
     struct File

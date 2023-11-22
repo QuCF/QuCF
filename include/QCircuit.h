@@ -1,6 +1,7 @@
 #ifndef QCIRCUIT_H
 #define QCIRCUIT_H
 
+
 #include "QGates.h"
 #include "CircuitLayers.h"
 
@@ -73,9 +74,9 @@ class QCircuit{
     void generate(std::string& stop_name, int& id_current);
 
     /**
-     * @brief Get a conjugate transpose matrix.
+     * @brief Transform the current matrix into its Hermitian adjoint version.
      */
-    void conjugate_transpose();
+    void h_adjoint();
 
     inline Qureg get_qureg(){return c_;}
 
@@ -84,14 +85,13 @@ class QCircuit{
      * and add them to the end of the current circuit.
      * @param circ circuit from where new gates are taken;
      * @param regs_new registers of the current circuit to which the new gates are applied.
-     *  \p regs_new.size() has to be = \p circ.nq_ .
      *  E.g., \p circ has two qubits: 0, 1 (0 - least significant (bottom) qubit).
      *  If \p regs_new = [3,2], then 0->3, 1->2: zero qubit of \p circ is applied to 
      *  the qubit 3 of the current circuit, while qubit 1 of \p circ is applied to
      *  the qubit 2 of the current circuit.
      * @param box a ghost gate to indicate boundaries where 
      *  gates from the circuit \p circ are placed into the current circuit.
-     * @param flag_inv if true, first get conjugate transpose gates from \p circ. 
+     * @param flag_inv if true, first get adjoint gates from \p circ. 
      * @param cs_unit unit-control qubits that should control each gate from \p circ.
      * @param cs_zero zero-control qubits that should control each gate from \p circ.
      */
@@ -320,7 +320,9 @@ class QCircuit{
     inline bool read_structure(YCS gate_name, YISS istr, qreal& par_gate, YCB flag_inv=false)
     {
         YVIv ids_target, ids_unit, ids_zero;
-        if(YMIX::compare_strings(gate_name, TGate::name_shared_, std::vector<std::string> {"Rx", "Ry", "Rz", "Phase"}))
+        if(YMIX::compare_strings(gate_name, TGate::name_shared_, 
+            std::vector<std::string> {"Rx", "Ry", "Rz", "Phase", "PhaseZero"}
+        ))
         {
             read_structure_gate(istr, ids_target, par_gate, ids_unit, ids_zero);
             for(auto const& id_target: ids_target) 
@@ -426,6 +428,9 @@ class QCircuit{
      * */
     inline YQCP phase(YCI t, YCQR a, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false)
     { return add_sq_rg<Phase__>(t, a, cs_unit, cs_zero, flag_inv); }
+
+    inline YQCP phase_zero(YCI t, YCQR a, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false)
+    { return add_sq_rg<PhaseZero__>(t, a, cs_unit, cs_zero, flag_inv); }
 
     /** @brief integer encoded to \p ts is incremented */
     YQCP adder_1(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv= false);
@@ -594,6 +599,30 @@ class QCircuit{
         YCB flag_box = false
     );
 
+    /** @brief Hamiltonian simulation using the original (fully-coherent) QSP approach.
+     * @param name_qsp_cricuit a unique name of the QSP circuit;
+     * @param phis QSP angles for the whole exp(-i H t) function;
+     * @param nt number of time intervals (n of repetitions of the QSP circuit)
+     * @param a_qsp a qubit where the QSP rotations sit on;
+     * @param a_qu a qubit for the qubitization;
+     * @param qs_be qubits for the block-encoding oracle @p BE;
+     * @param BE a block-encoding oracle
+     * @param cs_unit qubits by which UNIT state the whole QSP circuit will be controlled.
+     * @param cs_zero qubits by which ZERO state the whole QSP circuit will be controlled.
+     * @param flag_inv if True, invert the circuit
+    */
+    YQCP qsp_ham(
+        YCS name_qsp_cricuit,
+        YCVQ phis,
+        YCI nt,
+        YCI a_qsp,
+        YCI a_qu, 
+        YCVI qs_be, 
+        const std::shared_ptr<const QCircuit> BE,
+        YCVI cs_unit = {}, YCVI cs_zero = {}, 
+        YCB flag_inv = false
+    );
+
 
     /**
      * @brief Add a Stop gate to a quantum state at this point.
@@ -617,9 +646,15 @@ class QCircuit{
     /**
      * Return states with nonzero amplitudes.
      * @param[in] flag_ZeroHighPriorAnc if true, then assume that all ancillae are 
-     * the high-priority qubits, and calculate only states where these ancillae are in the zero state.
+     * the high-priority qubits, and calculate 
+     * only states where these ancillae are in the zero state.
+     * @param[in] flag_zero_ampls if true, return zero amplitudes too.
      */
-    void get_state(YMIX::StateVectorOut& out, YCB flag_ZeroHighPriorAnc = false);
+    void get_state(
+        YMIX::StateVectorOut& out, 
+        YCB flag_ZeroHighPriorAnc = false,
+        YCB flag_zero_ampls = false
+    );
 
     inline std::string get_name() const { return name_; }
 
@@ -649,7 +684,7 @@ private:
     inline void add_sq_core(YSG& oo, YCVI cs_unit, YCVI cs_zero, YCB flag_inv)
     {
         if(flag_inv) 
-            oo->conjugate_transpose();
+            oo->h_adjoint();
         oo->add_control_qubits(cs_unit, cs_zero);
         gates_.push_back(oo);
         if(flag_layers_) 

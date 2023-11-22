@@ -4,9 +4,12 @@ CMakeFiles
 build_*/CMakeCache.txt
 build_*/Makefile
 build_*/QuEST
-build_*/QuCF
+build_*/QuCF*
 build_*/qsvt
 build_*/qc_circuit
+build_*/compute_angles
+*archive*
+
 
 *.png
 *.jpg

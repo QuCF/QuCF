@@ -378,12 +378,12 @@ void QCircuit::print_gates()
 }
 
 
-void QCircuit::conjugate_transpose()
+void QCircuit::h_adjoint()
 {
     reverse(gates_.begin(), gates_.end());
     for(auto& gate: gates_)
     {
-        gate->conjugate_transpose();
+        gate->h_adjoint();
         if(flag_layers_) gate->set_layer(oo_layers_->get_n_layers() - gate->get_layer());
     }  
 }
@@ -409,7 +409,7 @@ void QCircuit::copy_gates_from(
         {
             auto gate_copy = gate->copy_gate();
 
-            gate_copy->conjugate_transpose();
+            gate_copy->h_adjoint();
             gate_copy->correct_qubits(regs_new);
             gate_copy->add_control_qubits(cs_unit, cs_zero);
             if(flag_layers_) oo_layers_->add_gate(gate_copy);
@@ -795,13 +795,16 @@ void QCircuit::get_ref_to_state_vector(qreal*& state_real, qreal*& state_imag)
 }
 
 
-void QCircuit::get_state(YMIX::StateVectorOut& out, YCB flag_ZeroPriorAnc)
-{
+void QCircuit::get_state(
+    YMIX::StateVectorOut& out, 
+    YCB flag_ZeroPriorAnc, 
+    YCB flag_zero_ampls 
+){
     if(!flag_circuit_allocated_)
         throw string("The circuit [" + name_ + "] is not allocated in memory.");
     out.n_low_prior_qubits = flag_ZeroPriorAnc ? (nq_ - ancs_.size()): nq_;
     out.organize_state = get_standart_output_format();
-    YMIX::Wavefunction_NonzeroProbability(c_, out);
+    YMIX::Wavefunction_Probabilities(c_, out, flag_zero_ampls);
 }
 
 
@@ -1369,13 +1372,18 @@ void QCircuit::read_structure_gate_qsvt(
     read_reg_int(istr, ids_a_qsvt);
     if(YMIX::compare_strings(
         data.type, YVSv{"matrix-inversion", "gaussian-arcsin", "xgaussian"}
-    ))
+    )){
         if(ids_a_qsvt.size() != 1)
             throw "QSVT circuit of type ["s + data.type + "] must have only a single ancilla specific qubit."s;
-    if(YMIX::compare_strings(data.type, "hamiltonian-sim"))
+    }
+        
+    if(YMIX::compare_strings(
+        data.type, YVSv{"QSVT-ham", "QSP-ham"}
+    )){
         if(ids_a_qsvt.size() != 2)
-            throw "QSVT circuit of type ["s + data.type + "] must have two ancilla specific qubits."s; 
-
+            throw "QSVT/QSP circuit of type ["s + data.type + "] must have two ancilla specific qubits."s; 
+    }
+        
     // --- read the name of the block-encoding oracle ---
     istr >> be_name;
     if(ocs.find(be_name) == ocs.end())
@@ -1402,23 +1410,40 @@ void QCircuit::read_structure_gate_qsvt(
         qsvt_def_parity(data.angles_phis_odd, ids_a_qsvt[0], ids_be, oc_be, ids_unit, ids_zero, flag_inv); 
     if(data.parity == -1)
     {
-        auto c_unit_new = YVIv(ids_unit);
-        auto c_zero_new = YVIv(ids_zero);
-        c_unit_new.push_back(ids_a_qsvt[1]);
-        c_zero_new.push_back(ids_a_qsvt[1]);
-        for(int i_repeat = 0; i_repeat < data.n_repeat; i_repeat++)
-        {
-            h(ids_a_qsvt[1]);
+        // auto c_unit_new = YVIv(ids_unit);
+        // auto c_zero_new = YVIv(ids_zero);
+        // c_unit_new.push_back(ids_a_qsvt[1]);
+        // c_zero_new.push_back(ids_a_qsvt[1]);
+        // for(int i_repeat = 0; i_repeat < data.n_repeat; i_repeat++)
+        // {
+        //     h(ids_a_qsvt[1]);
 
-            // how to add control ??
-            qsvt_def_parity(data.angles_phis_even, ids_a_qsvt[0], ids_be, oc_be, c_unit_new, ids_zero,   flag_inv);
-            qsvt_def_parity(data.angles_phis_odd,  ids_a_qsvt[0], ids_be, oc_be, ids_unit,   c_zero_new, flag_inv);
+        //     // how to add control ??
+        //     qsvt_def_parity(data.angles_phis_even, ids_a_qsvt[0], ids_be, oc_be, c_unit_new, ids_zero,   flag_inv);
+        //     qsvt_def_parity(data.angles_phis_odd,  ids_a_qsvt[0], ids_be, oc_be, ids_unit,   c_zero_new, flag_inv);
 
-            h(ids_a_qsvt[1]);
+        //     h(ids_a_qsvt[1]);
 
-            // put a STOP gate !!! to extract data;
+        //     // put a STOP gate !!! to extract data;
+        // }
+
+        cout << "a-qsp: " << ids_a_qsvt[1] << endl;
+        cout << "a-qu: "  << ids_a_qsvt[0] << endl;
+        cout << "be[0]: " << ids_be[0] << endl;
+
+
+        if(YMIX::compare_strings(data.type, "QSP-ham")){
+            qsp_ham(
+                name_circuit,
+                data.angles_phis_arbitrary, 
+                data.n_repeat,
+                ids_a_qsvt[1], ids_a_qsvt[0], 
+                ids_be, 
+                oc_be, 
+                ids_unit, ids_zero, 
+                flag_inv
+            );
         }
-        
     }
 
     // store the QSVT data:
@@ -1662,7 +1687,7 @@ YQCP QCircuit::adder(YCVI ts1, YCVI ts2, YCVI ts3, YCVI cs_unit, YCVI cs_zero, Y
     // --- invert the circuit if necessary ---
     if(flag_inv)
     {
-        oc_adder->conjugate_transpose();
+        oc_adder->h_adjoint();
         oracle_name_tex += "^\\dagger";
     }
 
@@ -1731,7 +1756,7 @@ YQCP QCircuit::adder_qft(
     // --- invert the circuit if necessary ---
     if(flag_inv)
     {
-        oc_adder->conjugate_transpose();
+        oc_adder->h_adjoint();
         oracle_name_tex += "^\\dagger";
     }
 
@@ -1804,7 +1829,7 @@ YQCP QCircuit::adder_fixed(
     // --- invert the circuit if necessary ---
     if(flag_inv)
     {
-        oc_adder->conjugate_transpose();
+        oc_adder->h_adjoint();
         oracle_name_tex += "^\\dagger";
     }
 
@@ -1894,7 +1919,7 @@ YQCP QCircuit::quantum_fourier(YCVI ts, YCVI cs_unit, YCVI cs_zero, YCB flag_inv
     // --- invert the circuit if necessary ---
     if(flag_inv)
     {
-        oc_fourier->conjugate_transpose();
+        oc_fourier->h_adjoint();
         fourier_name_tex += "^\\dagger";
     }
 
@@ -1949,7 +1974,7 @@ YQCP QCircuit::gate_sin(
     // --- invert the circuit if necessary ---
     if(flag_inv)
     {
-        oc_sin->conjugate_transpose();
+        oc_sin->h_adjoint();
         name_tex += "^\\dagger";
     }
 
@@ -2043,7 +2068,7 @@ YQCP QCircuit::phase_estimation(
     // --- invert the circuit if necessary ---
     if(flag_inv)
     {
-        oc_pe->conjugate_transpose();
+        oc_pe->h_adjoint();
         pe_name_tex += "^\\dagger";
     }
 
@@ -2150,10 +2175,16 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
         ff.read_vector(data.angles_phis_even, "even", "angles");
         data.parity = 0;
     }
-    else if(YMIX::compare_strings(data.type, "hamiltonian-sim"))
+    else if(YMIX::compare_strings(data.type, "QSVT-ham"))
     {
         ff.read_vector(data.angles_phis_odd,   "odd", "angles");
         ff.read_vector(data.angles_phis_even, "even", "angles");
+        data.parity = -1;
+    }
+    else if(YMIX::compare_strings(data.type, "QSP-ham"))
+    {
+        // write all angles (odd and even) into the variable data.angles_phis_odd:
+        ff.read_vector(data.angles_phis_arbitrary, "QSP-ham", "angles"); 
         data.parity = -1;
     }
     else
@@ -2170,7 +2201,7 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
     istr << "   QSVT error: "            << data.eps_qsvt << ";\n";
     istr << "   Polynomial parity: "     << data.parity << ";\n";
     istr << "   Polynomial parameter: "  << data.f_par << ";\n";
-    if(YMIX::compare_strings(data.type, std::vector<std::string> {"matrix-inversion", "xgaussian"}))
+    if(YMIX::compare_strings(data.type, YVSv{"matrix-inversion", "xgaussian"}))
     {
         istr << "   number of angles: " << data.angles_phis_odd.size() << ";\n";
         // istr << "   kappa: " << data.f_par << ";\n";
@@ -2180,12 +2211,18 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
         istr << "   number of angles: " << data.angles_phis_even.size() << ";\n";
         // istr << "   mu: " << data.f_par << ";\n";
     }
-    if(YMIX::compare_strings(data.type, "hamiltonian-sim"))
+    if(YMIX::compare_strings(data.type, "QSVT-ham"))
     {
         istr << "   number of angles: " << 
             data.angles_phis_odd.size() + data.angles_phis_even.size() << ";\n";
         istr << "   single time interval: " << data.f_par << ";\n";
         istr << "   number of the time intervals: " << data.n_repeat << ";\n";
+    }
+    if(YMIX::compare_strings(data.type, "QSP-ham"))
+    {
+        istr << "   number of angles: " << data.angles_phis_arbitrary.size() << ";\n";
+        istr << "   single time interval: " << data.f_par << ";\n";
+        istr << "   number of time intervals: " << data.n_repeat << ";\n";
     }
     YMIX::print_log(istr.str());
 }
@@ -2225,9 +2262,9 @@ YQCP QCircuit::qsvt_def_parity(
     oc_be->add_register("r", nq_);
     oc_be->copy_gates_from(BE, qs_be, YSB(nullptr), cs_unit, cs_zero, flag_inv);
 
-    // --- create the complex-conjugated block-encoding oracle ---
+    // --- create the adjoint block-encoding oracle ---
     auto oc_be_inv = make_shared<QCircuit>(oc_be);
-    oc_be_inv->conjugate_transpose();
+    oc_be_inv->h_adjoint();
 
     // --- QSVT circuit ---
     be_box_name_tex    = be_box_name;
@@ -2299,6 +2336,113 @@ YQCP QCircuit::qsvt_def_parity(
     h(a_qsvt, cs_unit, cs_total_zero);
     timer.StopPrint();
     
+    return get_the_circuit();
+}
+
+
+YQCP QCircuit::qsp_ham(
+        YCS name_qsp_circuit,
+        YCVQ angles_qsp,
+        YCI nt,
+        YCI a_qsp,
+        YCI a_qu, 
+        YCVI qs_be_in, 
+        const std::shared_ptr<const QCircuit> BE,
+        YCVI cs_unit, 
+        YCVI cs_zero, 
+        YCB flag_inv
+){
+    YMIX::YTimer timer;
+    auto phis = YVQv(angles_qsp);
+    auto N_angles = phis.size();
+    auto n_be     = BE->get_n_qubits();
+    auto n_be_anc = BE->get_na();
+
+    // N_angles = 4; // for testing;
+
+    timer.StartPrint("Creating the QSP circuit... ");
+
+    // --- separate BE ancillae and input qubits ---
+    auto qs_be = YVIv(qs_be_in);
+    YVIv be_input(qs_be.begin(),                 qs_be.begin() + n_be - n_be_anc);
+    YVIv be_anc(qs_be.begin() + n_be - n_be_anc, qs_be.end()                    );
+
+    // --- qubitization oracle W ---
+    auto oW = make_shared<QCircuit>("W", env_, path_to_output_, nq_);
+    //     std::map<std::string, qreal>(), false, true 
+    // );
+    oW->add_register("r", nq_);
+
+    // block-encoding oracles:
+    oW->copy_gates_from(BE, qs_be, YSB(nullptr), YVIv{},     YVIv{a_qu});
+    oW->copy_gates_from(BE, qs_be, YSB(nullptr), YVIv{a_qu}, YVIv{}, true);
+
+    // reflector:
+    oW->h(a_qu);
+    oW->phase_zero(a_qu, M_PI, YVIv{}, be_anc);
+    oW->phase_zero(a_qu, M_PI);
+    oW->h(a_qu);
+
+    // oW->save_regs();
+    // oW->print_gates();
+
+    // --- QSP circuit for one interval ---
+    qreal aa; 
+    auto qubits_W = YVIv(qs_be);
+    qubits_W.push_back(a_qu);
+
+    auto oc_qsp = make_shared<QCircuit>("QSP", env_, path_to_output_, nq_);
+    //     std::map<std::string, qreal>(), false, true 
+    // );
+    oc_qsp->add_register("r", nq_);
+
+    oc_qsp->h(a_qsp)->h(a_qu);
+    for(unsigned count_angle = 0; count_angle < int((N_angles-1)/2); ++count_angle)
+    {
+        aa = phis[2*count_angle];
+        oc_qsp->rz(a_qsp, -aa)->h(a_qsp);
+        oc_qsp->copy_gates_from(oW, qubits_W, YSB(nullptr), YVIv{}, YVIv{a_qsp});
+        oc_qsp->phase_zero(a_qsp, -M_PI_2);
+        oc_qsp->h(a_qsp)->rz(a_qsp, aa);
+
+        aa = phis[2*count_angle+1];
+        oc_qsp->rz(a_qsp, -aa)->h(a_qsp);
+        oc_qsp->copy_gates_from(oW, qubits_W, YSB(nullptr), YVIv{a_qsp}, YVIv{}, true);
+        oc_qsp->phase(a_qsp, M_PI_2);
+        oc_qsp->h(a_qsp)->rz(a_qsp, aa);
+    }
+    aa = phis[N_angles-1];
+    oc_qsp->rz(a_qsp, aa);
+    oc_qsp->h(a_qsp)->h(a_qu);
+
+
+    // oc_qsp->save_regs();
+    // oc_qsp->print_gates();
+
+    // --- Several time intervals ---
+    auto qsp_qubits = YVIv(qubits_W);
+    qsp_qubits.push_back(a_qsp);
+
+    // to save the state just before the QSP simulation:
+    string name_stop = "QSP-H <" + name_qsp_circuit + ">: t = " + to_string(0);
+    add_stop_gate(name_stop);
+
+    // QSP simulation with several intervals
+    for(int it = 0; it < nt; it++)
+    { 
+        copy_gates_from(
+            oc_qsp,
+            qsp_qubits,
+            YSB(nullptr), 
+            cs_unit, cs_zero,
+            flag_inv      
+        );
+
+        // to save a state after the simulation of a time interval:
+        name_stop = "QSP-H <" + name_qsp_circuit + ">: t = " + to_string(it+1);
+        add_stop_gate(name_stop);
+    }
+    timer.StopPrint();
     return get_the_circuit();
 }
 

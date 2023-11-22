@@ -30,6 +30,7 @@ struct FUNC_
     double  coef_norm;
 };
 
+// used for the computation of angles
 const vector<FUNC_> avail_functions_ = { // sel, parity, coef_norm
    {"inversion",        1, 0.125},
    {"gaussian",         0, 0.980},

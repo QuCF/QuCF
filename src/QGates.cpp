@@ -12,6 +12,7 @@ const string Ry__::name_shared_ = "Ry";
 const string Rz__::name_shared_ = "Rz";
 const string Rc__::name_shared_ = "Rc";
 const string Phase__::name_shared_ = "Phase";
+const string PhaseZero__::name_shared_ = "PhaseZero";
 
 const std::vector<std::string> Gate__::avail_gate_names_ = {
     X__::name_shared_,
@@ -22,6 +23,7 @@ const std::vector<std::string> Gate__::avail_gate_names_ = {
     Ry__::name_shared_,
     Rz__::name_shared_,
     Phase__::name_shared_,
+    PhaseZero__::name_shared_,
     string("SWAP"),
     string("CNOT"),
     string("CH"),

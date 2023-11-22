@@ -90,13 +90,13 @@ CircuitTool__::~CircuitTool__()
     // ----------------------------------------------------------------------------
     // --- Read gates ---
     string gate_name, box_name, line_conj, line_start_end;
-    bool flag_conj, flag_start;
+    bool flag_h_adjoint, flag_start;
     int64_t id_layer, n;
     shared_ptr<Gate__> gate;
     while (getline(istr, line))
     {
         counter_line++;
-        flag_conj = false;
+        flag_h_adjoint = false;
         flag_start = false;
 
         // cout << "--- Line " << counter_line << " ---\n";
@@ -113,7 +113,7 @@ CircuitTool__::~CircuitTool__()
 
         iss >> line_conj;
         if(YMIX::compare_strings(line_conj, "conj"))
-            flag_conj = true;
+            flag_h_adjoint = true;
 
         iss >> word;
         if(!YMIX::compare_strings(word, "layer"))
@@ -176,7 +176,7 @@ CircuitTool__::~CircuitTool__()
         gate->add_control_qubits(controls, ocontrols);
         gate->set_flag_start(flag_start);
         gate->set_layer(id_layer);
-        if(flag_conj) gate->conjugate_transpose();
+        if(flag_h_adjoint) gate->h_adjoint();
         oc_to_launch_->add_gate(gate);
     }
  }
@@ -239,6 +239,8 @@ void CircuitTool__::create_random_circuit()
             oc_to_launch_->rz(tq1, rot_angle);
         if(YMIX::compare_strings(gate_name, Phase__::name_shared_))
             oc_to_launch_->phase(tq1, rot_angle);
+        if(YMIX::compare_strings(gate_name, PhaseZero__::name_shared_))
+            oc_to_launch_->phase_zero(tq1, rot_angle);
         if(YMIX::compare_strings(gate_name, "SWAP"))
         {
             tq2 = rand() % nq;

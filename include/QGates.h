@@ -2,6 +2,7 @@
 #define QGATES_H
 
 #include "QLib.h"
+#include "QuEST_lib.h"
 
 
 // -----------------------------------------------------------------
@@ -14,7 +15,7 @@ class Gate__
         Gate__(YCS name) : name_(name)
         {
             id_layer_ = -1;
-            flag_conj_ = false;
+            flag_h_adjoint_ = false;
             tex_name_ = name_;
         }
         ~Gate__(){}
@@ -46,13 +47,13 @@ class Gate__
 
             id_layer_ = oo.get_layer();
 
-            flag_conj_ = oo.flag_conj_;
+            flag_h_adjoint_ = oo.flag_h_adjoint_;
             flag_start_ = oo.flag_start_;
         }
 
         // copy this gate to a new gate:
         virtual YSG copy_gate() const { return std::make_shared<Gate__>(*this); }
-        virtual void conjugate_transpose(){ flag_conj_ = !flag_conj_; };
+        virtual void h_adjoint(){ flag_h_adjoint_ = !flag_h_adjoint_; };
         virtual void generate(Qureg& oc){};
         virtual void write_to_file(YMIX::File& cf){ write_to_file_base(cf); };
 
@@ -124,7 +125,7 @@ class Gate__
 
         inline void set_flag_start(YCB flag_start){ flag_start_ = flag_start; }
         inline bool get_flag_start(){ return flag_start_; }
-        inline bool get_flag_conj(){ return flag_conj_; }
+        inline bool get_flag_h_adjoint(){ return flag_h_adjoint_; }
 
         void get_target_qubits(YVI ids_t){ ids_t = YVIv(ts_); }
         void get_unit_control_qubits(YVI ids_c){ ids_c = YVIv(cs_unit_); }
@@ -177,7 +178,7 @@ class Gate__
         {
             cf << name_ << " ";
             
-            if(flag_conj_)
+            if(flag_h_adjoint_)
                 cf << "conj ";
             else
                 cf << "orig "; 
@@ -229,7 +230,7 @@ class Gate__
         ){
             std::string l_name, l_par;
             l_name = tex_name_;
-            if(!flag_inv_par && flag_conj_)
+            if(!flag_inv_par && flag_h_adjoint_)
                 l_name += std::string("^\\dagger");
 
             if(pars_.size())
@@ -238,7 +239,7 @@ class Gate__
                 for(auto id_p = 0; id_p < pars_.size(); id_p++)
                 {
                     std::stringstream sstr;
-                    if(flag_inv_par && flag_conj_)
+                    if(flag_inv_par && flag_h_adjoint_)
                         sstr << -pars_[id_p];
                     else
                         sstr << pars_[id_p];
@@ -298,7 +299,7 @@ class Gate__
 
         int64_t id_layer_; // id of the circuit layer, where the gate sits on;
 
-        bool flag_conj_; // whether the gate is conjugated or not;
+        bool flag_h_adjoint_; // whether the gate is Hermitiain adjoint or not;
         bool flag_start_ = true; // is it the left side of the box? 
 };
 
@@ -358,8 +359,8 @@ class SQGate__ : public Gate__
 
         YSG copy_gate() const {return std::make_shared<SQGate__>(*this);};
 
-        void conjugate_transpose(){
-            flag_conj_ = !flag_conj_;
+        void h_adjoint(){
+            flag_h_adjoint_ = !flag_h_adjoint_;
             u2_ = YMATH::inv_matrix2(u2_);
         }
 
@@ -382,7 +383,7 @@ class X__ : public SQGate__
                 mc_st_u(oc, ts_[0], cs_unit_, cs_zero_, u2_); 
         }
 
-        void conjugate_transpose(){}
+        void h_adjoint(){}
 
         void write_tex(
             std::vector<std::vector<std::string>>& tex_lines, 
@@ -391,7 +392,7 @@ class X__ : public SQGate__
         ){
             std::string l_nq_gate;
 
-            // gate the most-signficant target qubit:
+            // the most-signficant target qubit:
             auto id_top_q = get_most_signif_target_qubit();
 
             // gate keyword:
@@ -424,7 +425,7 @@ class Y__ : public SQGate__
                 mc_st_u(oc, ts_[0], cs_unit_, cs_zero_, u2_); 
         }
 
-        void conjugate_transpose(){}
+        void h_adjoint(){}
 
     public:
         const static std::string name_shared_;
@@ -446,7 +447,7 @@ class Z__ : public SQGate__
                 mc_st_u(oc, ts_[0], cs_unit_, cs_zero_, u2_); 
         }
 
-        void conjugate_transpose(){}
+        void h_adjoint(){}
     
     public:
         const static std::string name_shared_;
@@ -468,7 +469,7 @@ class H__ : public SQGate__
                 mc_st_u(oc, ts_[0], cs_unit_, cs_zero_, u2_);
         }
 
-        void conjugate_transpose(){}
+        void h_adjoint(){}
 
     public:
         const static std::string name_shared_;
@@ -536,7 +537,7 @@ class Phase__ : public sR__
         ){
             std::string l_nq_gate, l_name;
 
-            // gate the most-signficant target qubit:
+            // the most-significant target qubit:
             auto id_top_q = get_most_signif_target_qubit();
 
             // write down the gate parameters:
@@ -548,6 +549,42 @@ class Phase__ : public sR__
             // add the control qubits 
             tex_add_control(tex_lines, id_layer, nq, id_top_q);
         }
+
+    public:
+        const static std::string name_shared_;
+};
+
+
+class PhaseZero__ : public sR__
+{
+    public:
+        PhaseZero__(YCI t, YCQR a) : sR__(name_shared_, t, a)
+        { 
+            u2_ = YGV::mPhaseZero(a); 
+            // tex_name_ = "\\phase_{0}"; 
+            tex_name_ = "P_0"; 
+        }
+        YSG copy_gate() const { return std::make_shared<PhaseZero__>(*this); };
+
+        // void write_tex(
+        //     std::vector<std::vector<std::string>>& tex_lines, 
+        //     const int64_t& id_layer,
+        //     YCU nq
+        // ){
+        //     std::string l_nq_gate, l_name;
+
+        //     // the most-significant target qubit:
+        //     auto id_top_q = get_most_signif_target_qubit();
+
+        //     // write down the gate parameters:
+        //     l_name = tex_get_gate_name(tex_lines, id_layer, nq, "{}", true);
+
+        //     // combine the gate information:
+        //     tex_lines[nq - id_top_q - 1][id_layer] = "&" + l_name;
+
+        //     // add the control qubits 
+        //     tex_add_control(tex_lines, id_layer, nq, id_top_q);
+        // }
 
     public:
         const static std::string name_shared_;
