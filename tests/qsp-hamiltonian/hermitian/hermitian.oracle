@@ -20,12 +20,17 @@ CONSTANTS
 	// az_H10  -3.141592653590e+00
 	// ay_H11  1.570796326795e+00
 
-	ay_H00  1.910633236249e+00
-	ay_H01  1.230959417341e+00
-	az_H01  1.570796326795e+00
-	ay_H10  1.230959417341e+00
-	az_H10  -1.570796326795e+00
-	ay_H11  1.910633236249e+00
+	// ay_H00  1.910633236249e+00
+	// ay_H01  1.230959417341e+00
+	// az_H01  1.570796326795e+00
+	// ay_H10  1.230959417341e+00
+	// az_H10  -1.570796326795e+00
+	// ay_H11  1.910633236249e+00
+
+	ay_H00  2.214297435588e+00
+	ay_H01  9.272952180016e-01
+	ay_H10  9.272952180016e-01
+	ay_H11  2.214297435588e+00
 END_CONSTANTS
 
 
@@ -58,37 +63,37 @@ CIRCUIT_STRUCTURE INIT
 END_CIRCUIT_STRUCTURE
 
 
-// --- Block-Encoding oracle ---
-CIRCUIT_STRUCTURE U_BE
-	// OF
-	gate H  a_be[0] end_gate
-	// OH
-	gate Ry a_be[1] <ay_H00> ocontrol 2 a_be[0] rs 1 end_gate
-	gate Rc a_be[1] <az_H01> <ay_H01> ocontrol rs 1  control a_be[0] end_gate
-	gate Rc a_be[1] <az_H10> <ay_H10>  control rs 1 ocontrol a_be[0] end_gate
-	gate Ry a_be[1] <ay_H11> control 2 a_be[0] rs 1 end_gate
-	// OM
-	gate SWAP a_be[0] rs[0] end_gate
-	// OF adjoint
-	gate H a_be[0] end_gate
-END_CIRCUIT_STRUCTURE
-
-
-
 // // --- Block-Encoding oracle ---
 // CIRCUIT_STRUCTURE U_BE
 // 	// OF
 // 	gate H  a_be[0] end_gate
 // 	// OH
 // 	gate Ry a_be[1] <ay_H00> ocontrol 2 a_be[0] rs 1 end_gate
-// 	gate Ry a_be[1] <ay_H01> ocontrol rs 1  control a_be[0] end_gate
-// 	gate Ry a_be[1] <ay_H10>  control rs 1 ocontrol a_be[0] end_gate
-// 	gate Ry a_be[1] <ay_H11>  control 2 a_be[0] rs 1 end_gate
+// 	gate Rc a_be[1] <az_H01> <ay_H01> ocontrol rs 1  control a_be[0] end_gate
+// 	gate Rc a_be[1] <az_H10> <ay_H10>  control rs 1 ocontrol a_be[0] end_gate
+// 	gate Ry a_be[1] <ay_H11> control 2 a_be[0] rs 1 end_gate
 // 	// OM
 // 	gate SWAP a_be[0] rs[0] end_gate
 // 	// OF adjoint
 // 	gate H a_be[0] end_gate
 // END_CIRCUIT_STRUCTURE
+
+
+
+// --- Block-Encoding oracle ---
+CIRCUIT_STRUCTURE U_BE
+	// OF
+	gate H  a_be[0] end_gate
+	// OH
+	gate Ry a_be[1] <ay_H00> ocontrol 2 a_be[0] rs 1 end_gate
+	gate Ry a_be[1] <ay_H01> ocontrol rs 1  control a_be[0] end_gate
+	gate Ry a_be[1] <ay_H10>  control rs 1 ocontrol a_be[0] end_gate
+	gate Ry a_be[1] <ay_H11>  control 2 a_be[0] rs 1 end_gate
+	// OM
+	gate SWAP a_be[0] rs[0] end_gate
+	// OF adjoint
+	gate H a_be[0] end_gate
+END_CIRCUIT_STRUCTURE
 
 
 // // --- Block-Encoding oracle ---

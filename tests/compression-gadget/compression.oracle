@@ -1,0 +1,70 @@
+// $qucf gauss ./ 
+
+CONSTANTS
+	nx 		4
+	N_mult 		3
+	alpha_s_0 	-2.000000000000e-01
+	alpha_s_1 	2.133333333333e-01
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	INIT     1  			   j <nx> 0
+	U1       2  		ae 1 1 j <nx> 0  // block-encoding oracle;
+	U        3   rc 2 1 ae 1 1 j <nx> 0  // Gauss QSVT circuit;
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   
+    U        
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+// --- Initialization ---
+CIRCUIT_STRUCTURE INIT
+	gate H   j -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Block-Encoding oracle ---
+CIRCUIT_STRUCTURE U1
+	gate SIN ae 1 <alpha_s_0> <alpha_s_1> j -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	circuit U1 2 ae 1 j -1 end_circuit
+	// // gate CompressionGadgetSD counter_register operator_matrix <regs_where_operator_sits> N_multiplications end_gate
+    // gate CompressionGadgetSD  rc 2  U1 2 ae 1 j -1  <N_mult>  end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

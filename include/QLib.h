@@ -152,6 +152,25 @@ struct QSVT_pars
 };
 
 
+// ------------------------------------------
+// --- Control qubits --- 
+// ------------------------------------------
+struct ControlQubits
+{
+    // indices of the qubits by which UNIT state an operator is controlled;
+    YVIv ids_unit; 
+
+    // indices of the qubits by which ZERO state an operator is controlled;
+    YVIv ids_zero; 
+
+    /**
+     * indices of the qubits that are used as conditional qubits for an operator in a compression gadget;
+     * dependence on these qubits takes place only if 
+     *      the corresponding operator is called within a compression gadget;
+     */
+    YVIv ids_gadget; 
+};
+
 
 // ------------------------------------------
 // --- Structure with an initial state --- 
@@ -826,9 +845,17 @@ namespace YMIX{
             template<class T>
             inline void read(T& v, YCS dname, H5::Group& grp)
             {
-                H5::DataSet dataset = grp.openDataSet(dname);
-                H5::DataType dtype = dataset.getDataType();
-                dataset.read(&v, dtype);
+                if(H5Lexists(grp.getId(), dname.c_str(), H5P_DEFAULT))
+                {
+                    H5::DataSet dataset = grp.openDataSet(dname);
+                    H5::DataType dtype = dataset.getDataType();
+                    dataset.read(&v, dtype);
+                } 
+                else
+                {
+                    std::cout << "\n>>> HDF5 WARNING READING: the dataset " << dname 
+                        << " does not exist in the group " << grp.getObjName() << ".\n" << std::endl;
+                } 
             }
             inline void read(YS v, YCS dname, H5::Group& grp)
             {
