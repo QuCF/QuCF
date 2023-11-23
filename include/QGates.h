@@ -527,28 +527,8 @@ class Rz__ : public sR__
 class Phase__ : public sR__
 {
     public:
-        Phase__(YCI t, YCQR a) : sR__(name_shared_, t, a){ u2_ = YGV::mPhase(a); tex_name_ = "\\phase"; }
+        Phase__(YCI t, YCQR a) : sR__(name_shared_, t, a){ u2_ = YGV::mPhase(a); tex_name_ = "P"; }
         YSG copy_gate() const { return std::make_shared<Phase__>(*this); };
-
-        void write_tex(
-            std::vector<std::vector<std::string>>& tex_lines, 
-            const int64_t& id_layer,
-            YCU nq
-        ){
-            std::string l_nq_gate, l_name;
-
-            // the most-significant target qubit:
-            auto id_top_q = get_most_signif_target_qubit();
-
-            // write down the gate parameters:
-            l_name = tex_get_gate_name(tex_lines, id_layer, nq, "{}", true);
-
-            // combine the gate information:
-            tex_lines[nq - id_top_q - 1][id_layer] = "&" + l_name;
-
-            // add the control qubits 
-            tex_add_control(tex_lines, id_layer, nq, id_top_q);
-        }
 
     public:
         const static std::string name_shared_;
@@ -561,30 +541,9 @@ class PhaseZero__ : public sR__
         PhaseZero__(YCI t, YCQR a) : sR__(name_shared_, t, a)
         { 
             u2_ = YGV::mPhaseZero(a); 
-            // tex_name_ = "\\phase_{0}"; 
             tex_name_ = "P_0"; 
         }
         YSG copy_gate() const { return std::make_shared<PhaseZero__>(*this); };
-
-        // void write_tex(
-        //     std::vector<std::vector<std::string>>& tex_lines, 
-        //     const int64_t& id_layer,
-        //     YCU nq
-        // ){
-        //     std::string l_nq_gate, l_name;
-
-        //     // the most-significant target qubit:
-        //     auto id_top_q = get_most_signif_target_qubit();
-
-        //     // write down the gate parameters:
-        //     l_name = tex_get_gate_name(tex_lines, id_layer, nq, "{}", true);
-
-        //     // combine the gate information:
-        //     tex_lines[nq - id_top_q - 1][id_layer] = "&" + l_name;
-
-        //     // add the control qubits 
-        //     tex_add_control(tex_lines, id_layer, nq, id_top_q);
-        // }
 
     public:
         const static std::string name_shared_;
@@ -615,6 +574,29 @@ class Rc__ : public sR2__
         YSG copy_gate() const { return std::make_shared<Rc__>(*this); };
 
     public:
+        const static std::string name_shared_;
+};
+
+
+/**
+ * Rc(angle_rz, angle_ry) that takes action only if is put inside a gadget;
+*/
+class Rc_gadget__ : public sR2__
+{
+    public:
+        Rc_gadget__(YCI t, YCQR angle_rz, YCQR angle_ry, YCVI r_counter) : sR2__(name_shared_, t, angle_rz, angle_ry)
+        { 
+            u2_ = YGV::mRc(angle_rz, angle_ry); 
+            tex_name_ = "R_c";
+        }
+        Rc_gadget__(const Rc_gadget__& oo, double x) : sR2__(oo)
+        {
+
+        }
+        YSG copy_gate() const { return std::make_shared<Rc_gadget__>(*this); };
+
+    public:
+        YVIv cs_gadget_; // gadget-control qubits;
         const static std::string name_shared_;
 };
 
