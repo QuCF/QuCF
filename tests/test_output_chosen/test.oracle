@@ -1,0 +1,57 @@
+// $qucf gauss ./ 
+
+CONSTANTS
+	nx 		4
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	U    3 a 2 1 b 2 1 c 2 0
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U        
+	INPUT_STATE  0
+	output_zero_state_of c 2
+END_MAIN_CIRCUIT
+
+
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	gate X 2 b 3 a 3 end_gate
+	// gate Ry b 1 2.0943951023931953  end_gate
+	gate H  c 2 end_gate
+	gate Ry c 1 1.0471975511965976 end_gate
+	// gate H c 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

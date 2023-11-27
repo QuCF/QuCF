@@ -57,6 +57,8 @@ class Gate__
         virtual void generate(Qureg& oc){};
         virtual void write_to_file(YMIX::File& cf){ write_to_file_base(cf); };
 
+        virtual void activate_gadget(YCI id_in_counter, YCI N_mult){};
+
 
         inline void check_control_nodes(YCVI control_qubits)
         {
@@ -581,22 +583,106 @@ class Rc__ : public sR2__
 /**
  * Rc(angle_rz, angle_ry) that takes action only if is put inside a gadget;
 */
-class Rc_gadget__ : public sR2__
+class Rc_gadget__ : public SQGate__
 {
     public:
-        Rc_gadget__(YCI t, YCQR angle_rz, YCQR angle_ry, YCVI r_counter) : sR2__(name_shared_, t, angle_rz, angle_ry)
+        Rc_gadget__(YCI t, YCVQ angles_y, YCVQ angles_z, YCVI r_counter) : SQGate__(name_shared_, t)
         { 
-            u2_ = YGV::mRc(angle_rz, angle_ry); 
+            cs_counter_ = r_counter;
+            angles_y_ = angles_y;
+            angles_z_ = angles_z;
+
+            // check the number of angles:
+            if(angles_z_.size() != angles_y_.size())
+            {
+                throw std::string("Error in Rc_gadget__: the number of angles are not equal.");
+            }
+            flag_activated_ = false;
             tex_name_ = "R_c";
         }
-        Rc_gadget__(const Rc_gadget__& oo, double x) : sR2__(oo)
+        Rc_gadget__(const Rc_gadget__& oo) : SQGate__(oo)
         {
+            cs_counter_      = oo.cs_counter_;
+            angles_y_       = oo.angles_y_;
+            angles_z_       = oo.angles_z_;
+            flag_activated_ = oo.flag_activated_;
+            id_in_counter_  = oo.id_in_counter_;
+        }
+        void activate_gadget(YCI id_in_counter, YCI N_mult)
+        {
+            flag_activated_ = true;
+            id_in_counter_ = id_in_counter;
+            if((N_mult-id_in_counter_) >= angles_z_.size())
+            {
+                std::cout << "In Rc_gadget: index = " << N_mult-id_in_counter_ << std::endl;
+                throw std::string("Error in Rc_gadget__: the index is too large");
+            }
 
+            // std::cout << id_in_counter_ << std::endl;
+            // std::cout << "activation, ay, az: " << 
+            //     angles_y_[N_mult-id_in_counter_] << ", " << angles_z_[N_mult-id_in_counter_] << std::endl;
+
+            u2_ = YGV::mRc(angles_z_[N_mult-id_in_counter_], angles_y_[N_mult-id_in_counter_]);
+        }
+        void deactivate_gadget()
+        {
+            flag_activated_ = false;
+        }
+        void generate(Qureg& oc)
+        {
+            if(flag_activated_)
+            {
+                int nc = cs_counter_.size();
+                YVIv cs_unit_total, cs_zero_total;
+
+                std::vector<short> binArray(nc);
+                YMATH::intToBinary(id_in_counter_, binArray);
+                for(unsigned id_bit = 0; id_bit < nc; id_bit++)
+                    if(binArray[nc - id_bit - 1] == 1)
+                        cs_unit_total.push_back(cs_counter_[id_bit]);
+                    else 
+                        cs_zero_total.push_back(cs_counter_[id_bit]);
+                cs_unit_total.insert(cs_unit_total.end(), cs_unit_.begin(), cs_unit_.end());
+                cs_zero_total.insert(cs_zero_total.end(), cs_zero_.begin(), cs_zero_.end());
+
+                // std::cout << "\ngeneration: " << id_in_counter_ << std::endl;
+                // YMIX::print(cs_unit_total);
+                // YMIX::print(cs_zero_total);
+
+                mc_st_u(oc, ts_[0], cs_unit_total, cs_zero_total, u2_);
+            }
         }
         YSG copy_gate() const { return std::make_shared<Rc_gadget__>(*this); };
 
+        void write_tex(
+            std::vector<std::vector<std::string>>& tex_lines, 
+            const int64_t& id_layer,
+            YCU nq
+        ){
+            if(flag_activated_)
+            {
+                SQGate__::write_tex(tex_lines, id_layer, nq);
+            }
+        }
+
     public:
-        YVIv cs_gadget_; // gadget-control qubits;
+        // qubits by which the gate will be controlled in compression gadget.
+        YVIv cs_counter_; 
+
+        // integer index indicating which angle_y and angle_z to use in the gate.
+        int id_in_counter_;
+
+        /**
+         * \p angles_y_[id_in_counter_] and \p angles_z_[id_in_counter_] are used in the gate 
+         * when the register \p cs_counter_ encodes the integer \p id_in_counter_.
+        */
+        YVQv angles_y_, angles_z_; 
+
+        /**
+         * If true, then gate is applied.
+        */
+        bool flag_activated_;
+
         const static std::string name_shared_;
 };
 

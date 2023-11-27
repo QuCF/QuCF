@@ -75,9 +75,20 @@ QCircuit::QCircuit(YCCQ oc, YCS cname)
     timer_.Start();
 
     if(cname.empty())
+    {
         name_ = oc->name_ + "-copy";
+        flag_circuit_ = false;
+        flag_tex_     = false;
+        flag_layers_  = false;
+    }
     else
+    {
         name_ = cname;
+        flag_circuit_ = oc->flag_circuit_;
+        flag_tex_     = oc->flag_tex_;
+        flag_layers_  = oc->flag_layers_;
+    }
+        
     env_ = oc->env_;
     nq_ = oc->nq_;
     flag_circuit_allocated_ = false;
@@ -93,11 +104,11 @@ QCircuit::QCircuit(YCCQ oc, YCS cname)
     ib_state_       = vector<short>(oc->ib_state_);
     id_start_       = oc->id_start_;
     standart_output_format_ = oc->standart_output_format_;
-    unique_gates_names_ = YVSv(oc->unique_gates_names_);
+    // unique_gates_names_ = YVSv(oc->unique_gates_names_);
 
-    flag_circuit_ = oc->flag_circuit_;
-    flag_tex_     = oc->flag_tex_;
-    flag_layers_  = oc->flag_layers_;
+    // flag_circuit_ = oc->flag_circuit_;
+    // flag_tex_     = oc->flag_tex_;
+    // flag_layers_  = oc->flag_layers_;
 
     tex_noc_ = vector<uint64_t>(oc->tex_noc_);
     tex_lines_ = vector<vector<string>>(oc->tex_lines_);
@@ -391,8 +402,7 @@ void QCircuit::h_adjoint()
 
 void QCircuit::copy_gates_from(
     YCCQ c, YCVI regs_new, YCCB box, YCVI cs_unit, YCVI cs_zero, YCB flag_inv
-)
-{
+){
     if(box)
     {
         YSG oo = box->copy_gate();
@@ -437,11 +447,11 @@ void QCircuit::copy_gates_from(
         gates_.push_back(oo);
     }
 
-    unique_gates_names_.insert(
-        unique_gates_names_.end(), 
-        c->unique_gates_names_.begin(), 
-        c->unique_gates_names_.end()
-    );
+    // unique_gates_names_.insert(
+    //     unique_gates_names_.end(), 
+    //     c->unique_gates_names_.begin(), 
+    //     c->unique_gates_names_.end()
+    // );
 }
 
 
@@ -468,11 +478,11 @@ void QCircuit::insert_gates_from(const QCircuit* c, YCCB box)
         gates_.push_back(oo);
     }
 
-    unique_gates_names_.insert(
-        unique_gates_names_.end(), 
-        c->unique_gates_names_.begin(), 
-        c->unique_gates_names_.end()
-    );
+    // unique_gates_names_.insert(
+    //     unique_gates_names_.end(), 
+    //     c->unique_gates_names_.begin(), 
+    //     c->unique_gates_names_.end()
+    // );
 }
 
 
@@ -637,7 +647,7 @@ void QCircuit::reset()
                 set_init_binary_state();
         }
     }
-    unique_gates_names_.clear();
+    // unique_gates_names_.clear();
 }
 void QCircuit::reset_qureg()
 {
@@ -1308,6 +1318,105 @@ void QCircuit::read_structure_sin(YISS istr, YCS path_in, YCB flag_inv)
 }
 
 
+void QCircuit::read_structure_compression_gadget(
+    YISS istr, 
+    std::map<std::string, 
+    YSQ>& ocs, 
+    YCB flag_inv, 
+    QuCF_complex_data& qucf_d
+){
+    string gadget_name;
+    YVIv ids_counter;
+    YVIv ids_U_target;
+    string name_U;
+    int N_mult;
+    YVIv ids_unit, ids_zero; 
+    bool flag_step_output;
+    string word;
+
+    auto& map_gadget_data = qucf_d.gadgets;
+    GADGET_pars data;
+
+    // --- read the unique name of the gadget ---
+    istr >> gadget_name;
+    qucf_d.check_name(gadget_name);
+
+    data.name = gadget_name;
+    data.type = "compression";
+
+    // --- read counter qubits ---
+    read_reg_int(istr, ids_counter);
+
+    // --- Read the name of the circuit U whose product the gadget will compute ---
+    istr >> name_U;
+    if(ocs.find(name_U) == ocs.end())
+        throw string("CompressionGadget: a circuit with the name ["s + name_U + "] is not found."s);
+    YSQ oc_U = ocs[name_U];
+
+    // --- Read qubits where the circuit U sits ---
+    read_reg_int(istr, ids_U_target);
+
+    // --- Read the integer indicating how many copies of U are multiplied ---
+    try
+    {
+        istr >> word;
+        N_mult = get_value_from_word(word);
+    }
+    catch(YCS e)
+    {
+        throw "CompressionGadget: wrong format of the N_mult.";
+    }
+    data.N_mult = N_mult;
+
+    // --- Check whether the counter register has enough qubits ---
+    int nc = ids_counter.size();
+    if(N_mult == 1)
+        if(nc < 1)
+            throw string("CompressionGadget: if N_mult >= 1, "s + 
+                "then n of qubits in the counter register has to be >= 1."s);
+    if(N_mult == 2)
+        if(nc < 2)
+            throw string("CompressionGadget: if N_mult >= 2, "s + 
+                "then n of qubits in the counter register has to be >= 2."s);
+    if(N_mult >= 3)
+    {
+        int temp = ceil(log2(N_mult));
+        temp = temp + (1 - ceil( (N_mult%int(pow(2,temp))) / N_mult)) + 1;
+        if(nc < temp)
+        {
+            throw string("CompressionGadget: the number of qubits" + 
+                " in the counter register is not large enough: "s + 
+                "(nc-minimum = " + to_string(temp) + ").");
+        }
+            
+    }
+        
+    // --- read the flag whether output state after each call to oc_U should be written ---
+    istr >> word;
+    flag_step_output = get_value_from_word(word);
+
+    // --- read the end of the gate structure ---
+    read_end_gate(istr, ids_unit, ids_zero);
+
+    // --- Print data ---
+    cout << "\n--- Parameters of the compression gadget " << gadget_name << " ---" << endl;
+    cout << "N_mult: " << data.N_mult << endl;
+    cout << "Operator: " << name_U << endl;
+    cout << "flag_Step_output: " << flag_step_output << endl;
+    cout << "\n";
+
+    // --- Construct the compression gadget ---
+    compression_gadget(
+        data, ids_counter, oc_U, ids_U_target, N_mult, flag_step_output, 
+        ids_unit, ids_zero, flag_inv
+    );
+
+    // store the gadget data:
+    map_gadget_data[gadget_name] = data;
+}
+
+
+
 void QCircuit::read_structure_gate_phase_estimation(YISS istr, YCS path_in, std::map<std::string, YSQ>& ocs, YCB flag_inv)
 {
     YVIv ids_ta; // target qubits of the operator A, whose eigenphase we seek for;
@@ -1352,19 +1461,19 @@ void QCircuit::read_structure_gate_qsvt(
     YCS path_in, 
     std::map<std::string, YSQ>& ocs, 
     YCB flag_inv, 
-    std::map<std::string, QSVT_pars>& map_qsvt_data
+    QuCF_complex_data& qucf_d
 ){
     string name_circuit;
     string be_name;
     YVIv ids_a_qsvt, ids_be;
     YVIv ids_unit, ids_zero;
-
+    auto& map_qsvt_data = qucf_d.qsvt;
     QSVT_pars data;
 
     // --- read QSVT parameters ---
     istr >> name_circuit;
-    if(YMIX::compare_strings(name_circuit, unique_gates_names_))
-        throw string("QSVT gate: the name ["s + name_circuit + "] has alredy been used for another gate."s);
+    qucf_d.check_name(name_circuit);
+    data.name = name_circuit;
 
     qsvt_read_parameters(name_circuit, data);
 
@@ -1993,6 +2102,76 @@ YQCP QCircuit::gate_sin(
 }
 
 
+YQCP QCircuit::compression_gadget(
+    GADGET_pars& data ,
+    YCVI ids_counter, 
+    YCCQ& oc_U_in, 
+    YCVI ids_U_target, 
+    YCI N_mult, 
+    YCB flag_step_output,
+    YCVI cs_unit, YCVI cs_zero,
+    YCB flag_inv
+){
+    string gadget_name = data.name;
+    string name_stop;
+    auto oc_U = make_shared<QCircuit>(oc_U_in);
+    auto oc_gadget = make_shared<QCircuit>("CG", env_, path_to_output_, nq_);
+    oc_gadget->add_register("r", nq_);
+
+    auto nq_U = oc_U->get_n_qubits();
+    if(nq_U != ids_U_target.size())
+    {
+        throw string("Error in compression_gadget: the indicated number of target qubits for the oracle\n") +
+            string("does not equal the number of qubits that the oracle requires.");
+    }
+    auto nanc_U = oc_U->get_na();
+
+    YVIv inq_U(ids_U_target.begin(), ids_U_target.begin() + nq_U - nanc_U);
+    YVIv anc_U(ids_U_target.begin() + nq_U - nanc_U, ids_U_target.end());
+
+    // --- Apply the adder ---
+    YVIv ids_t_adder;
+    int id_t_carry;
+    if(N_mult == 1 || N_mult == 2)
+    {
+        ids_t_adder = ids_counter;
+        for(short i_inc = 0; i_inc < N_mult; i_inc++)
+            oc_gadget->adder_1(ids_t_adder);
+    }
+    else
+    {
+        ids_t_adder = YVIv(ids_counter.begin(),   ids_counter.end()-1);
+        id_t_carry  = ids_counter.back();
+        oc_gadget->adder_fixed(ids_t_adder, id_t_carry, N_mult);
+    }
+    data.counter_qubits = ids_t_adder;
+    
+    // --- Calls to the operator oc_U and the subtractors ---
+    for(int i_mult = 0; i_mult < N_mult; i_mult++)
+    {
+        oc_U->activate_gadget(N_mult-i_mult, N_mult);
+        oc_gadget->copy_gates_from(oc_U, ids_U_target);
+        oc_gadget->subtractor_1(ids_t_adder, YVIv{}, anc_U);
+        if(flag_step_output)
+        {
+            name_stop = "CompressionGadget <" + gadget_name + ">: i = " + to_string(i_mult);
+            oc_gadget->add_stop_gate(name_stop);
+        }
+    }
+
+    // --- Transfer the gates to the main circuit ---
+    auto all_qubits = YMATH::get_range(0, nq_);
+    copy_gates_from(
+        oc_gadget,
+        all_qubits,
+        YSB(nullptr), 
+        cs_unit, cs_zero,
+        flag_inv        
+    ); 
+    return get_the_circuit();
+}
+
+
 YQCP QCircuit::phase_estimation(
     YCVI ta, 
     const std::shared_ptr<const QCircuit>& A, 
@@ -2115,7 +2294,7 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
 {
     string filename = path_to_output_ + "/" + gate_name + FORMAT_QSP;
     ifstream ff_qsvt(filename);
-    if(!ff_qsvt.is_open()) throw "Error: there is not the file: "s + filename;
+    if(!ff_qsvt.is_open()) throw "Error: there is no file "s + filename;
 
     string line, key_name;
     while (getline(ff_qsvt, line))
@@ -2151,9 +2330,9 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
     string temp = data.filename_angles;
     if(!YMIX::compare_strings(
         temp.substr(
-            temp.size()-string(FORMAR_HDF5).size(),string(FORMAR_HDF5).size()
-        ), FORMAR_HDF5)
-    ) temp += FORMAR_HDF5;
+            temp.size()-string(FORMAT_HDF5).size(),string(FORMAT_HDF5).size()
+        ), FORMAT_HDF5)
+    ) temp += FORMAT_HDF5;
     data.filename_angles = temp;
 
     YMIX::print_log("\nRead angles from the file: "s + data.filename_angles);
@@ -2357,8 +2536,9 @@ YQCP QCircuit::qsp_ham(
     auto N_angles = phis.size();
     auto n_be     = BE->get_n_qubits();
     auto n_be_anc = BE->get_na();
+    auto all_qubits = YMATH::get_range(0, nq_);
 
-    // N_angles = 4; // for testing;
+    // N_angles = 3; // for testing;
 
     timer.StartPrint("Creating the QSP circuit... ");
 
@@ -2401,13 +2581,13 @@ YQCP QCircuit::qsp_ham(
     {
         aa = phis[2*count_angle];
         oc_qsp->rz(a_qsp, -aa)->h(a_qsp);
-        oc_qsp->copy_gates_from(oW, qubits_W, YSB(nullptr), YVIv{}, YVIv{a_qsp});
+        oc_qsp->copy_gates_from(oW, all_qubits, YSB(nullptr), YVIv{}, YVIv{a_qsp}); 
         oc_qsp->phase_zero(a_qsp, -M_PI_2);
         oc_qsp->h(a_qsp)->rz(a_qsp, aa);
 
         aa = phis[2*count_angle+1];
         oc_qsp->rz(a_qsp, -aa)->h(a_qsp);
-        oc_qsp->copy_gates_from(oW, qubits_W, YSB(nullptr), YVIv{a_qsp}, YVIv{}, true);
+        oc_qsp->copy_gates_from(oW, all_qubits, YSB(nullptr), YVIv{a_qsp}, YVIv{}, true); 
         oc_qsp->phase(a_qsp, M_PI_2);
         oc_qsp->h(a_qsp)->rz(a_qsp, aa);
     }
@@ -2432,11 +2612,11 @@ YQCP QCircuit::qsp_ham(
     { 
         copy_gates_from(
             oc_qsp,
-            qsp_qubits,
+            all_qubits,
             YSB(nullptr), 
             cs_unit, cs_zero,
             flag_inv      
-        );
+        ); 
 
         // to save a state after the simulation of a time interval:
         name_stop = "QSP-H <" + name_qsp_circuit + ">: t = " + to_string(it+1);

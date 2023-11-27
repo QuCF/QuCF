@@ -1,52 +1,47 @@
 // $qucf gauss ./ 
 
 CONSTANTS
-	nx 		4
-	N_mult 		3
-	alpha_s_0 	-2.000000000000e-01
-	alpha_s_1 	2.133333333333e-01
+	nc 		9
+	N_mult 	200
+	ay_one 	6.400000000000e-01
 END_CONSTANTS
 
 
 OPTIONS
-    sel_compute_output all
-	sel_print_output   none  // none, all, zero-ancillae
+    sel_compute_output none
+	sel_print_output   none // none, all, zero-ancillae
 	flag_circuit 0 
-	flag_tex     0
+	flag_tex     1
 	tex_CL  6 
+
+	flag_output_gadget 1
 END_OPTIONS
 
 
 CIRCUITS_DECLARATION
-	INIT     1  			   j <nx> 0
-	U1       2  		ae 1 1 j <nx> 0  // block-encoding oracle;
-	U        3   rc 2 1 ae 1 1 j <nx> 0  // Gauss QSVT circuit;
+	U1       3   ae 1 1 rc <nc> 0  j 3 0  
+	U        3   ae 1 1 rc <nc> 0  j 3 0  
 END_CIRCUITS_DECLARATION
 
 
-MAIN_CIRCUIT   
-    U        
+MAIN_CIRCUIT   U        
 	INPUT_STATE  0
+	// output_zero_state_of c 2
 END_MAIN_CIRCUIT
-
-
-// --- Initialization ---
-CIRCUIT_STRUCTURE INIT
-	gate H   j -1 end_gate
-END_CIRCUIT_STRUCTURE
 
 
 // --- Block-Encoding oracle ---
 CIRCUIT_STRUCTURE U1
-	gate SIN ae 1 <alpha_s_0> <alpha_s_1> j -1 end_gate
+    // gate Ry ae 1 <ay_one> end_gate
+	gate Rc_gadget  ae 1  rc -1  RC_TEST end_gate
 END_CIRCUIT_STRUCTURE
 
 
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
-	circuit U1 2 ae 1 j -1 end_circuit
-	// // gate CompressionGadgetSD counter_register operator_matrix <regs_where_operator_sits> N_multiplications end_gate
-    // gate CompressionGadgetSD  rc 2  U1 2 ae 1 j -1  <N_mult>  end_gate
+	// circuit U1 3 ae -1 rc -1 j -1 end_circuit
+    gate CompressionGadget G1  rc -1  U1  3 ae -1 rc -1 j -1  <N_mult>  1 end_gate
+	// igate CompressionGadget G2  rc -1  U1  3 ae -1 rc -1 j -1  <N_mult>  0 end_gate
 END_CIRCUIT_STRUCTURE
 
 

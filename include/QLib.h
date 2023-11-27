@@ -115,7 +115,7 @@
 #define FORMAT_ANGLES     ".angles"s
 #define FORMAT_LOG        ".log"s
 #define FORMAT_QSP        ".qsvt"s
-#define FORMAR_HDF5       ".hdf5"
+#define FORMAT_HDF5       ".hdf5"
 // #define FORMAT_INIT       ".init_state"s
 #define FORMAT_INIT       "_INIT_STATE.hdf5"s
 #define FORMAT_RANDOM     ".random"s
@@ -134,6 +134,7 @@ enum SEL_INIT_STATE_PREP {use_init_vector, use_init_oracle};
 // ------------------------------------------
 struct QSVT_pars
 {
+    std::string name;
     std::string filename_angles;
 
     std::string type;
@@ -149,6 +150,37 @@ struct QSVT_pars
     int parity;
 
     uint32_t n_repeat;
+};
+
+
+// ----------------------------------------------------------
+// --- Structure with parameters for a compression gadget --- 
+// ----------------------------------------------------------
+struct GADGET_pars
+{
+    std::string name;
+    std::string type;
+    int N_mult;
+    YVIv counter_qubits;
+};
+
+
+// ----------------------------------------------------------
+// --- QuCF complex data --- 
+// ----------------------------------------------------------
+struct QuCF_complex_data
+{
+    std::map<std::string, QSVT_pars>   qsvt;
+    std::map<std::string, GADGET_pars> gadgets;
+
+    void check_name(YCS name_structure)
+    {
+        if(
+            qsvt.find(name_structure) != qsvt.end() or
+            gadgets.find(name_structure) != gadgets.end()
+        ) 
+            throw std::string("In QuCF_complex_data: the name " + name_structure + " has alredy been used.");
+    }
 };
 
 
@@ -214,7 +246,7 @@ namespace YMATH{
     /** Convert an integer \p x to an array of bits \p binaryNum :
     * 2 -> {1, 0}; 
     * 6 -> {1, 1, 0} etc.
-    * @param[out] binaryNum resulting array of bits. Its size must have been initialized.
+    * @param[out] binaryNum resulting array of bits. THe array with a necessary size must have been initialized.
     */
     void intToBinary(int x, YVsh binaryNum);
 
@@ -802,6 +834,16 @@ namespace YMIX{
                 H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
                 dataset.write(&v[0], dtype);
             }
+
+            inline void write(YCVsh v, YCS dname, H5::Group& grp)
+            {
+                hsize_t dims[] = {v.size()};
+                H5::DataSpace dspace(1, dims);
+                auto dtype = H5::PredType::NATIVE_SHORT;
+                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                dataset.write(&v[0], dtype);
+            }
+
             inline void write(const std::vector<double>& v, YCS dname, H5::Group& grp)
             {
                 hsize_t dims[] = {v.size()};

@@ -18,10 +18,11 @@ QuCF__::QuCF__(
     sel_compute_output_   = "zero-ancillae";
     sel_print_output_     = "none";
     flag_init_state_file_ = false;
-
     flag_prob_ = false;
-
     flag_matrix_ = false;
+    flag_zero_state_of_ = false;
+    flag_output_qsp_ = false;
+    flag_output_gadget_ = false;
 
     read_data();
 }
@@ -133,6 +134,18 @@ void QuCF__::read_options(YISS istr)
                     throw string(
                         "unknown option ["s + sel_print_output_ + "] for the selector sel_print_output."s
                     );
+                continue;
+            }
+
+            if(YMIX::compare_strings(word, "flag_output_qsp"))
+            {
+                istr >> flag_output_qsp_;
+                continue;
+            }
+
+            if(YMIX::compare_strings(word, "flag_output_gadget"))
+            {
+                istr >> flag_output_gadget_;
                 continue;
             }
 
@@ -399,6 +412,8 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
 
         if(oc->read_structure<Rc__>(gate_name, istr, par_gate, par_gate2, flag_inv)) return;
 
+        if(oc->read_Rc_gadget(gate_name, istr, flag_inv)) return;
+
         if(YMIX::compare_strings(gate_name, YVSv{"incrementor", "adder1"}))
         {
             oc->read_structure_gate_adder_subtractor(istr, path_inputs_, flag_inv, 1);
@@ -483,9 +498,12 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
         }
         if(YMIX::compare_strings(gate_name, "QSVT"))
         {
-            oc->read_structure_gate_qsvt(istr, path_inputs_, ocs_, flag_inv, qsvt_data_);
+            oc->read_structure_gate_qsvt(istr, path_inputs_, ocs_, flag_inv, cd_);
         }
-
+        if(YMIX::compare_strings(gate_name, "CompressionGadget"))
+        {
+            oc->read_structure_compression_gadget(istr, ocs_, flag_inv, cd_);
+        }
     }
     catch(YCS e)
     {
@@ -636,10 +654,33 @@ void QuCF__::read_main_circuit(YISS istr)
             {
                 istr >> flag_prob_;
                 oc_to_launch_->read_reg_int(istr, focus_qubits_);
+
                 stringstream sstr;
                 copy(
                     focus_qubits_.begin(), 
                     focus_qubits_.end(), 
+                    std::ostream_iterator<int>(sstr, " ")
+                );
+                YMIX::print_log("-> compute probabilites of the states on the following qubits: " + sstr.str());
+                continue;
+            }
+
+            if(YMIX::compare_strings(word, "output_zero_state_of"))
+            {
+                flag_zero_state_of_ = true;
+                YVIv ids_qs;
+                oc_to_launch_->read_reg_int(istr, ids_qs);
+
+                int nq = oc_to_launch_->get_n_qubits(); 
+                qs_chosen_state_.resize(nq);
+                std::fill(qs_chosen_state_.begin(), qs_chosen_state_.end(), -1);
+                for(auto id_qu: ids_qs)
+                    qs_chosen_state_[nq - id_qu - 1] = 0;
+
+                stringstream sstr;
+                copy(
+                    qs_chosen_state_.begin(), 
+                    qs_chosen_state_.end(), 
                     std::ostream_iterator<int>(sstr, " ")
                 );
                 YMIX::print_log("-> compute probabilites of the states on the following qubits: " + sstr.str());
@@ -715,17 +756,17 @@ void QuCF__::launch()
     hfo_.add_vector(u_work->get_standart_output_format(), "register-nq", "basic");
 
     // if QSVT, store its parameters:
-    if(!qsvt_data_.empty())
+    auto& qsvt_d = cd_.qsvt;
+    if(!qsvt_d.empty())
     {
         YMIX::print_log("Saving QSVT parameters...");
         hfo_.add_group("qsvt");
-        hfo_.add_scalar(qsvt_data_.size(), "n-qsvt-circuits", "qsvt");
+        hfo_.add_scalar(qsvt_d.size(), "n-qsvt-circuits", "qsvt");
 
         int counter_qsvt = -1;
-        for(auto const& [name_qsvt_gate, qsvt_data_one] : qsvt_data_)
+        for(auto const& [name_qsvt_gate, qsvt_data_one] : qsvt_d)
         {
             ++counter_qsvt;
-            // string name_gr = "qsvt-"s + name_qsvt_gate;
             string name_gr = name_qsvt_gate;
 
             hfo_.add_scalar(name_gr, "name-"s + to_string(counter_qsvt), "qsvt");
@@ -766,6 +807,24 @@ void QuCF__::launch()
             }
         }
     }
+
+    // Save data of gadgets:
+    auto& gadgets_d = cd_.gadgets;
+    if(!gadgets_d.empty())
+    {
+        YMIX::print_log("Saving Gadgets' parameters...");
+        for(auto const& [gadget_name, gadget_data] : gadgets_d)
+        {
+            hfo_.add_group(gadget_name);
+            hfo_.add_scalar(gadget_data.type, "type", gadget_name);
+            if(YMIX::compare_strings(gadget_data.type, "compression"))
+            {
+                hfo_.add_scalar(gadget_data.N_mult, "N_mult", gadget_name);
+                hfo_.add_vector(gadget_data.counter_qubits, "counter-qubits", gadget_name);
+            }
+        }
+    }
+
 
     // number of initial states:
     uint32_t n_init_states = flag_init_state_file_ ? 1: init_states_.size();
@@ -839,15 +898,14 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
     }
 
     // --- Print output states ---
-    if(!YMIX::compare_strings(sel_compute_output_, "none"))
+    if(!YMIX::compare_strings(sel_compute_output_, "none") or flag_output_qsp_ or flag_output_gadget_)
     {
-        
         int id_current_gate = 0;
         string stop_point_name;
-        YMIX::StateVectorOut outF, outZ, outZ_qsp;
+        YMIX::StateVectorOut outF, outZ, outZ_chosen, outZ_qsp, outZ_gadget;
 
         map<string, int> counters_t;
-        for(auto const& [name_qsvt_gate, qsvt_data_one] : qsvt_data_)
+        for(auto const& [name_qsvt_gate, qsvt_data_one] : cd_.qsvt)
         {
             if(YMIX::compare_strings(qsvt_data_one.type, YVSv{"QSVT-ham", "QSP-ham"}))
             {
@@ -855,6 +913,14 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
             }
         }
 
+        map<string, int> counters_gadget;
+        for(auto const& [name_gadget, gadget_data] : cd_.gadgets)
+        {
+            if(YMIX::compare_strings(gadget_data.type, YVSv{"compression"}))
+            {
+                counters_gadget[name_gadget] = -1;
+            }
+        }
 
         while(id_current_gate < u_work->get_n_gates())
         {
@@ -863,9 +929,15 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
             YMIX::print_log( "Calculating the circuit... ", 0, false, false);
             u_work->generate(stop_point_name, id_current_gate);
 
-            u_work->get_state(outZ, true, false);
+            if(YMIX::compare_strings(sel_compute_output_, "zero-ancillae"))
+                u_work->get_state(outZ, true, false);
             if(YMIX::compare_strings(sel_compute_output_, "all"))
                 u_work->get_state(outF);
+            if(flag_zero_state_of_)
+            {
+                outZ_chosen.state_to_choose = qs_chosen_state_;
+                u_work->get_state(outZ_chosen, false, false);
+            }
 
             timer_comp.Stop();
             YMIX::print_log( "duration: " + timer_comp.get_dur_str_s());
@@ -878,9 +950,13 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
                 YMIX::print_log(
                         "...Output zero-ancilla states after " + stop_point_name + ": \n" + outZ.str_wv
                 );
+            if(flag_zero_state_of_)
+                YMIX::print_log(
+                        "...Output chosen states after " + stop_point_name + ": \n" + outZ_chosen.str_wv
+                );
 
-            // Save results from each time step of QSP simulations:
-            if(stop_point_name.find("QSP-H") != string::npos)
+            // --- Save results from each time step of QSP simulations ---
+            if(stop_point_name.find("QSP-H") != string::npos && flag_output_qsp_)
             {
                 auto pos1 = stop_point_name.find("<");
                 auto pos2 = stop_point_name.find(">");
@@ -901,6 +977,75 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
                 }
                 hfo_.close(); 
             }
+
+            // --- Save results from GADGETS ---
+            // cout << "\n>>>HERE: " << stop_point_name << endl;
+            // cout << "\nFLAG: " << flag_output_gadget_ << "\n" << endl;
+            if(stop_point_name.find("CompressionGadget") != string::npos && flag_output_gadget_)
+            {
+                auto pos1 = stop_point_name.find("<");
+                auto pos2 = stop_point_name.find(">");
+                string name_gadget = stop_point_name.substr(pos1+1, pos2-pos1-1);
+
+                counters_gadget[name_gadget] += 1;
+                auto& gadget_data = cd_.gadgets[name_gadget];
+                if(YMIX::compare_strings(gadget_data.type, "compression"))
+                {
+                    // --- Chose only states that contain correct state in the counter register ---
+                    int des_index = gadget_data.N_mult - counters_gadget[name_gadget] - 1;
+                    auto nc = gadget_data.counter_qubits.size();
+                    auto n_full = u_work->get_n_qubits();
+                    std::vector<short> des_bitstring(nc);
+                    YMATH::intToBinary(des_index, des_bitstring);
+
+                    std::vector<short> chosen_bitstring(n_full);
+                    std::fill(chosen_bitstring.begin(), chosen_bitstring.end(), -1);
+                    for(int iq = 0; iq < des_bitstring.size(); iq++)
+                    {
+                        auto one_bit = des_bitstring[nc-iq-1];
+                        auto id_bit = gadget_data.counter_qubits[iq];
+                        chosen_bitstring[n_full-id_bit-1] = one_bit;
+                    }
+
+                    // cout << des_index << endl;
+                    // YMIX::print(gadget_data.counter_qubits);
+                    // YMIX::print(chosen_bitstring);
+
+                    if(flag_zero_state_of_)
+                    {
+                        for(int iq = 0; iq < chosen_bitstring.size(); iq++)
+                            if(chosen_bitstring[iq] == -1)
+                                chosen_bitstring[iq] = qs_chosen_state_[iq];
+                        outZ_gadget.state_to_choose = chosen_bitstring;
+                        u_work->get_state(outZ_gadget, false, false);
+                        // cout << "FLAG: 1" << endl;
+                    }
+                    else
+                    {
+                        outZ_gadget.state_to_choose = chosen_bitstring;
+                        u_work->get_state(outZ_gadget, false, false);
+                        // cout << "FLAG: 2" << endl;
+                    }
+
+                    // cout << "SIZE: " << outZ_gadget.ampls.size() << endl;
+                    
+                    hfo_.open_w();
+                    if(outZ_gadget.ampls.size() > 0)
+                    {
+                        hfo_.add_vector(
+                            outZ_gadget.ampls,  
+                            "ampls-"s + to_string(counters_gadget[name_gadget]) + "-" + to_string(count_init_state), 
+                            name_gadget
+                        );
+                        hfo_.add_matrix(
+                            outZ_gadget.states, 
+                            "states-"s + to_string(counters_gadget[name_gadget]) + "-" + to_string(count_init_state),     
+                            name_gadget
+                        );
+                    }
+                    hfo_.close();
+                }
+            }
         }
 
         // --- Store the output state at the very end of the circuit ---
@@ -918,7 +1063,7 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
                 "states"
             );
         }
-        if(YMIX::compare_strings(sel_compute_output_, YVSv{"zero-ancillae", "all"}))
+        if(YMIX::compare_strings(sel_compute_output_, YVSv{"zero-ancillae"}))
             if(outZ.ampls.size() > 0)
             {
                 hfo_.add_vector(
@@ -931,6 +1076,21 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
                     "output-zero-anc-states-"s + to_string(count_init_state),     
                     "states"
                 );
+            }
+        if(flag_zero_state_of_)
+            if(outZ_chosen.ampls.size() > 0)
+            {
+                hfo_.add_vector(
+                    outZ_chosen.ampls,  
+                    "chosen-amplitudes-"s + to_string(count_init_state), 
+                    "states"
+                );
+                hfo_.add_matrix(
+                    outZ_chosen.states, 
+                    "chosen-states-"s + to_string(count_init_state),     
+                    "states"
+                );
+                hfo_.add_vector(qs_chosen_state_,  "chosen_qubits"s, "states");
             }
         hfo_.close(); 
     }

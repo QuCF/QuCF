@@ -73,6 +73,14 @@ class QCircuit{
      */
     void generate(std::string& stop_name, int& id_current);
 
+    void activate_gadget(YCI id_counter, YCI N_mult)
+    {
+        auto start = gates_.begin();
+        for(auto it = start; it != gates_.end(); ++it)
+            (*it)->activate_gadget(id_counter, N_mult);
+    }
+    void deactivate_gadget();
+
     /**
      * @brief Transform the current matrix into its Hermitian adjoint version.
      */
@@ -247,7 +255,13 @@ class QCircuit{
         YISS istr, YCS path_in, 
         std::map<std::string, YSQ>& ocs, 
         YCB flag_inv, 
-        std::map<std::string, QSVT_pars>& map_qsvt_data
+        QuCF_complex_data& qucf_data
+    );
+    void read_structure_compression_gadget(
+        YISS istr, 
+        std::map<std::string, YSQ>& ocs, 
+        YCB flag_inv,
+        QuCF_complex_data& qucf_data
     );
 
     inline void read_global_control(YISS istr)
@@ -265,7 +279,7 @@ class QCircuit{
 
     /**
      * @brief store indices of qubits found in a register pattern to the output vector \p ids_target.
-     * The qubits start from the less singificant one.
+     * ids_target[0] is the less significant qubit.
      * @param ids_target: qubits found in the register pattern;
      * @param flag_sort: if true, sort \p ids_target in non-descending order.
      */ 
@@ -341,6 +355,44 @@ class QCircuit{
             read_structure_gate(istr, ids_target, par_gate1, par_gate2, ids_unit, ids_zero);
             for(auto const& id_target: ids_target) 
                 add_sq_rg<TGate>(id_target, par_gate1, par_gate2, ids_unit, ids_zero, flag_inv);
+            return true;
+        }
+        return false;
+    }
+
+    inline bool read_Rc_gadget(YCS gate_name, YISS istr, YCB flag_inv=false)
+    {
+        if(YMIX::compare_strings(gate_name, Rc_gadget__::name_shared_))
+        {
+            YVIv ids_target, ids_counter, ids_unit, ids_zero;
+            std::string word;
+            std::string filename;
+            YVQv angles_ay, angles_az;
+
+            // --- read target qubits ---
+            read_reg_int(istr, ids_target);
+
+            // --- read counter qubits ---
+            read_reg_int(istr, ids_counter);
+
+            // --- read the name of an .hdf5 file where angles of the gate are stored ---  
+            istr >> word;
+            filename = path_to_output_ + "/" + word + FORMAT_HDF5;
+
+            // -- read the angles ---
+            YMIX::H5File ff;
+            ff.set_name(filename);
+            ff.open_r();
+            ff.read_vector(angles_ay, "ay", "angles");
+            ff.read_vector(angles_az, "az", "angles");
+            ff.close();
+
+            // --- read the end of the gate structure description --- 
+            read_end_gate(istr, ids_unit, ids_zero);
+
+            // --- Create the gate ---
+            for(auto const& id_target: ids_target)
+                Rc_gadget(id_target, ids_counter, angles_ay, angles_az, ids_unit, ids_zero, flag_inv); 
             return true;
         }
         return false;
@@ -431,6 +483,24 @@ class QCircuit{
 
     inline YQCP phase_zero(YCI t, YCQR a, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv = false)
     { return add_sq_rg<PhaseZero__>(t, a, cs_unit, cs_zero, flag_inv); }
+
+
+    inline YQCP Rc_gadget(
+        YCI t, YCVI ids_counter, 
+        YCVQ angles_ay, YCVQ angles_az, 
+        YCVI cs_unit = {}, YCVI cs_zero = {}, 
+        YCB flag_inv = false
+    ){
+        YSG oo = std::make_shared<Rc_gadget__>(t, angles_ay, angles_az, ids_counter);
+        if(flag_inv) 
+            oo->h_adjoint();
+        oo->add_control_qubits(cs_unit, cs_zero);
+        gates_.push_back(oo);
+        // if(flag_layers_) 
+        //     oo_layers_->add_gate(oo);
+        return get_the_circuit();
+    }
+
 
     /** @brief integer encoded to \p ts is incremented */
     YQCP adder_1(YCVI ts, YCVI cs_unit = {}, YCVI cs_zero = {}, YCB flag_inv= false);
@@ -576,14 +646,32 @@ class QCircuit{
      */ 
     YQCP phase_estimation(
         YCVI ta, 
-        const std::shared_ptr<const QCircuit>& A, 
-        const std::shared_ptr<const QCircuit>& INIT,
+        YCCQ& A, 
+        YCCQ& INIT,
         YCVI ty, 
         YCVI cs_unit = {}, YCVI cs_zero = {}, 
         YCB flag_inv = false,
         YCB flag_box = false
     );
 
+
+    /** @brief Compression gadget.
+     * @param[in] ids_counter qubits for the counter register;
+     * @param[in] oc_U circuit which multiplication is to be computed;
+     * @param[in] ids_U_target qubits where the operator \p oc_U sits;
+     * @param[in] N_mult number of copies of \p oc_U in the product;
+     * @param[in] flag_step_output whether state should be outputed after call to \p oc_U;
+    */
+    YQCP compression_gadget(
+        GADGET_pars& data,
+        YCVI ids_counter, 
+        YCCQ& oc_U, 
+        YCVI ids_U_target, 
+        YCI N_mult, 
+        YCB flag_step_output,
+        YCVI cs_unit = {}, YCVI cs_zero = {},
+        YCB flag_inv = false
+    );
 
     /** @brief QSVT inversion of the matrix encoded by the oracle \p BE, which sits on qubits \p qs_be.
      * The QSVT single rotations are placed at the qubit \p a_qsvt.
@@ -775,8 +863,8 @@ private:
     // if the circuit is allocated in memory:
     bool flag_circuit_allocated_;
 
-    // names of unique gates:
-    std::vector<std::string> unique_gates_names_;
+    // // names of unique gates:
+    // std::vector<std::string> unique_gates_names_;
 
     // blocks with global qubits for unit-control:
     std::vector<YVIv> blocks_ids_unit_;

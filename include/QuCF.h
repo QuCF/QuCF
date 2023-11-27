@@ -90,10 +90,26 @@ private:
      * To calculate probabilities of all states for the given qubits, \p focus_qubits_.
      */
     bool flag_prob_;
-    std::vector<int> focus_qubits_;
+    YVIv focus_qubits_;
 
-    // QSVT data
-    std::map<std::string, QSVT_pars> qsvt_data_;
+    /**
+     * Output data from QSP
+    */
+    bool flag_output_qsp_;
+
+    /**
+     * Output data from gadget.
+    */
+    bool flag_output_gadget_;
+
+    /**
+     * Output amplitudes of all states entagled with the zero state of the following qubits.
+    */
+    std::vector<short>  qs_chosen_state_;
+    bool flag_zero_state_of_;
+
+    // Information about complex structures within the circuit:
+    QuCF_complex_data cd_;
 };
 #endif
 

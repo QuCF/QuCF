@@ -46,7 +46,8 @@ END_OPTIONS
 CIRCUITS_DECLARATION
 	INIT     1  		                          rs 1 0
 	U_BE     2  		                 a_be 2 1 rs 1 0  
-	U        5  c 1 1 a_qsp 1 1 a_qu 1 1 a_be 2 1 rs 1 0  
+	U        5  c 1 1 a_qsp 1 1 a_qu 1 1 a_be 2 1 rs 1 0 
+	// U        7  c 1 1 a_qsp 1 1 a_qu 1 1 yy 1 1 a_be 2 1 rs 1 0  xx 1 0
 END_CIRCUITS_DECLARATION
 
 
