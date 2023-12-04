@@ -36,6 +36,8 @@
 #include <cuda_runtime_api.h>
 #include "H5Cpp.h"
 
+#include <complex>
+
 #define YCUDA true
 
 // ------------------------------------------
@@ -75,7 +77,6 @@
 #define YCVCo const std::vector<Complex>&
 #define YVCo  std::vector<Complex>&
 #define YVCov  std::vector<Complex>
-
 
 #define YPQC YSQ 
 #define YISS std::istringstream& 
@@ -419,7 +420,238 @@ namespace YMATH{
             std::shared_ptr<qreal[]> a_1d_transposed_ = nullptr;
     };
 
+
+
+    // ------------------------------------------------------------
+    // | e00_, e01_|
+    // | e10_, e11_|
+    // ------------------------------------------------------------
+    class Matrix2_
+    {
+    protected:
+        std::complex<double> e00_, e01_, e10_, e11_;
+
+    public:
+        Matrix2_(){}
+
+        Matrix2_(
+            const std::shared_ptr<const Matrix2_>& A
+        ){
+            e00_ = A->e00_;
+            e01_ = A->e01_;
+            e10_ = A->e10_;
+            e11_ = A->e11_;
+        }
+
+
+        Matrix2_(
+            const std::complex<double>& e00, 
+            const std::complex<double>& e01, 
+            const std::complex<double>& e10, 
+            const std::complex<double>& e11
+        ){
+            e00_ = e00;
+            e01_ = e01;
+            e10_ = e10;
+            e11_ = e11;
+        }
+
+        void set_I()
+        {
+            e00_ = 1.0;
+            e01_ = 0.0;
+            e10_ = 0.0;
+            e11_ = 1.0;
+        }
+
+
+        void set_elements(
+            const std::complex<double>& e00, 
+            const std::complex<double>& e01, 
+            const std::complex<double>& e10, 
+            const std::complex<double>& e11
+        ){
+            e00_ = e00;
+            e01_ = e01;
+            e10_ = e10;
+            e11_ = e11;
+        }
+
+
+        void copy_elements_from(
+            const std::shared_ptr<const Matrix2_>& A
+        ){
+            e00_ = A->e00_;
+            e01_ = A->e01_;
+            e10_ = A->e10_;
+            e11_ = A->e11_;
+        }
+
+
+        // Scalar multiplication.
+        std::shared_ptr<Matrix2_> dot(
+            const std::shared_ptr<const Matrix2_>& B
+        ){
+            std::shared_ptr<Matrix2_> C = std::make_shared<Matrix2_>();
+            C->e00_ = e00_ * B->e00_ + e01_ * B->e10_;
+            C->e01_ = e00_ * B->e01_ + e01_ * B->e11_;
+            C->e10_ = e10_ * B->e00_ + e11_ * B->e10_;
+            C->e11_ = e10_ * B->e01_ + e11_ * B->e11_;
+            return C;
+        }
+
+        std::shared_ptr<Matrix2_> dot(const Matrix2_& B)
+        {
+            std::shared_ptr<Matrix2_> C = std::make_shared<Matrix2_>();
+            C->e00_ = e00_ * B.e00_ + e01_ * B.e10_;
+            C->e01_ = e00_ * B.e01_ + e01_ * B.e11_;
+            C->e10_ = e10_ * B.e00_ + e11_ * B.e10_;
+            C->e11_ = e10_ * B.e01_ + e11_ * B.e11_;
+            return C;
+        }
+
+
+        std::shared_ptr<Matrix2_> mult_per_el_row(std::complex<double>* v)
+        {
+            std::shared_ptr<Matrix2_> C = std::make_shared<Matrix2_>();
+            C->e00_ = e00_ * v[0];
+            C->e01_ = e01_ * v[1];
+            C->e10_ = e10_ * v[0];
+            C->e11_ = e11_ * v[1];
+            return C;
+        }
+
+        std::shared_ptr<Matrix2_> mult_per_el_col(std::complex<double>* v)
+        {
+            std::shared_ptr<Matrix2_> C = std::make_shared<Matrix2_>();
+            C->e00_ = e00_ * v[0];
+            C->e01_ = e01_ * v[0];
+            C->e10_ = e10_ * v[1];
+            C->e11_ = e11_ * v[1];
+            return C;
+        }
+
+
+        // Return the Hermitian adjoint matrix.
+        std::shared_ptr<Matrix2_> adjoint_H()
+        {
+            std::shared_ptr<Matrix2_> adjoint = std::make_shared<Matrix2_>();
+            adjoint->e00_ = std::conj(e00_);
+            adjoint->e01_ = std::conj(e10_);
+            adjoint->e10_ = std::conj(e01_);
+            adjoint->e11_ = std::conj(e11_);
+            return adjoint;
+        }
+
+
+        std::shared_ptr<Matrix2_> transpose()
+        {
+            std::shared_ptr<Matrix2_> adjoint = std::make_shared<Matrix2_>();
+            adjoint->e00_ = e00_;
+            adjoint->e01_ = e10_;
+            adjoint->e10_ = e01_;
+            adjoint->e11_ = e11_;
+            return adjoint;
+        }
+
+
+        std::complex<double> get_v(YCU ir, YCU ic)
+        {
+            if(ir == 0)
+                if(ic == 0) return e00_;
+                if(ic == 1) return e01_;
+            if(ir == 1)
+                if(ic == 0) return e10_;
+                if(ic == 1) return e11_;
+            return NAN;
+        }
+
+        void print()
+        {
+            using namespace std;
+
+            cout << "\t" << e00_ << "\t" << e01_ << endl;
+            cout << "\t" << e10_ << "\t" << e11_ << endl;
+        }
+    };
+
+
     ComplexMatrix2 inv_matrix2(const ComplexMatrix2& a);
+
+
+    class VectorD_
+    {
+    protected:
+        uint32_t N_;
+        std::shared_ptr<double[]> arr_ = nullptr;
+
+    public:
+        VectorD_(){}
+
+        VectorD_(YCU N){ init(N); }
+
+        VectorD_(const VectorD_& v_src)
+        {
+            N_ = v_src.N_;
+            arr_ = std::shared_ptr<double[]>(new double[N_]);
+            for(uint32_t ii = 0; ii < N_; ii++)
+                arr_[ii] = v_src.arr_[ii];
+        }
+
+        inline void init(YCU N)
+        {
+            N_ = N;
+            arr_ = std::shared_ptr<double[]>(new double[N_]);
+        }
+
+
+        inline std::shared_ptr<double[]>& get_array(){ return arr_;}
+
+        /**
+         * this->arr_ *= v 
+        */
+        inline void mult_by(const double& v)
+        {
+            for(uint32_t ii = 0; ii < N_; ii++)
+                arr_[ii] *= 0.5;
+        }
+
+        /**
+         * this->arr_ += v * vec.arr_ 
+        */
+        inline void plus_mult_by(const VectorD_& vec, const double& v)
+        {
+            for(uint32_t ii = 0; ii < N_; ii++)
+                arr_[ii] += v * vec.arr_[ii];
+        }
+
+        inline double& el(YCU i){ return arr_[i]; }
+        inline double v(YCU i) const { return arr_[i]; }
+
+        inline double dot(const VectorD_& vec) const
+        {
+            double res = 0;
+            for(uint32_t ii = 0; ii < N_; ii++)
+                res += arr_[ii] * vec.arr_[ii];
+            return res;
+        }
+
+        void set_diff(const VectorD_& vec1, const VectorD_& vec2)
+        {
+            for(auto ii = 0; ii < N_; ii++)
+                arr_[ii] = vec1.arr_[ii] - vec2.arr_[ii];
+        }
+
+        void copy_mult_by(const VectorD_& vec, const double& v)
+        {
+            for(auto ii = 0; ii < N_; ii++)
+                arr_[ii] = v * vec.arr_[ii];
+        }
+
+    };
+
+
+
 
     /**
      * @brief Create a vector with integers in the interval [start, end).
@@ -431,6 +663,21 @@ namespace YMATH{
      * @param str is a string to check;
      */
     bool is_number(YCS str);
+
+    /**
+     * Compute a mean value of the array \p arr which has \p N elements;
+    */
+    void compute_mean(const double* arr, YCU N, double& res_mean);
+
+    /**
+     * Compute a mean value along the first dimension 
+     * of the two-dimensional array \p arr with 
+     * \p N1 and \p N2 values along the first and second dimensions, respectively.
+    */
+    void compute_mean(double** arr, YCU N1, YCU N2, std::shared_ptr<double[]>& res_mean);
+    void compute_mean(double** arr, YCU N1, YCU N2, YMATH::VectorD_& res_mean);
+
+    void find_max(const std::shared_ptr<const double[]> arr, YCU N, double& res_max);
 }
 
 // ------------------------------------------
@@ -934,6 +1181,17 @@ namespace YMIX{
 
 
     void read_init_state(YCS fname, YVQ v_real, YVQ v_imag);
+
+    void read_input_file(YS data, YCS file_name);
+
+    /**
+     * Copy \p N elements from the array \p source_arr to the array \p res_arr.
+    */
+    void copy_array(
+        const std::shared_ptr<const double[]>& source_arr, 
+        YCU N, 
+        std::shared_ptr<double[]>& res_arr
+    );
 }
 
 

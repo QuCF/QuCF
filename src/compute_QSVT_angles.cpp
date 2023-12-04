@@ -16,11 +16,11 @@ using namespace std;
 
 
 /**
- * Launch:
+ * Launch from a work directory where [anme_project].ca file is placed:
  *      ./compute_angles name_project
  * where
- *  > [name_project].ca - text file wit parameters for computing angles
- * Data are saved in the directory from where the code has been launched
+ *  > [name_project].ca - text file with parameters for computing angles
+ * Data are saved in the directory from where the code has been launched.
 */
 int main(int argc, char *argv[])
 {
@@ -35,35 +35,14 @@ int main(int argc, char *argv[])
 
     try
     {
+        // Compute angles for the Eq.(12) in Dong-21 or Eq.(13) in Novikau-23:
         ComputeAngles_ oo = ComputeAngles_(pname);
 
-
-        // // --- read the [name_project].ca file ---
-
-        // // choose the function for which the QSVT or QSP angles should be computed;
-        // // choose the parameters of the computation: stopping criteria, file with coefficients for a polynomial
-        
-        // //
-    
-
-        // // set initial angles:
-        // shared_ptr<double []> angles = shared_ptr<double[]>(new double[N_angles]);
-
-        // // compute U
-
-        // // compute the cost function (will need for a line search)
-        // void compute_cost_function();
-
-        // // compute gradient of the cost function
-        // void compute_grad_of_cost_function();
-
-
-        // // compute the target function
-        // void compute_target_function();
-
-
-
-
+        // L-BFGS
+        // test odd and even functions;
+        // for testing use the same method as in matlab
+        //      and test in a circuit using a simple matrix;
+        // test for large kappa;
     }
     catch(YCS e)
     {

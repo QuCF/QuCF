@@ -64,7 +64,7 @@ void BaseTool__::read_data()
     try
     {
         string data;
-        read_input_file(data);
+        YMIX::read_input_file(data, ifname_);
         read_circuit_structure_from_file(data);
     }
     catch(YCS e)
@@ -74,28 +74,28 @@ void BaseTool__::read_data()
 }
 
 
-void BaseTool__::read_input_file(YS data, YCS file_name)
-{   
-    string file_name_res = file_name;
-    if(file_name_res.empty()) file_name_res = ifname_;
+// void BaseTool__::read_input_file(YS data, YCS file_name)
+// {   
+//     string file_name_res = file_name;
+//     if(file_name_res.empty()) file_name_res = ifname_;
 
-    ifstream ff(file_name_res);
-    if(!ff.is_open()) throw "Error: the file [" + file_name_res + "] does not exist.";
-    data = string((istreambuf_iterator<char>(ff)), istreambuf_iterator<char>());
-    ff.close();
+//     ifstream ff(file_name_res);
+//     if(!ff.is_open()) throw "Error: the file [" + file_name_res + "] does not exist.";
+//     data = string((istreambuf_iterator<char>(ff)), istreambuf_iterator<char>());
+//     ff.close();
 
-    // clean the buffer from empty lines and comments:
-    istringstream istr(data);
-    string data_clr = "";
-    string line;
-    while(getline(istr, line))
-    {
-        line = YMIX::remove_comment(line);
-        line = YMIX::trim(line);
-        if(line.find_first_not_of(' ') == string::npos)
-            continue;
-        data_clr += line + "\n";
-    }
-    // std::transform(data_clr.begin(), data_clr.end(), data_clr.begin(), ::tolower);
-    data = data_clr;
-}
+//     // clean the buffer from empty lines and comments:
+//     istringstream istr(data);
+//     string data_clr = "";
+//     string line;
+//     while(getline(istr, line))
+//     {
+//         line = YMIX::remove_comment(line);
+//         line = YMIX::trim(line);
+//         if(line.find_first_not_of(' ') == string::npos)
+//             continue;
+//         data_clr += line + "\n";
+//     }
+//     // std::transform(data_clr.begin(), data_clr.end(), data_clr.begin(), ::tolower);
+//     data = data_clr;
+// }

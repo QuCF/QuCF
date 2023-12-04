@@ -69,7 +69,7 @@ private:
 
     /**
      * true: construct a matrix, where
-     * positions of matrix elements are indicated by nonancilla state bistrings,
+     * positions of matrix elements are indicated by nonancilla state bitstrings,
      * and elements' values are indicated by the state amplitudes
      * (only states entangled with zero-ancilla states are considered);
      * the resulting matrix is written to the .hdf5 file;

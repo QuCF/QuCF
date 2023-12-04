@@ -35,7 +35,7 @@ public:
     
 protected:
     void read_data();
-    void read_input_file(YS data, YCS file_name="");
+    // void read_input_file(YS data, YCS file_name="");
     virtual void read_circuit_structure_from_file(YCS data) = 0;
     
 protected:

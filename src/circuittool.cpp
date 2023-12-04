@@ -191,7 +191,7 @@ void CircuitTool__::create_random_circuit()
     // --- READ .random file to now the desired shape of the random circuit ---
     string file_name = path_inputs_ + "/" + pname_ + FORMAT_RANDOM;
     string data;
-    read_input_file(data, file_name);
+    YMIX::read_input_file(data, file_name);
 
     istringstream istr(data);
     istr >> nq >> n_max_gates;

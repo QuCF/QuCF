@@ -84,10 +84,10 @@ void get_current_date_time(string& line_date_time);
 /**
  * The resulting .hdf5 file is stored in the launch folder.
  * Assume that 
- *      $qsvt_pol = [QuCF]/build_angles/approx_polyn
+ *      $qucf_pol = [QuCF]/build_angles/approx_polyn
  * To launch:
  * > cd [launch-folder]
- * > $qsvt_pol -sel_function [sel-function] -param [parameter-value] -Nd [number-of-coefficients-in-Fourier]
+ * > $qucf_pol -sel_function [sel-function] -param [parameter-value] -Nd [number-of-coefficients-in-Fourier]
 */
 int main(int argc, char *argv[])
 {

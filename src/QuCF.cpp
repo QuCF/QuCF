@@ -611,7 +611,7 @@ void QuCF__::read_gates_from_file(YISS istr, YPQC oc)
     string file_name;
     istr >> file_name;
     file_name += ".oracle";
-    read_input_file(data, file_name);
+    YMIX::read_input_file(data, file_name);
 
     istringstream istr_file(data);
     read_circuit_structure(istr_file, &oc);

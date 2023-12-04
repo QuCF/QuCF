@@ -1318,6 +1318,10 @@ void QCircuit::read_structure_sin(YISS istr, YCS path_in, YCB flag_inv)
 }
 
 
+
+
+
+
 void QCircuit::read_structure_compression_gadget(
     YISS istr, 
     std::map<std::string, 

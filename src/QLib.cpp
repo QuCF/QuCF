@@ -364,6 +364,59 @@ bool YMATH::is_number(YCS str)
 }
 
 
+void YMATH::compute_mean(const double* arr, YCU N, double& res_mean)
+{
+    res_mean = 0.0;
+    for(uint32_t ii = 0; ii < N; ii++)
+        res_mean += arr[ii];
+    res_mean /= N;
+}
+
+void YMATH::compute_mean(
+    double** arr, 
+    YCU N1, YCU N2, 
+    std::shared_ptr<double[]>& res_mean
+){
+    res_mean = std::shared_ptr<double[]>(new double[N2]);
+    for(uint32_t i2 = 0; i2 < N2; i2++)
+    {
+        res_mean[i2] = 0.0;
+        for(uint32_t i1 = 0; i1 < N1; i1++)
+            res_mean[i2] += arr[i1][i2];
+        res_mean[i2] /= N2;
+    }
+}
+
+
+void YMATH::compute_mean(double** arr, YCU N1, YCU N2, YMATH::VectorD_& v_mean)
+{
+    v_mean.init(N2);
+    auto res_mean = v_mean.get_array();
+    for(uint32_t i2 = 0; i2 < N2; i2++)
+    {
+        res_mean[i2] = 0.0;
+        for(uint32_t i1 = 0; i1 < N1; i1++)
+            res_mean[i2] += arr[i1][i2];
+        res_mean[i2] /= N2;
+    }
+}
+
+
+void YMATH::find_max(const std::shared_ptr<const double[]> arr, YCU N, double& res_max)
+{
+    double temp;
+    res_max = arr[0];
+    for(uint32_t ii = 1; ii < N; ii++)
+    {
+        temp = arr[ii];
+        if(temp > res_max)
+            res_max = temp;
+    }
+}
+
+
+
+
 void YMIX::getStrWavefunction(StateVectorOut& out)
 { 
     out.str_wv = "";
@@ -672,4 +725,40 @@ void YMIX::read_init_state(YCS fname, YVQ v_real, YVQ v_imag)
     ff.open_r();
     ff.read_vector(v_real, "real", "init_state");
     ff.read_vector(v_imag, "imag", "init_state");
+}
+
+
+
+void YMIX::read_input_file(YS data, YCS file_name)
+{   
+    string file_name_res = file_name;
+    ifstream ff(file_name_res);
+    if(!ff.is_open()) throw "Error: the file [" + file_name_res + "] does not exist.";
+    data = string((istreambuf_iterator<char>(ff)), istreambuf_iterator<char>());
+    ff.close();
+
+    // clean the buffer from empty lines and comments:
+    istringstream istr(data);
+    string data_clr = "";
+    string line;
+    while(getline(istr, line))
+    {
+        line = YMIX::remove_comment(line);
+        line = YMIX::trim(line);
+        if(line.find_first_not_of(' ') == string::npos)
+            continue;
+        data_clr += line + "\n";
+    }
+    // std::transform(data_clr.begin(), data_clr.end(), data_clr.begin(), ::tolower);
+    data = data_clr;
+}
+
+void YMIX::copy_array(
+    const std::shared_ptr<const double[]>& source_arr, 
+    YCU N, 
+    std::shared_ptr<double[]>& res_arr
+){
+    res_arr = std::shared_ptr<double[]>(new double[N]);
+    for(uint32_t ii = 0; ii < N; ii++)
+        res_arr[ii] = source_arr[ii];
 }
