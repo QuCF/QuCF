@@ -1,0 +1,62 @@
+// $qucf selector ./ 
+
+CONSTANTS
+	ns 	2
+	aa 	1.200000000000e+00
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   all // none, all, zero-ancillae
+	flag_tex     1
+	tex_CL  6 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+    Y     1 j 1 0
+	U     2 rs <ns> 1 j 1 0  
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U 
+	INPUT_STATE  0     
+	INPUT_STATE  rs 1
+	INPUT_STATE  rs 2
+	INPUT_STATE  rs 3
+END_MAIN_CIRCUIT
+
+
+CIRCUIT_STRUCTURE Y
+	gate Ry j 1 <aa> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+CIRCUIT_STRUCTURE U
+    // gate SelectorPower [selector-qubits] [name-U] [qubits-where-U-sits] end_gate
+	gate SelectorPower  rs -1  Y  j -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

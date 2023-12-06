@@ -263,6 +263,7 @@ class QCircuit{
         YCB flag_inv,
         QuCF_complex_data& qucf_data
     );
+    void read_selector_power(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv=false);
 
     inline void read_global_control(YISS istr)
     {
@@ -709,6 +710,20 @@ class QCircuit{
         const std::shared_ptr<const QCircuit> BE,
         YCVI cs_unit = {}, YCVI cs_zero = {}, 
         YCB flag_inv = false
+    );
+
+    /**
+     * Selector |k><k> oc_U^k, where k = [0, 2^size(rs)).
+     * @param rs selector qubits;
+     * @param oc_U the unitary (subcircuit) whose powers will be computed;
+     * @param ids_U_target qubits where the unitary sits;
+    */
+    YQCP selector_power(
+        YCVI rs, 
+        const std::shared_ptr<const QCircuit> oc_U, 
+        YCVI ids_U_target,
+        YCVI cs_unit, YCVI cs_zero,
+        YCB flag_inv
     );
 
 

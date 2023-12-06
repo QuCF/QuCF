@@ -1564,6 +1564,32 @@ void QCircuit::read_structure_gate_qsvt(
 }
 
 
+void QCircuit::read_selector_power(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv)
+{
+    YVIv rs, ids_U_target, ids_unit, ids_zero;
+    string name_U;
+
+    // --- read selector qubits ---
+    read_reg_int(istr, rs);
+
+    // --- Read the name of the circuit U whose powers will be computed ---
+    istr >> name_U;
+    if(ocs.find(name_U) == ocs.end())
+        throw string("SelectorPower: a circuit with the name ["s + name_U + "] is not found."s);
+    YSQ oc_U = ocs[name_U];
+
+    // --- Read qubits where the circuit U sits ---
+    read_reg_int(istr, ids_U_target);
+
+    // --- read the end of the gate structure ---
+    read_end_gate(istr, ids_unit, ids_zero);
+
+    // --- Construct the compression gadget ---
+    selector_power(rs, oc_U, ids_U_target, ids_unit, ids_zero, flag_inv);
+}
+
+
+
 YQCP QCircuit::adder_1(YCVI ts, YCVI cs_unit, YCVI cs_zero, YCB flag_inv)
 {
     YVIv ids_target = YVIv(ts);
@@ -2627,6 +2653,36 @@ YQCP QCircuit::qsp_ham(
         add_stop_gate(name_stop);
     }
     timer.StopPrint();
+    return get_the_circuit();
+}
+
+
+YQCP QCircuit::selector_power(
+    YCVI rs, 
+    const std::shared_ptr<const QCircuit> oc_U, YCVI ids_U_target,
+    YCVI cs_unit, YCVI cs_zero,
+    YCB flag_inv
+){
+    std::shared_ptr<QCircuit> oc_temp;
+    uint32_t ns, Ns;
+    auto all_qubits = YMATH::get_range(0, nq_);
+
+    ns = rs.size();
+    Ns = 1 << ns;
+    auto oc_selector = make_shared<QCircuit>("S", env_, path_to_output_, nq_);
+
+    for(uint32_t is = 0; is < ns; is++)
+        for(uint32_t i_repeat = 0; i_repeat < (1<<is); i_repeat++)
+            oc_selector->copy_gates_from(oc_U, all_qubits, YSB(nullptr), YVIv{rs[is]});
+
+    // --- Transfer the gates to the main circuit ---
+    copy_gates_from(
+        oc_selector,
+        all_qubits,
+        YSB(nullptr), 
+        cs_unit, cs_zero,
+        flag_inv        
+    ); 
     return get_the_circuit();
 }
 

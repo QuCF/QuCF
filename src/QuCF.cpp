@@ -504,6 +504,10 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
         {
             oc->read_structure_compression_gadget(istr, ocs_, flag_inv, cd_);
         }
+        if(YMIX::compare_strings(gate_name, "SelectorPower"))
+        {
+            oc->read_selector_power(istr, ocs_, flag_inv);
+        }
     }
     catch(YCS e)
     {
