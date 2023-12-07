@@ -42,7 +42,7 @@ struct LBGFS_pairs_
     uint32_t N_phis;
 
     // difference between previous and 
-    // new estimations of the unknowns (i.e., QSVT angles phis);
+    // new estimation of the unknowns (i.e., QSVT angles phis);
     // s[id_pair, id_phi]
     std::shared_ptr<YMATH::VectorD_[]> s; 
 
@@ -83,17 +83,22 @@ struct LBGFS_pairs_
     }
 
 
-    inline uint32_t get_id_pair_first(YCU ii){
-        return (id_last_saved - ii) >= 0 ? ii: N_current + (id_last_saved - ii);
+    /**
+     * From the recently saved to the latest.
+     *  [id_last_saved, ..., 0, N_current -1, N_current - 2,...]
+    */
+    inline uint32_t get_id_pair_first(YCU ii)
+    {
+        int temp = id_last_saved - ii;
+        return temp >= 0 ? temp: N_current + temp;
     }
-    inline uint32_t get_id_pair_second(YCU ii){
-        if(N_current < N_pairs)
-            return ii;
-        else
-        {
-            uint32_t temp = id_last_saved + ii + 1;
-            return (temp < N_current) ? temp: temp - N_current;
-        }   
+    /**
+     * From the latest saved to the newest.
+    */
+    inline uint32_t get_id_pair_second(YCU ii)
+    {  
+        uint32_t temp = id_last_saved + ii + 1;
+        return (temp < N_current) ? temp: temp - N_current; 
     }
 
 
@@ -106,8 +111,6 @@ struct LBGFS_pairs_
         uint32_t id_pair;
 
         d = YMATH::VectorD_(mean_grad_phi);
-        if(N_current == 0)
-            return;
         for(uint32_t ii = 0; ii < N_current; ii++)
         {
             id_pair   = get_id_pair_first(ii);
@@ -120,14 +123,11 @@ struct LBGFS_pairs_
 
     void second_loop(
         YMATH::VectorD_& d, 
-        std::shared_ptr<double[]>& alpha
+        const std::shared_ptr<const double[]>& alpha
     ){
         using namespace std;
         uint32_t id_pair;
         double beta;
-
-        if(N_current == 0)
-            return;
         for(uint32_t ii = 0; ii < N_current; ii++)
         {
             id_pair = get_id_pair_second(ii);
@@ -135,30 +135,6 @@ struct LBGFS_pairs_
             d.plus_mult_by(s[id_pair], alpha[N_current - 1 - ii] - beta);
         }
     }
-
-
-    // void line_search(
-    //     const YMATH::VectorD_& d, 
-    //     const YMATH::VectorD_& mean_grad_phi,
-    //     const std::shared_ptr<const double[]>& phis_prev, 
-    //     std::shared_ptr<double[]>& phis 
-    // ){
-    //     // !!! Test signs !!!
-    //     double w = 0.5;
-    //     double rr = 1.e-3;
-    //     double min_step = 1e-5;
-    //     double step = 1.; // alpha in backtracking line search Algorithm 2.5.2 in Sun-06.
-    //     double diff = -1.; // f(x) - f(x + alpha*d)
-    //     double comp = 0.; // rr * alpha * gd
-    //     double gd = mean_grad_phi.dot(d);
-    //     // here, di
-    //     while(diff < comp && step >= min_step)
-    //     {
-    //         for(uint32_t ii = 0; ii < N_phis; ii++)
-    //             phis[ii] = phis_prev[ii] - step * d.v(ii);
-    //     }
-    // }
-
 };
 
 
@@ -196,6 +172,8 @@ public:
     ComputeAngles_(YCS pname) :
         project_name_(pname), work_directory_(std::filesystem::current_path())
     {
+        using namespace std::complex_literals;
+
         dd_.max_n_iters = 5e4;
         dd_.N_pairs = 200;
 
@@ -203,7 +181,7 @@ public:
         read_input_data();
 
         // Create samples (using roots of Chebyschev polynomials - Chebyschev nodes):
-        std::cout << "\nInitializating the x-grid and the grid of sougth-after angles..." << std::endl;
+        std::cout << "\nInitialising x-grid and the grid of sougth-after angles..." << std::endl;
         x_ = std::shared_ptr<double[]>(new double[dd_.Nc]);
         for(uint32_t ii = 0; ii < dd_.Nc; ii++)
             x_[ii] = cos((2*ii + 1)*M_PI / (4 * dd_.Nc));
@@ -224,61 +202,16 @@ public:
             for(uint32_t i_phi = 0; i_phi < dd_.Nc; i_phi++)
                 grad_cost_[ix][i_phi] = 0.0;
 
+        YMIX::YTimer timer;
+        timer.StartPrint("\nPerforming the L-BFGS algorithm...\n", 0, false);
         launch_LGFGS();
+        timer.StopPrint(0, false);
 
-        // // ----------------------------------------------------------
-        // // tests:
-        // dd_.Nc = 6;
-        // std::shared_ptr<double[]> phis = std::shared_ptr<double[]>(new double[dd_.Nc]);
-        // phis[0] = 0.1;
-        // phis[1] = 0.3;
-        // phis[2] = 1.2;
-        // phis[3] = 1.8;
-        // phis[4] = 2.4;
-        // phis[5] = 3.14;
+        hfo_.open_w();
+        hfo_.add_scalar(timer.get_dur_s(), "sim-time-seconds", "basic");
+        hfo_.close();
 
-        // x_ = std::shared_ptr<double[]>(new double[dd_.Nc]);
-        // x_[0] = 0.1;
-        // x_[1] = 0.3;
-        // x_[2] = 0.4;
-        // x_[3] = 0.7;
-        // x_[4] = 0.8;
-        // x_[5] = 0.9;
-
-        // for(uint32_t ii = 0; ii < dd_.Nc; ii++)
-        // {
-        //     std::cout << "\nii = " << ii << std::endl;
-        //     auto U = compute_sequence_of_rotations(phis, x_[ii]);
-        //     U->print();
-        // }
-
-        // compute_target_polynomial();
-        // // std::cout << std::endl;
-        // // for(uint32_t ix = 0; ix < dd_.Nc; ix++)
-        // //     std::cout << pol_[ix] << "\t";
-        // // std::cout << std::endl;
-
-        // grad_cost_ = new double*[dd_.Nc];
-        // for(uint32_t ix = 0; ix < dd_.Nc; ix++)
-        //     grad_cost_[ix] = new double[dd_.Nc];
-        // for(uint32_t ix = 0; ix < dd_.Nc; ix++)
-        //     for(uint32_t i_phi = 0; i_phi < dd_.Nc; i_phi++)
-        //         grad_cost_[ix][i_phi] = 0.0;
-
-        // compute_grad_of_cost_function(phis);
-
-        // std::cout << "grad" << std::endl;
-        // for(uint32_t ix = 0; ix < dd_.Nc; ix++)
-        // {
-        //     for(uint32_t i_phi = 0; i_phi < dd_.Nc; i_phi++)
-        //     {
-        //         std::cout << grad_cost_[ix][i_phi] << "\t";
-        //     }
-        //     std::cout << std::endl;
-        // }
-        // // ----------------------------------------------------------
-
-        // --- Construct a full set of angles taking into accoun their symmetry. ---
+        // --- Construct a full set of angles taking into account their symmetry. ---
         // See Eq.(24) in Dong-21.
         std::shared_ptr<double[]> phis_full; 
         uint32_t Nc = dd_.Nc;
@@ -307,11 +240,29 @@ public:
             // for the function without denifite parity;
         }
 
+        // Take into account initial conditions:
+        phis_full[0]         += M_PI_4;
+        phis_full[Nc_full-1] += M_PI_4;
+
+        // --- Reconstruct the polynomial using the angles ---
+        double* rec_pol = new double[dd_.Nc];
+        for(uint32_t ix = 0; ix < dd_.Nc; ix++)
+            rec_pol[ix] = compute_sequence_of_rotations_FULL(phis_full, Nc_full, x_[ix]);
+
+        std::cout << "Saving the polynomial reconstructed using QSVT angels..." << std::endl;
+        hfo_.open_w();
+        hfo_.add_array(rec_pol, dd_.Nc, "pol-angles", "results");
+        hfo_.close();
+        delete [] rec_pol;
+        
         // Modify the angles according to Eq.(15) in Dong-21:
         phis_full[0]         += M_PI_4;
         phis_full[Nc_full-1] += M_PI_4;
         for(uint32_t ii = 1; ii < Nc_full-1; ii++)
             phis_full[ii] += M_PI_2;
+
+        // for(uint32_t ii = 0; ii < Nc_full; ii++)
+        //     phis_full[ii] += M_PI_2;
 
         // Save the angles:
         std::cout << "Saving the full set of QSVT angles..." << std::endl;
@@ -341,7 +292,7 @@ protected:
 
         LBGFS_pairs_ pairs(dd_.N_pairs, N_phis);
 
-        // used for intermidiate computations during line-search procedure;
+        // used for intermediate computations during line-search procedure;
         double cost_mean;
         double cost_mean_new;
 
@@ -349,14 +300,12 @@ protected:
         double cost_max = 1.0;
         double err2 = dd_.stopping_criterion * dd_.stopping_criterion;
 
-        YMATH::VectorD_ mean_grad_phi; // mean_grad_phi[i-phi]
-        YMATH::VectorD_ mean_grad_phi_new;
-        YMATH::VectorD_ d;
+        YMATH::VectorD_ mean_grad_phi; // of size N_phis
+        YMATH::VectorD_ mean_grad_phi_new; // of size N_phis
+        YMATH::VectorD_ d; // of size N_phis
         shared_ptr<double[]> alpha       = shared_ptr<double[]>(new double[pairs.N_pairs]);
         shared_ptr<double[]> phis_new    = shared_ptr<double[]>(new double[N_phis]);
         shared_ptr<double[]> cost_fx_new = shared_ptr<double[]>(new double[Nx]);
-
-        cout << "\nPerforming the L-BFGS algorithm..." << endl;
 
         // compute initial cost function and its derivative w.r.t. initial angles:
         cost_fx_ = shared_ptr<double[]>(new double[Nx]);
@@ -381,10 +330,10 @@ protected:
             // --- First loop ---
             pairs.first_loop(d, alpha, mean_grad_phi);
 
-            // mult first approximation of the Hessian (Step 3 in Algorithm 5.7.1 in Sun-06):
-            mean_grad_phi.mult_by(0.5);
+            // multiply by first approximation of the Hessian (Step 3 in Algorithm 5.7.1 in Sun-06):
+            d.mult_by(0.5);
             if(dd_.parity == 0)
-                mean_grad_phi.el(0) *= 2.;
+                d.el(0) *= 2.;
 
             // --- Second loop ---
             pairs.second_loop(d, alpha);
@@ -398,7 +347,7 @@ protected:
             double diff = -1.; // f(x) - f(x + alpha*d)
             double comp = 0.; // rr * alpha * gd
 
-            double gd = mean_grad_phi.dot(d);
+            double gd = mean_grad_phi.dot(d); // sign ?
 
             while(diff < comp && step >= min_step)
             {
@@ -426,10 +375,13 @@ protected:
             pairs.rho[pairs.id_last_saved] = 
                 1./(pairs.s[pairs.id_last_saved].dot(pairs.y[pairs.id_last_saved])); 
             mean_grad_phi = YMATH::VectorD_(mean_grad_phi_new);
+
+            printf("iter = %d, cost-max = %0.3e, step = %0.3e\n", counter_iter, cost_max, step);
         }
 
         cout << "Done." << endl;
     }
+
 
     void compute_grad_of_cost_function(
         const std::shared_ptr<const double[]>& phis
@@ -515,7 +467,9 @@ protected:
         }
     }
 
-
+    /**
+     * @param phis - half of the QSVT angles, the second half is reconstructed using the assumed symmetry of angles;
+    */
     std::shared_ptr<YMATH::Matrix2_> compute_sequence_of_rotations(
         const std::shared_ptr<const double[]>& phis,
         const double& x1
@@ -558,18 +512,6 @@ protected:
             );
         };
 
-        // Wx->print();
-        // cout << endl;
-        // G0->print();
-        // cout << endl;
-        // A_ephi(0)->print();
-        // // cout << phis[0] << " " << phis[1] << endl;
-        //  printf("ephi[0] = %0.3e + i%0.3e\n", ephi[0].real(), ephi[0].imag());
-        // printf("ephi[2] = %0.3e + i%0.3e\n", ephi[2].real(), ephi[2].imag());
-        // // cout << ephi[0] << endl;
-        // cout << exp(1i*0.5) << endl;
-        // cout << exp(1i*1.4) << endl;
-
         shared_ptr<YMATH::Matrix2_> U = make_shared<YMATH::Matrix2_>();
         if(dd_.parity == 1) // odd function
         {
@@ -596,6 +538,43 @@ protected:
             // if the function does not have definite parity
         }
         return nullptr;
+    }
+
+
+    /**
+     * @param phis - all QSVT angles;
+    */
+    double compute_sequence_of_rotations_FULL(
+        const std::shared_ptr<const double[]>& phis_full,
+        YCU N_phis,
+        const double& x1
+    ){
+        // see Eqs. (13) and (24) on page 7 in Dong-21
+        using namespace std::complex_literals;
+        using namespace std;
+
+        auto ix2 = 1i*sqrt(1-x1*x1);
+        shared_ptr<YMATH::Matrix2_> Wx = make_shared<YMATH::Matrix2_>(
+            x1, ix2, ix2, x1
+        );
+
+        complex<double>* ephi = new complex<double>[N_phis];
+        for(uint32_t ii = 0; ii < N_phis; ii++)
+            ephi[ii] = exp(1i*phis_full[ii]);
+
+        auto A_ephi = [&ephi](YCU j){ 
+            return make_shared<YMATH::Matrix2_>(
+                ephi[j], 0.0, 0.0, conj(ephi[j])
+            );
+        };
+        
+        shared_ptr<YMATH::Matrix2_> U = make_shared<YMATH::Matrix2_>();
+        U->copy_elements_from(A_ephi(0));
+        for(uint32_t ii = 1; ii < N_phis; ii++)
+            U = U->dot(Wx)->dot(A_ephi(ii));
+
+        delete [] ephi;    
+        return U->get_v(0,0).real();
     }
 
 
@@ -633,7 +612,7 @@ protected:
         std::cout << "Saving the polynomial and the x-grid..." << std::endl;
         hfo_.open_w();
         hfo_.add_array(x_.get(),   dd_.Nc, "x",   "results");
-        hfo_.add_array(pol_.get(), dd_.Nc, "pol", "results");
+        hfo_.add_array(pol_.get(), dd_.Nc, "pol-coefs", "results");
         hfo_.close();
     }
 
@@ -700,10 +679,13 @@ protected:
         cout << "function type: \t" << dd_.function_type << endl;
         cout << "parity: \t" << dd_.parity << endl;
         cout << "parameter: \t" << dd_.parameter << endl;
-        cout << "absolute error of polynomial approximation: " << dd_.abs_error << endl;
+        printf("absolute error of polynomial approximation: %0.3e\n", dd_.abs_error);
         cout << "coefficient of normalization: \t" << dd_.coef_norm << endl;
         cout << "number of coefficients: \t" << dd_.Nc << endl;
         cout << "number of L-BFGS pairs: \t" << dd_.N_pairs << endl;
+        printf("stopping criterion square: %0.3e\n", 
+            dd_.stopping_criterion * dd_.stopping_criterion
+        );
         cout << "Done." << endl;
 
         // --- Save some input parameters into the output .hdf5 file ---
@@ -751,7 +733,6 @@ protected:
         cout << "\tThe coefficients were computed on: " << date_sim << endl;
         cout << "\tDone." << endl;
     }
-
 
 
     void compute_cost_function(

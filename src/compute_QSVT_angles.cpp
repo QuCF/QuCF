@@ -20,12 +20,10 @@ using namespace std;
  *      ./compute_angles name_project
  * where
  *  > [name_project].ca - text file with parameters for computing angles
- * Data are saved in the directory from where the code has been launched.
+ * Data are saved in the same directory from where the code has been launched.
 */
 int main(int argc, char *argv[])
 {
-    uint64_t N_angles; // defined by the number of coefficients in the sequence of polynomials;
-
     // --- Interpret input parameters ---
     uint32_t id_arg;
 
@@ -37,12 +35,6 @@ int main(int argc, char *argv[])
     {
         // Compute angles for the Eq.(12) in Dong-21 or Eq.(13) in Novikau-23:
         ComputeAngles_ oo = ComputeAngles_(pname);
-
-        // L-BFGS
-        // test odd and even functions;
-        // for testing use the same method as in matlab
-        //      and test in a circuit using a simple matrix;
-        // test for large kappa;
     }
     catch(YCS e)
     {

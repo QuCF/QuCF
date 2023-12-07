@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.17)
 
 # name of the executable file:
-set(OUTPUT_EXE "compute_angles")
+set(OUTPUT_EXE "approx_polyn")
 
 # DEBUG or RELEASE:
 set(CMAKE_BUILD_TYPE Debug)
@@ -38,8 +38,8 @@ find_package(CUDAToolkit)
 # find HDF5
 find_package(HDF5 REQUIRED  COMPONENTS CXX HL)
 
-# !!! CREATE THE TARGET !!!
-add_executable(${OUTPUT_EXE} ../src/compute_QSVT_angles.cpp ../src/QLib.cpp)
+# create the target:
+add_executable(${OUTPUT_EXE} ../src/ApprPolynFourier.cu)
 
 # set C++ compiler version:
 set_property(TARGET ${OUTPUT_EXE} PROPERTY CXX_STANDARD 17)

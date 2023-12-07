@@ -650,9 +650,6 @@ namespace YMATH{
 
     };
 
-
-
-
     /**
      * @brief Create a vector with integers in the interval [start, end).
      */
@@ -690,7 +687,7 @@ namespace YMIX{
         const bool& flag_only_file=false, 
         const bool& flag_new_line=true
     );
-    void print_log_flush(YCS line, YCI n_indent=0);
+    void print_log_flush(YCS line, YCI n_indent=0, YCB flag_file = true);
     void print_log_err(YCS line);
 
     /** Timer*/
@@ -702,19 +699,19 @@ namespace YMIX{
             void Stop(){
                 end_ = std::chrono::steady_clock::now();
             }
-            void StartPrint(YCS mess)
+            void StartPrint(YCS mess, YCI n_indent=0, YCB flag_file = true)
             {
                 Start();
-                print_log_flush(mess);
+                print_log_flush(mess, n_indent, flag_file);
             }
-            void StopPrint()
+            void StopPrint(YCI n_indent=0, YCB flag_file = true)
             {
                 Stop();
 
                 std::ostringstream oss;
                 oss << std::scientific << std::setprecision(3) 
                     << get_dur_s() << " s" << std::endl;
-                print_log_flush(oss.str());
+                print_log_flush(oss.str(), n_indent, flag_file);
             }
             double get_dur(){
                 std::chrono::duration<double> dur_seconds = end_ - start_;

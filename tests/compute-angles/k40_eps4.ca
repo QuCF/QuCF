@@ -1,0 +1,10 @@
+// to launch: $qucf_angles compute
+
+
+// The name of the file (without .hdf5 ) with coefficients describing 
+//		the polynomial approximation of the chosen function:
+filename_coefs    coefs/k40/inversion_40.000000_4
+
+// stopping parameter:
+stopping_criterion 1e-12
+
