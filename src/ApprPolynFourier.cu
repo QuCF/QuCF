@@ -31,12 +31,14 @@ struct FUNC_
 };
 
 // used for the computation of angles
-const vector<FUNC_> avail_functions_ = { // sel, parity, coef_norm
-   {"inversion",        1, 0.125},
-   {"gaussian",         0, 0.980},
-   {"gaussian-arcsin",  0, 0.980},
-   {"arcsin",           1, 0.980},
-   {"xgaussian",        1, 0.980}, 
+const vector<FUNC_> avail_functions_ = { 
+   //   sel,       parity, coef_norm
+   {"inversion",        1,     0.125}, // id = 0
+   {"gaussian",         0,     0.980}, // id = 1
+   {"gaussian-arcsin",  0,     0.980}, // id = 2
+   {"arcsin",           1,     0.980}, // id = 3
+   {"xgaussian",        1,     0.980}, // id = 4
+   {"sqrt_inv_arcsin2", 0,     0.980}, // id = 5
 };
 
 struct FUNC_DATA_
@@ -65,7 +67,8 @@ void save_coefs(
     double* coefs_real, 
     double* coefs_imag,
     const uint32_t& Nx_half, 
-    const double* x, const double* pol, const double* orig_func
+    const double* x, const double* pol, const double* orig_func,
+    const std::string& work_path
 );
 
 __global__ 
@@ -87,7 +90,10 @@ void get_current_date_time(string& line_date_time);
  *      $qucf_pol = [QuCF]/build_angles/approx_polyn
  * To launch:
  * > cd [launch-folder]
- * > $qucf_pol -sel_function [sel-function] -param [parameter-value] -Nd [number-of-coefficients-in-Fourier]
+ * > $qucf_pol -sel_function [sel-function] 
+ *             -param [parameter-value] 
+ *             -Nd [number-of-coefficients-in-Fourier] 
+ *             -work_path [where-output-will-be-saved]  (optional)
 */
 int main(int argc, char *argv[])
 {
@@ -97,6 +103,7 @@ int main(int argc, char *argv[])
     string sel_function; // ID of the function to approximate;
     FUNC_DATA_ function_h;
     uint32_t id_arg;
+    string work_path = "./";
 
     cout << "--- Fourier approach ---" << endl;
 
@@ -124,6 +131,11 @@ int main(int argc, char *argv[])
         {
             id_arg += 1;
             Nd = stoi(string (argv[id_arg]));
+        }
+        if(compare_strings(argv[id_arg], "-work_path"))
+        {
+            id_arg += 1;
+            work_path = string (argv[id_arg]);
         }
         ++id_arg;
     }
@@ -178,7 +190,7 @@ int main(int argc, char *argv[])
     calculate_coefficients(Nd, N_coefs_avail, function_h, coefs_real, coefs_imag, N_coefs);
     
     // construct the resulting polynomial and estimate the error:
-    uint32_t Nx_half = 2001; 
+    uint32_t Nx_half = 4001; 
     double *x, *pol, *orig_fun;
     double err_res;
     construct_polynomial(coefs_real, N_coefs, function_h, Nx_half, x, pol, orig_fun, err_res);
@@ -189,14 +201,18 @@ int main(int argc, char *argv[])
         param, err_res, N_coefs, 
         coefs_real, coefs_imag, 
         Nx_half, x, 
-        pol, orig_fun
+        pol, orig_fun,
+        work_path
     );
     return 0;
 }
 
 
+/**
+ * If modified, change also F_CALC_HOST.
+*/
 __device__ __forceinline__
-double F_CALC(const double& x) // if modified, change also F_CALC_HOST.
+double F_CALC(const double& x) 
 {
     // inversion function:
     if(function_d_.id == 0)
@@ -228,10 +244,21 @@ double F_CALC(const double& x) // if modified, change also F_CALC_HOST.
         double mu = function_d_.param;
         return function_d_.coef_norm * x * exp(-x*x/(2*mu*mu));
     }
+    // sqrt(1 + par^2 * arcsin(x)^2)^{-1}:
+    if(function_d_.id == 5)
+    {
+        double x_max = function_d_.param;
+        double asin2 = asin(x) * asin(x);
+        return function_d_.coef_norm / sqrt(1 + x_max*x_max * asin2);
+    }
     return 0; // function is missing;
 }
 
-double F_CALC_HOST(const double& x, const FUNC_DATA_& function_h) // if modified, change also F_CALC.
+
+/**
+ * If modified, change also F_CALC.
+*/
+double F_CALC_HOST(const double& x, const FUNC_DATA_& function_h)  
 {
     // inversion function:
     if(function_h.id == 0)
@@ -262,6 +289,13 @@ double F_CALC_HOST(const double& x, const FUNC_DATA_& function_h) // if modified
     {
         double mu = function_h.param;
         return function_h.coef_norm * x * exp(-x*x/(2*mu*mu));
+    }
+    // sqrt(1 + par^2 * arcsin(x)^2)^{-1}:
+    if(function_h.id == 5)
+    {
+        double x_max = function_h.param;
+        double asin2 = asin(x) * asin(x);
+        return function_h.coef_norm / sqrt(1 + x_max*x_max * asin2);
     }
     return 0; // function is missing;
 }
@@ -354,35 +388,33 @@ void construct_polynomial(
     pol       = new double[2*Nx_half];
     orig_func = new double[2*Nx_half];
 
-    // x-grid:
-    if(function_h.id == 0) // for the inversion function
-    {
-        double inv_param = 1./function_h.param;
-        double dx = (1. - inv_param) / (Nx_half - 1.);
-        for(auto ii = 0; ii < Nx_half; ii++)
-            x[ii] = -1 + dx * ii;
-        for(auto ii = 0; ii < Nx_half; ii++)
-            x[Nx_half + ii] = inv_param + dx * ii;
-    }
-    if(function_h.id == 2 || function_h.id == 3) // for the Gaussian(arcsin) and arcsin
-    {
-        double dx = 2. / (2*Nx_half-1);
-        for(auto ii = 0; ii < (2*Nx_half); ii++)
-            x[ii] = -1 + dx * ii;
+    for(auto ii = 0; ii < (2*Nx_half); ii++)
+        x[ii] = cos((2*ii + 1)*M_PI / (2*Nx_half));
 
-        if(function_h.id == 2)
-        {
-            for(auto ii = 0; ii < (2*Nx_half); ii++)
-                x[ii] = sin(x[ii]);
-        }
-    }
+    // // x-grid:
+    // if(function_h.id == 0) // for the inversion function
+    // {
+    //     double inv_param = 1./function_h.param;
+    //     double dx = (1. - inv_param) / (Nx_half - 1.);
+    //     for(auto ii = 0; ii < Nx_half; ii++)
+    //         x[ii] = -1 + dx * ii;
+    //     for(auto ii = 0; ii < Nx_half; ii++)
+    //         x[Nx_half + ii] = inv_param + dx * ii;
+    // }
+    // else 
+    // {
+    //     // double dx = 2. / (2*Nx_half-1);
+    //     // for(auto ii = 0; ii < (2*Nx_half); ii++)
+    //     //     x[ii] = -1 + dx * ii;
 
-    if(function_h.id == 1 || function_h.id == 4) // for the Gaussian(x) and x*Gaussian(x)
-    {
-        double dx = 2. / (2*Nx_half-1);
-        for(auto ii = 0; ii < (2*Nx_half); ii++)
-            x[ii] = -1 + dx * ii;
-    }
+    //     for(auto ii = 0; ii < (2*Nx_half); ii++)
+    //         x[ii] = cos((2*ii + 1)*M_PI / (2*Nx_half));
+
+    //     // for functions depending on arcsin:
+    //     if(function_h.id == 2 || function_h.id == 3 || function_h.id == 5) 
+    //         for(auto ii = 0; ii < (2*Nx_half); ii++)
+    //             x[ii] = sin(x[ii]);
+    // }
 
     // Construct the polynomial (using only real coefficients) for the ODD function:
     if(function_h.parity == 1)
@@ -487,7 +519,8 @@ void save_coefs(
     double* coefs_real, 
     double* coefs_imag,
     const uint32_t& Nx_half, 
-    const double* x, const double* pol, const double* orig_func
+    const double* x, const double* pol, const double* orig_func,
+    const std::string& work_path
 ){
     std::stringstream sstr;
     // if(pars_func.sel == "inversion")
@@ -495,7 +528,7 @@ void save_coefs(
     // if(pars_func.parity == 0)
     //     sstr << "./coef_xeven_" << to_string(param) << "_" << round(-log10(err_res)) << ".hdf5";
 
-    sstr << pars_func.sel << "_" << to_string(param) << "_" << round(-log10(err_res)) << ".hdf5";
+    sstr << work_path << "/" << pars_func.sel << "_" << to_string(param) << "_" << round(-log10(err_res)) << ".hdf5";
 
     string filename_hdf5 = sstr.str(); 
     H5::H5File* f_ = new H5::H5File(filename_hdf5, H5F_ACC_TRUNC);

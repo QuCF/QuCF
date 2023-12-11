@@ -781,33 +781,44 @@ void QuCF__::launch()
             hfo_.add_scalar(qsvt_data_one.eps_qsvt, "eps",    name_gr);
             hfo_.add_scalar(qsvt_data_one.parity,   "parity", name_gr);
             hfo_.add_scalar(qsvt_data_one.rescaling_factor,   "rescaling_factor", name_gr);
-            if(YMIX::compare_strings(qsvt_data_one.type, "matrix-inversion"))
-            {
-                hfo_.add_scalar(qsvt_data_one.f_par, "kappa", name_gr);
-                hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
-            }
-            if(YMIX::compare_strings(qsvt_data_one.type, "xgaussian"))
-            {
-                hfo_.add_scalar(qsvt_data_one.f_par, "mu", name_gr);
-                hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
-            }
-            if(YMIX::compare_strings(qsvt_data_one.type, "gaussian-arcsin"))
-            {
-                hfo_.add_scalar(qsvt_data_one.f_par, "mu", name_gr);
-                hfo_.add_scalar(qsvt_data_one.angles_phis_even, "angles-even", name_gr);
-            }
-            if(YMIX::compare_strings(qsvt_data_one.type, "QSVT-ham"))
-            {
-                hfo_.add_scalar(qsvt_data_one.f_par, "dt", name_gr);
-                hfo_.add_scalar(qsvt_data_one.n_repeat, "nt", name_gr);
-                hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
-                hfo_.add_scalar(qsvt_data_one.angles_phis_even, "angles-even", name_gr);
-            }
+            hfo_.add_scalar(qsvt_data_one.f_par, "function-parameter", name_gr);
+
+            // if(qsvt_data_one.parity == 0)
+            // {
+            //     hfo_.add_scalar(qsvt_data_one.angles_phis_even, "angles-even", name_gr);
+            // }
+            // if(qsvt_data_one.parity == 1)
+            // {
+            //     hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
+            // }
+
+            // if(YMIX::compare_strings(qsvt_data_one.type, "matrix-inversion"))
+            // {
+            //     hfo_.add_scalar(qsvt_data_one.f_par, "kappa", name_gr);
+            //     hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
+            // }
+            // if(YMIX::compare_strings(qsvt_data_one.type, "xgaussian"))
+            // {
+            //     hfo_.add_scalar(qsvt_data_one.f_par, "mu", name_gr);
+            //     hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
+            // }
+            // if(YMIX::compare_strings(qsvt_data_one.type, "gaussian-arcsin"))
+            // {
+            //     hfo_.add_scalar(qsvt_data_one.f_par, "mu", name_gr);
+            //     hfo_.add_scalar(qsvt_data_one.angles_phis_even, "angles-even", name_gr);
+            // }
+            // if(YMIX::compare_strings(qsvt_data_one.type, "QSVT-ham"))
+            // {
+            //     hfo_.add_scalar(qsvt_data_one.f_par, "dt", name_gr);
+            //     hfo_.add_scalar(qsvt_data_one.n_repeat, "nt", name_gr);
+            //     hfo_.add_scalar(qsvt_data_one.angles_phis_odd, "angles-odd", name_gr);
+            //     hfo_.add_scalar(qsvt_data_one.angles_phis_even, "angles-even", name_gr);
+            // }
             if(YMIX::compare_strings(qsvt_data_one.type, "QSP-ham"))
             {
                 hfo_.add_scalar(qsvt_data_one.f_par, "dt", name_gr);
                 hfo_.add_scalar(qsvt_data_one.n_repeat, "nt", name_gr);
-                hfo_.add_scalar(qsvt_data_one.angles_phis_arbitrary, "angles", name_gr);
+                // hfo_.add_scalar(qsvt_data_one.angles_phis_arbitrary, "angles", name_gr);
             }
         }
     }
@@ -983,8 +994,6 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
             }
 
             // --- Save results from GADGETS ---
-            // cout << "\n>>>HERE: " << stop_point_name << endl;
-            // cout << "\nFLAG: " << flag_output_gadget_ << "\n" << endl;
             if(stop_point_name.find("CompressionGadget") != string::npos && flag_output_gadget_)
             {
                 auto pos1 = stop_point_name.find("<");
@@ -1011,10 +1020,6 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
                         chosen_bitstring[n_full-id_bit-1] = one_bit;
                     }
 
-                    // cout << des_index << endl;
-                    // YMIX::print(gadget_data.counter_qubits);
-                    // YMIX::print(chosen_bitstring);
-
                     if(flag_zero_state_of_)
                     {
                         for(int iq = 0; iq < chosen_bitstring.size(); iq++)
@@ -1030,8 +1035,6 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
                         u_work->get_state(outZ_gadget, false, false);
                         // cout << "FLAG: 2" << endl;
                     }
-
-                    // cout << "SIZE: " << outZ_gadget.ampls.size() << endl;
                     
                     hfo_.open_w();
                     if(outZ_gadget.ampls.size() > 0)

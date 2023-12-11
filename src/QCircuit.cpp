@@ -1483,20 +1483,18 @@ void QCircuit::read_structure_gate_qsvt(
 
     // --- read QSVT ancilla ---
     read_reg_int(istr, ids_a_qsvt);
-    if(YMIX::compare_strings(
-        data.type, YVSv{"matrix-inversion", "gaussian-arcsin", "xgaussian"}
-    )){
+    if(data.parity >= 0)
+    {
         if(ids_a_qsvt.size() != 1)
             throw "QSVT circuit of type ["s + data.type + "] must have only a single ancilla specific qubit."s;
     }
-        
-    if(YMIX::compare_strings(
-        data.type, YVSv{"QSVT-ham", "QSP-ham"}
-    )){
+    else
+    {
         if(ids_a_qsvt.size() != 2)
-            throw "QSVT/QSP circuit of type ["s + data.type + "] must have two ancilla specific qubits."s; 
+            throw "QSVT/QSP circuit of type ["s + data.type + "] must have two ancilla specific qubits."s;
     }
-        
+         
+    
     // --- read the name of the block-encoding oracle ---
     istr >> be_name;
     if(ocs.find(be_name) == ocs.end())
@@ -1543,8 +1541,6 @@ void QCircuit::read_structure_gate_qsvt(
         cout << "a-qsp: " << ids_a_qsvt[1] << endl;
         cout << "a-qu: "  << ids_a_qsvt[0] << endl;
         cout << "be[0]: " << ids_be[0] << endl;
-
-
         if(YMIX::compare_strings(data.type, "QSP-ham")){
             qsp_ham(
                 name_circuit,
@@ -2370,35 +2366,63 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
     YMIX::H5File ff;
     ff.set_name(path_to_output_ + "/" + data.filename_angles);
     ff.open_r();
-    ff.read_scalar(data.type, "polynomial_type", "basic");
-    ff.read_scalar(data.rescaling_factor, "rescaling_factor", "basic");
-    ff.read_scalar(data.eps_qsvt, "eps", "basic");
-    ff.read_scalar(data.f_par,    "par", "basic");
-    if(YMIX::compare_strings(data.type, std::vector<std::string> {"matrix-inversion", "xgaussian"}))
+
+    // cout << endl;
+    // if(ff.is_exist("basic")) cout << "Group basic exists." << endl;
+    //     else cout << "Group basic does not exist." << endl;
+    // if(not ff.is_exist("angles")) cout << "Group angles does not exist." << endl;
+    //     else cout << "Group angles exists." << endl;
+
+    // --- Old format of the .hdf5 file with angles ---
+    if(ff.is_exist("angles"))
     {
-        ff.read_vector(data.angles_phis_odd, "odd", "angles");
-        data.parity = 1;
+        ff.read_scalar(data.type, "polynomial_type", "basic");
+        ff.read_scalar(data.rescaling_factor, "rescaling_factor", "basic");
+        ff.read_scalar(data.eps_qsvt, "eps", "basic");
+        ff.read_scalar(data.f_par,    "par", "basic");
+        if(YMIX::compare_strings(data.type, std::vector<std::string> {"matrix-inversion", "xgaussian"}))
+        {
+            ff.read_vector(data.angles_phis_odd, "odd", "angles");
+            data.parity = 1;
+        }
+        else if(YMIX::compare_strings(data.type, "gaussian-arcsin"))
+        {
+            ff.read_vector(data.angles_phis_even, "even", "angles");
+            data.parity = 0;
+        }
+        else if(YMIX::compare_strings(data.type, "QSVT-ham"))
+        {
+            ff.read_vector(data.angles_phis_odd,   "odd", "angles");
+            ff.read_vector(data.angles_phis_even, "even", "angles");
+            data.parity = -1;
+        }
+        else if(YMIX::compare_strings(data.type, "QSP-ham"))
+        {
+            // write all angles (odd and even) into the variable data.angles_phis_odd:
+            ff.read_vector(data.angles_phis_arbitrary, "QSP-ham", "angles"); 
+            data.parity = -1;
+        }
+        else
+        {
+            throw string("QSVT polynomial type " + data.type + " is not recognized.");
+        }
     }
-    else if(YMIX::compare_strings(data.type, "gaussian-arcsin"))
-    {
-        ff.read_vector(data.angles_phis_even, "even", "angles");
-        data.parity = 0;
-    }
-    else if(YMIX::compare_strings(data.type, "QSVT-ham"))
-    {
-        ff.read_vector(data.angles_phis_odd,   "odd", "angles");
-        ff.read_vector(data.angles_phis_even, "even", "angles");
-        data.parity = -1;
-    }
-    else if(YMIX::compare_strings(data.type, "QSP-ham"))
-    {
-        // write all angles (odd and even) into the variable data.angles_phis_odd:
-        ff.read_vector(data.angles_phis_arbitrary, "QSP-ham", "angles"); 
-        data.parity = -1;
-    }
+    // --- NEW format of the .hdf5 file with angles ---
     else
     {
-        throw string("QSVT polynomial type " + data.type + " is not recognized.");
+        ff.read_scalar(data.type,   "function-type",      "basic");
+        ff.read_scalar(data.f_par,  "function-parameter", "basic");
+        ff.read_scalar(data.parity, "function-parity",    "basic");
+        ff.read_scalar(data.rescaling_factor, "factor-norm", "basic");
+        ff.read_scalar(data.eps_qsvt,         "abs-error",   "basic");
+        if(data.parity == 0)
+        {
+            ff.read_vector(data.angles_phis_even, "phis", "results");
+        }
+        if(data.parity == 1)
+        {
+            ff.read_vector(data.angles_phis_odd, "phis", "results");
+        }
     }
     ff.close();
 
@@ -2410,22 +2434,13 @@ void  QCircuit::qsvt_read_parameters(YCS gate_name, QSVT_pars& data)
     istr << "   QSVT error: "            << data.eps_qsvt << ";\n";
     istr << "   Polynomial parity: "     << data.parity << ";\n";
     istr << "   Polynomial parameter: "  << data.f_par << ";\n";
-    if(YMIX::compare_strings(data.type, YVSv{"matrix-inversion", "xgaussian"}))
-    {
-        istr << "   number of angles: " << data.angles_phis_odd.size() << ";\n";
-        // istr << "   kappa: " << data.f_par << ";\n";
-    }
-    if(YMIX::compare_strings(data.type, "gaussian-arcsin"))
+    if(data.parity == 0)
     {
         istr << "   number of angles: " << data.angles_phis_even.size() << ";\n";
-        // istr << "   mu: " << data.f_par << ";\n";
     }
-    if(YMIX::compare_strings(data.type, "QSVT-ham"))
+    if(data.parity == 1)
     {
-        istr << "   number of angles: " << 
-            data.angles_phis_odd.size() + data.angles_phis_even.size() << ";\n";
-        istr << "   single time interval: " << data.f_par << ";\n";
-        istr << "   number of the time intervals: " << data.n_repeat << ";\n";
+        istr << "   number of angles: " << data.angles_phis_odd.size() << ";\n";
     }
     if(YMIX::compare_strings(data.type, "QSP-ham"))
     {

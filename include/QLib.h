@@ -941,6 +941,11 @@ namespace YMIX{
          */
         void add_group(YCS gname);
 
+        bool is_exist(YCS grp_name)
+        {
+            return H5Lexists(f_->getId(), grp_name.c_str(), H5P_DEFAULT) > 0;
+        }
+
         /**
          * @brief Add a dataset with a name \p dname, where a scalar \p v is to be written.
          * The dataset is put to a group \p gname.
@@ -1009,7 +1014,7 @@ namespace YMIX{
         {
             if(!flag_opened) 
                 throw "HDF5 File " + name_ + 
-                    " is not opened to read a dataset " + dname + " from a group " + gname;
+                    " is not opened to read a dataset " + dname + " from a group " + gname;    
             H5::Group grp(f_->openGroup(gname));
             read(v, dname, grp);
         }

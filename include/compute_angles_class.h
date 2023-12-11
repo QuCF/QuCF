@@ -448,15 +448,10 @@ protected:
             U = compute_sequence_of_rotations(phis, x1);
             diff = U->get_v(0,0).real() - pol_[ix];
 
-            // cout << "\ndiff: " << diff << endl;
-
             if(dd_.parity == 1) // for odd function;
                 first_half = right_sequ[Nc-1].transpose()->dot(Wx);
             else  // for even polynomial;
                 first_half = right_sequ[Nc-2].transpose()->dot(Wx);
-
-            // cout << "ix = " << ix << endl;
-            // first_half->print();
 
             for(uint32_t i_phi = 0; i_phi < Nc; i_phi++)
             {
@@ -464,8 +459,11 @@ protected:
                     mult_per_el_row(vec_i)->dot(right_sequ[Nc-1-i_phi]);
                 grad_cost_[ix][i_phi] = 2.*real(grad_U->get_v(0,0)) * diff;
             }
+            if(dd_.parity == 0)
+                grad_cost_[ix][0] /= 2.;
         }
     }
+
 
     /**
      * @param phis - half of the QSVT angles, the second half is reconstructed using the assumed symmetry of angles;
@@ -501,14 +499,11 @@ protected:
             );
         };
         auto WxA_ephi = [&ephi, &x1, &ix2](YCU j){ 
-            auto ephi_c = conj(ephi[j]);
-            // return make_shared<YMATH::Matrix2_>(
-            //     x1  * ephi[j], ix2 * ephi[j], 
-            //     ix2 * ephi_c,  x1  * ephi_c
-            // );
+            auto temp = ephi[j];
+            auto ephi_c = conj(temp);
             return make_shared<YMATH::Matrix2_>(
-                x1  * ephi[j], ix2 * ephi_c, 
-                ix2 * ephi[j],  x1 * ephi_c
+                x1  * temp, ix2 * ephi_c, 
+                ix2 * temp,  x1 * ephi_c
             );
         };
 
@@ -527,7 +522,8 @@ protected:
         {
             U->set_I();
             for(uint32_t ii = 1; ii < dd_.Nc; ii++)
-                U = U->dot(Wx)->dot(WxA_ephi(ii));
+                U = U->dot(WxA_ephi(ii));
+                // U = U->dot(Wx)->dot(WxA_ephi(ii));
             U = U->dot(G0);
 
             auto res_U = U->transpose()->dot(A_ephi(0))->dot(U);
@@ -576,7 +572,6 @@ protected:
         delete [] ephi;    
         return U->get_v(0,0).real();
     }
-
 
 
     // Reconstruct the polynomial approximation of the target function 

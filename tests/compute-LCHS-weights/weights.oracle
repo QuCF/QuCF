@@ -1,0 +1,70 @@
+// $qucf weights ./ 
+
+CONSTANTS
+	nk 	10
+	alpha_k0 	-1.000000000000e+00
+	alpha_k1 	1.000977517107e+00
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+	flag_matrix 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	INIT     1  				     rk <nk> 0
+	U_BE     2  		    a_be 1 1 rk <nk> 0  // block-encoding oracle;
+	U        3   a_qsvt 1 1 a_be 1 1 rk <nk> 0  // Gauss QSVT circuit;
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U        
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+// --- Initialization ---
+CIRCUIT_STRUCTURE INIT
+	gate H   rk -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Block-Encoding oracle ---
+CIRCUIT_STRUCTURE U_BE
+	gate SIN a_be 1 <alpha_k0> <alpha_k1> rk -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	// circuit U_BE 2 rk -1 a_be 1 end_circuit // to check the SIN gate
+
+	circuit INIT   rk -1          end_circuit
+    gate QSVT  weights  a_qsvt 1  U_BE 2 a_be 1 rk -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
