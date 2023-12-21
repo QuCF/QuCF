@@ -264,6 +264,7 @@ class QCircuit{
         QuCF_complex_data& qucf_data
     );
     void read_selector_power(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv=false);
+    void read_structure_LCHS_QSP(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv=false);
 
     inline void read_global_control(YISS istr)
     {
@@ -272,11 +273,16 @@ class QCircuit{
         blocks_ids_unit_.push_back(ids_unit);
         blocks_ids_zero_.push_back(ids_zero);
     }
-    inline void remove_globall_control()
+    inline void remove_global_control()
     {
         blocks_ids_unit_.pop_back();
         blocks_ids_zero_.pop_back();
     }
+    // inline void remove_repeat_block()
+    // {
+    //     Ns_repeat_.pop_back();
+    //     remove_global_control();
+    // }
 
     /**
      * @brief store indices of qubits found in a register pattern to the output vector \p ids_target.
@@ -315,6 +321,15 @@ class QCircuit{
     {
         read_end_element(istr, ids_unit, ids_zero, 2);
     }
+    // inline void read_repeat_block(YISS istr)
+    // {
+    //     std::string word;
+    //     int N_repeat;
+    //     istr >> word;
+    //     N_repeat = get_value_from_word(word);
+    //     Ns_repeat_.push_back(N_repeat);
+    //     read_global_control(istr);
+    // }
 
     template<class TGate>
     inline bool read_structure(YCS gate_name, YISS istr, YCB flag_inv=false)
@@ -726,6 +741,21 @@ class QCircuit{
         YCB flag_inv
     );
 
+    /**
+     * QSP-based Linear Combination of Hamiltonian simulations (LCHS_QSP).
+     * @param Ut is the oracle simulating a short time interval.
+     * @param ids_Ut are the target qubits of the oracle \p Ut.
+     * @param Nt is the number of time intervals.
+     * @param Ow is the oracle calculating the LCU weights.
+     * @param ids_Ow are the target qubits of the oracle \p Ow.
+    */
+    YQCP LCHS_QSP(
+        const std::shared_ptr<const QCircuit> Ut, YCVI ids_Ut, YCI Nt,
+        const std::shared_ptr<const QCircuit> Ow, YCVI ids_Ow,
+        YCVI cs_unit, YCVI cs_zero,
+        YCB flag_inv
+    );
+
 
     /**
      * @brief Add a Stop gate to a quantum state at this point.
@@ -886,6 +916,10 @@ private:
 
     // blocks with global qubits for the zero-control:
     std::vector<YVIv> blocks_ids_zero_;
+
+    // // Number of repeatitions for the "repeat" block:
+    // std::vector<int> Ns_repeat_;
+
 };
 
 

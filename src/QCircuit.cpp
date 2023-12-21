@@ -1318,10 +1318,6 @@ void QCircuit::read_structure_sin(YISS istr, YCS path_in, YCB flag_inv)
 }
 
 
-
-
-
-
 void QCircuit::read_structure_compression_gadget(
     YISS istr, 
     std::map<std::string, 
@@ -1583,6 +1579,48 @@ void QCircuit::read_selector_power(YISS istr, std::map<std::string, YSQ>& ocs, Y
     // --- Construct the compression gadget ---
     selector_power(rs, oc_U, ids_U_target, ids_unit, ids_zero, flag_inv);
 }
+
+
+void QCircuit::read_structure_LCHS_QSP(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv)
+{
+    YVIv rs, ids_Ut, ids_Ow, ids_unit, ids_zero;
+    string name_U, word;
+    int Nt;
+    YSQ Ut, Ow;
+
+    // --- Read the name of an oracle simulating a short time interval ---
+    istr >> name_U;
+    if(ocs.find(name_U) == ocs.end())
+        throw string("LCHS-QSP: a circuit with the name ["s + name_U + "] is not found."s);
+    Ut = ocs[name_U];
+
+    // --- Read qubits where the circuit Ut sits ---
+    read_reg_int(istr, ids_Ut);
+
+    // --- Read the number of time steps ---
+    istr >> word;
+    Nt = get_value_from_word(word);
+
+    // --- Read the name of an oracle simulating a short time interval ---
+    istr >> name_U;
+    if(ocs.find(name_U) == ocs.end())
+        throw string("LCHS-QSP: a circuit with the name ["s + name_U + "] is not found."s);
+    Ow = ocs[name_U]; 
+
+    // --- Read qubits where the circuit Ow sits ---
+    read_reg_int(istr, ids_Ow);
+
+    // --- read the end of the gate structure ---
+    read_end_gate(istr, ids_unit, ids_zero);
+
+    // --- Construct the LCHS-QSP circuit ---
+    LCHS_QSP(
+        Ut, ids_Ut, Nt,
+        Ow, ids_Ow,
+        ids_unit, ids_zero, flag_inv
+    );
+}
+
 
 
 
@@ -2700,6 +2738,75 @@ YQCP QCircuit::selector_power(
     ); 
     return get_the_circuit();
 }
+
+
+YQCP QCircuit::LCHS_QSP(
+    const std::shared_ptr<const QCircuit> Ut, YCVI ids_Ut, YCI Nt,
+    const std::shared_ptr<const QCircuit> Ow, YCVI ids_Ow,
+    YCVI cs_unit, YCVI cs_zero,
+    YCB flag_inv
+){
+    auto all_qubits = YMATH::get_range(0, nq_);
+    
+    // --- get ancilla qubits of the oracles Ut and Ow ---
+    auto qs_Ut = YVIv(ids_Ut);
+    int n_anc_Ut = Ut->get_na();
+    int n_inp_Ut = Ut->get_n_qubits() - n_anc_Ut;
+
+    auto qs_Ow = YVIv(ids_Ow);
+    int n_anc_Ow = Ow->get_na();
+    int n_inp_Ow = Ow->get_n_qubits() - n_anc_Ow;
+
+    YVIv ids_anc_Ow(qs_Ow.begin()+n_inp_Ow, qs_Ow.end());
+    YVIv ids_anc_Ut(qs_Ut.begin()+n_inp_Ut, qs_Ut.end());
+
+    // - ancilla qubits of Ut that do not coincide with the ancillae of Ow -
+    YVIv ids_anc_Ut_unique(ids_anc_Ut.size());
+    int temp;
+    int counter = -1;
+    for(int ii = 0; ii < ids_anc_Ut.size(); ii++)
+    {
+        temp = ids_anc_Ut[ii];
+        if(
+            find(ids_Ow.begin(), ids_Ow.end(), temp) == ids_Ow.end()
+        ) 
+        {
+            counter++;
+            ids_anc_Ut_unique[counter] = temp;
+        }
+    }
+    ids_anc_Ut_unique.resize(counter+1);
+
+    // --- Create the LCU selector (without using a compression gadget) ---
+    auto oc_selector = make_shared<QCircuit>("selector", env_, path_to_output_, nq_);
+    auto oc_temp_Ut = make_shared<QCircuit>("temp", env_, path_to_output_, nq_);
+    oc_temp_Ut->copy_gates_from(Ut, ids_Ut);
+    for(int it = 0; it < Nt; it++)
+        oc_selector->insert_gates_from(oc_temp_Ut.get());
+
+    // --- Create the LCHS (LCU) circuit ---
+    auto oc_LCHS = make_shared<QCircuit>("LCHS-QSP", env_, path_to_output_, nq_);
+
+    // - left Ow -
+    oc_LCHS->copy_gates_from(Ow,          ids_Ow,     YSB(nullptr), YVIv{}, ids_anc_Ut_unique, false);
+
+    // - add the selector -
+    oc_LCHS->copy_gates_from(oc_selector, all_qubits, YSB(nullptr), YVIv{}, ids_anc_Ow);
+
+    // - right Ow-adjoint -
+    oc_LCHS->copy_gates_from(Ow,          ids_Ow,     YSB(nullptr), YVIv{}, ids_anc_Ut_unique, true);
+
+    // --- Transfer the gates to the main circuit ---
+    copy_gates_from(
+        oc_LCHS,
+        all_qubits,
+        YSB(nullptr), 
+        cs_unit, cs_zero,
+        flag_inv        
+    ); 
+    return get_the_circuit();
+}
+
 
 
 

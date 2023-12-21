@@ -384,7 +384,13 @@ void QuCF__::read_circuit_structure(YISS istr, YSQ* oc_ext)
             oc->read_global_control(istr);
 
         if(YMIX::compare_strings(word, "end_with"))
-            oc->remove_globall_control();
+            oc->remove_global_control();
+
+        // if(YMIX::compare_strings(word, "repeat"))
+        //     oc->read_repeat_block(istr);
+
+        // if(YMIX::compare_strings(word, "repeat"))
+        //     oc->remove_repeat_block();
     }
 }
 
@@ -507,6 +513,10 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
         if(YMIX::compare_strings(gate_name, "SelectorPower"))
         {
             oc->read_selector_power(istr, ocs_, flag_inv);
+        }
+        if(YMIX::compare_strings(gate_name, "LCHS_QSP"))
+        {
+            oc->read_structure_LCHS_QSP(istr, ocs_, flag_inv);
         }
     }
     catch(YCS e)
@@ -937,11 +947,13 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
             }
         }
 
+        timer_comp.Start();
+        YMIX::print_log( "Calculating the circuit... ", 0, false, false);
         while(id_current_gate < u_work->get_n_gates())
         {
             // generate the circuit:
-            timer_comp.Start();
-            YMIX::print_log( "Calculating the circuit... ", 0, false, false);
+            // timer_comp.Start();
+            // YMIX::print_log( "Calculating the circuit... ", 0, false, false);
             u_work->generate(stop_point_name, id_current_gate);
 
             if(YMIX::compare_strings(sel_compute_output_, "zero-ancillae"))
@@ -954,8 +966,8 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
                 u_work->get_state(outZ_chosen, false, false);
             }
 
-            timer_comp.Stop();
-            YMIX::print_log( "duration: " + timer_comp.get_dur_str_s());
+            // timer_comp.Stop();
+            // YMIX::print_log( "duration: " + timer_comp.get_dur_str_s());
 
             if(YMIX::compare_strings(sel_print_output_, "all"))
                 YMIX::print_log(
@@ -1132,6 +1144,9 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
         }
         hfo_.close(); 
     }
+
+    timer_comp.Stop();
+    YMIX::print_log( "duration: " + timer_comp.get_dur_str_s());
 }
 
 
