@@ -1588,7 +1588,7 @@ void QCircuit::read_structure_LCHS_QSP(YISS istr, std::map<std::string, YSQ>& oc
     int Nt;
     YSQ Ut, Ow;
 
-    // --- Read the name of an oracle simulating a short time interval ---
+    // --- Read the name of the oracle simulating a short time interval ---
     istr >> name_U;
     if(ocs.find(name_U) == ocs.end())
         throw string("LCHS-QSP: a circuit with the name ["s + name_U + "] is not found."s);
@@ -1601,7 +1601,7 @@ void QCircuit::read_structure_LCHS_QSP(YISS istr, std::map<std::string, YSQ>& oc
     istr >> word;
     Nt = get_value_from_word(word);
 
-    // --- Read the name of an oracle simulating a short time interval ---
+    // --- Read the name of the oracle computing weights ---
     istr >> name_U;
     if(ocs.find(name_U) == ocs.end())
         throw string("LCHS-QSP: a circuit with the name ["s + name_U + "] is not found."s);
@@ -2769,8 +2769,7 @@ YQCP QCircuit::LCHS_QSP(
         temp = ids_anc_Ut[ii];
         if(
             find(ids_Ow.begin(), ids_Ow.end(), temp) == ids_Ow.end()
-        ) 
-        {
+        ){
             counter++;
             ids_anc_Ut_unique[counter] = temp;
         }

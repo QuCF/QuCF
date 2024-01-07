@@ -4,11 +4,12 @@ CONSTANTS
 	nk 	10
 	alpha_k0 	-1.000000000000e+00
 	alpha_k1 	1.000977517107e+00
+	alpha_k_corr 	9.505249742429e-02
 END_CONSTANTS
 
 
 OPTIONS
-    sel_compute_output zero-ancillae
+    sel_compute_output all
 	sel_print_output   none  // none, all, zero-ancillae
 	flag_circuit 0 
 	flag_tex     0
@@ -47,6 +48,10 @@ CIRCUIT_STRUCTURE   U
 
 	circuit INIT   rk -1          end_circuit
     gate QSVT  weights  a_qsvt 1  U_BE 2 a_be 1 rk -1 end_gate
+
+	// --- correcting gates ---
+	gate Rx a_qsvt 1  <alpha_k_corr>  ocontrol 2 rk -1 a_be -1 end_gate
+	gate Rx a_qsvt 1  <alpha_k_corr>  ocontrol a_be -1 control rk -1 end_gate
 END_CIRCUIT_STRUCTURE
 
 

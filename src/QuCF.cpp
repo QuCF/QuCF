@@ -30,7 +30,7 @@ QuCF__::QuCF__(
 
 QuCF__::~QuCF__()
 {
-    YMIX::print_log( "*** The oracletool has been desctructed. ***");
+    YMIX::print_log( "*** The oracletool has been destructed. ***");
 }
 
 

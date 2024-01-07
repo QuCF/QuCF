@@ -1,9 +1,9 @@
-// $qucf N_5 ./ 
+// $qucf N_15 ./ 
 
 CONSTANTS
 	//--- For data ---
 	nx 	1
-	Nt 	10
+	Nt 	30
 
 	//--- The angles for the BE oracles ---
 	ay_00_kmax  2.214297435588e+00
@@ -12,14 +12,12 @@ CONSTANTS
 	ay_11_kmax  2.214297435588e+00
 
 	//--- The angles for the initialization ---
-	// ay_init  1.772154247585e+00
-	ay_init  3.141592653590e+00
+	ay_init  1.772154247585e+00
 
 	//--- For weights ---
 	nk 	10
 	alpha_k0 	-1.000000000000e+00
 	alpha_k1 	1.000977517107e+00
-	alpha_k_corr 	9.505249742429e-02
 END_CONSTANTS
 
 
@@ -70,10 +68,6 @@ END_CIRCUIT_STRUCTURE
 CIRCUIT_STRUCTURE  Ow
 	gate H rk -1 end_gate
     gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin 1 rk -1 end_gate
-
-	// correcting gates
-	gate Rx a_qsvt_w 1  <alpha_k_corr>  ocontrol 2 rk -1 a_sin -1 end_gate
-	gate Rx a_qsvt_w 1  <alpha_k_corr>  ocontrol a_sin -1 control rk -1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
@@ -126,3 +120,23 @@ CIRCUIT_STRUCTURE   U
 		Ow 3 a_qsvt_w -1 a_sin -1 rk -1
 	end_gate
 END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

@@ -39,6 +39,8 @@ const vector<FUNC_> avail_functions_ = {
    {"arcsin",           1,     0.980}, // id = 3
    {"xgaussian",        1,     0.980}, // id = 4
    {"sqrt_inv_arcsin2", 0,     0.980}, // id = 5
+   {"vH",               1,     1.000}, // id = 6
+   {"ase-init",         0,     1.000}, // id = 7
 };
 
 struct FUNC_DATA_
@@ -98,8 +100,8 @@ void get_current_date_time(string& line_date_time);
 int main(int argc, char *argv[])
 {
     int nDevices;
-    uint32_t Nd;   // initial number of coefficients in the polynomial;
-    double param;  // function main parameter: kappa, time etc.
+    uint32_t Nd;         // initial number of coefficients in the polynomial;
+    double param;        // function main parameter: kappa, time etc.
     string sel_function; // ID of the function to approximate;
     FUNC_DATA_ function_h;
     uint32_t id_arg;
@@ -214,42 +216,62 @@ int main(int argc, char *argv[])
 __device__ __forceinline__
 double F_CALC(const double& x) 
 {
+    auto& dd = function_d_;
+
     // inversion function:
-    if(function_d_.id == 0)
+    if(dd.id == 0)
     {
-        double kappa = function_d_.param;
-        return (function_d_.coef_norm/kappa) * (1. - exp(-pow(5*kappa*x, 2))) / x;
+        double kappa = dd.param;
+        return (dd.coef_norm/kappa) * (1. - exp(-pow(5*kappa*x, 2))) / x;
     }
     // Gaussian(x):
-    if(function_d_.id == 1)
+    if(dd.id == 1)
     {
-        double mu = function_d_.param;
-        return function_d_.coef_norm * exp(-x*x/(2*mu*mu));
+        double mu = dd.param;
+        return dd.coef_norm * exp(-x*x/(2*mu*mu));
     }
     // Gaussian(arcsin(x)):
-    if(function_d_.id == 2)
+    if(dd.id == 2)
     {
-        double mu = function_d_.param;
-        return function_d_.coef_norm * exp(-asin(x)*asin(x)/(2*mu*mu));
+        double mu = dd.param;
+        return dd.coef_norm * exp(-asin(x)*asin(x)/(2*mu*mu));
     }
     // arcsin(x):
-    if(function_d_.id == 3)
+    if(dd.id == 3)
     {
-        double a = function_d_.param;
-        return function_d_.coef_norm * asin(a*x);
+        double a = dd.param;
+        return dd.coef_norm * asin(a*x);
     }
     // x*Gaussian(x):
-    if(function_d_.id == 4)
+    if(dd.id == 4)
     {
-        double mu = function_d_.param;
-        return function_d_.coef_norm * x * exp(-x*x/(2*mu*mu));
+        double mu = dd.param;
+        return dd.coef_norm * x * exp(-x*x/(2*mu*mu));
     }
     // sqrt(1 + par^2 * arcsin(x)^2)^{-1}:
-    if(function_d_.id == 5)
+    if(dd.id == 5)
     {
-        double x_max = function_d_.param;
+        double x_max = dd.param;
         double asin2 = asin(x) * asin(x);
-        return function_d_.coef_norm / sqrt(1 + x_max*x_max * asin2);
+        return dd.coef_norm / sqrt(1 + x_max*x_max * asin2);
+    }
+    // par * asin(x) * exp(pred_coef*asin(x)^2):
+    if(dd.id == 6)
+    {
+        double ampl = dd.param;
+        double yy  = asin(x);
+        double yy2 = yy*yy;
+        double pred_coef = -7.999999938811e+00;
+        return dd.coef_norm * ampl * yy * exp(pred_coef * yy2);
+    }
+    // par * exp(ww*asin(x)^2):
+    if(dd.id == 7)
+    {
+        // double ww = -1.249984330652e+03;
+        double ww = -5.065995676665e+02;
+        double yy  = asin(x);
+        double asin2 = yy*yy;
+        return dd.coef_norm * dd.param * exp(ww * asin2);
     }
     return 0; // function is missing;
 }
@@ -258,44 +280,62 @@ double F_CALC(const double& x)
 /**
  * If modified, change also F_CALC.
 */
-double F_CALC_HOST(const double& x, const FUNC_DATA_& function_h)  
+double F_CALC_HOST(const double& x, const FUNC_DATA_& dd)  
 {
     // inversion function:
-    if(function_h.id == 0)
+    if(dd.id == 0)
     {
-        double kappa = function_h.param;
-        return (function_h.coef_norm/kappa) * (1. - exp(-pow(5*kappa*x, 2))) / x;
+        double kappa = dd.param;
+        return (dd.coef_norm/kappa) * (1. - exp(-pow(5*kappa*x, 2))) / x;
     }
     // Gaussian(x):
-    if(function_h.id == 1)
+    if(dd.id == 1)
     {
-        double mu = function_h.param;
-        return function_h.coef_norm * exp(-x*x/(2*mu*mu));
+        double mu = dd.param;
+        return dd.coef_norm * exp(-x*x/(2*mu*mu));
     }
     // Gaussian(arcsin(x)):
-    if(function_h.id == 2)
+    if(dd.id == 2)
     {
-        double mu = function_h.param;
-        return function_h.coef_norm * exp(-asin(x)*asin(x)/(2*mu*mu));
+        double mu = dd.param;
+        return dd.coef_norm * exp(-asin(x)*asin(x)/(2*mu*mu));
     }
     // arcsin(x):
-    if(function_h.id == 3)
+    if(dd.id == 3)
     {
-        double a = function_h.param;
-        return function_h.coef_norm * asin(a*x);
+        double a = dd.param;
+        return dd.coef_norm * asin(a*x);
     }
     // x*Gaussian(x):
-    if(function_h.id == 4)
+    if(dd.id == 4)
     {
-        double mu = function_h.param;
-        return function_h.coef_norm * x * exp(-x*x/(2*mu*mu));
+        double mu = dd.param;
+        return dd.coef_norm * x * exp(-x*x/(2*mu*mu));
     }
     // sqrt(1 + par^2 * arcsin(x)^2)^{-1}:
-    if(function_h.id == 5)
+    if(dd.id == 5)
     {
-        double x_max = function_h.param;
+        double x_max = dd.param;
         double asin2 = asin(x) * asin(x);
-        return function_h.coef_norm / sqrt(1 + x_max*x_max * asin2);
+        return dd.coef_norm / sqrt(1 + x_max*x_max * asin2);
+    }
+    // par * asin(x) * exp(pred_coef*asin(x)^2):
+    if(dd.id == 6)
+    {
+        double ampl = dd.param;
+        double yy  = asin(x);
+        double yy2 = yy*yy;
+        double pred_coef = -7.999999938811e+00;
+        return dd.coef_norm * ampl * yy * exp(pred_coef * yy2);
+    }
+    // par * exp(ww*asin(x)^2):
+    if(dd.id == 7)
+    {
+        // double ww = -1.249984330652e+03;
+        double ww = -5.065995676665e+02;
+        double yy  = asin(x);
+        double asin2 = yy*yy;
+        return dd.coef_norm * dd.param * exp(ww * asin2);
     }
     return 0; // function is missing;
 }
@@ -390,6 +430,13 @@ void construct_polynomial(
 
     for(auto ii = 0; ii < (2*Nx_half); ii++)
         x[ii] = cos((2*ii + 1)*M_PI / (2*Nx_half));
+
+    if(
+        function_h.id == 2 || function_h.id == 3 || function_h.id == 5 || 
+        function_h.id == 6 || function_h.id == 7
+    ) 
+        for(auto ii = 0; ii < (2*Nx_half); ii++)
+            x[ii] = sin(x[ii]);
 
     // // x-grid:
     // if(function_h.id == 0) // for the inversion function

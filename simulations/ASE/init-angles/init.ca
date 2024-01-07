@@ -1,0 +1,12 @@
+// to launch: $qucf_angles init ./
+
+
+// The name of the file (without .hdf5 ) with coefficients describing 
+//		the polynomial approximation of the chosen function:
+// filename_coefs    ase-init_0.332277_6
+filename_coefs    ase-init_0.904315_9
+
+
+// stopping parameter:
+stopping_criterion 1e-12
+

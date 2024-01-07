@@ -1,0 +1,271 @@
+// $qucf flat ./ 
+
+CONSTANTS
+	nx 4
+	nv 4
+	alpha_0_cf 	-2.841788633538e-02
+	alpha_1_cf 	3.031241209107e-02
+	angle_sb 	-0.002131341879
+	angle_se 	-0.002131344299
+
+	alpha_0_LFB1 	-0.002131341475
+	alpha_1_LFB1 	0.002273430907
+	alpha_0_FL2 	-0.002131341475
+	alpha_1_FL2 	0.002273430907
+	alpha_0_FR2 	-0.004262682950
+	alpha_1_FR2 	0.004546861814
+	pi2 	6.283185307180
+
+	//--- Parameters for the oracle for the submatrix CE ---
+	alpha_0_CE 	-1.000000000000e+00
+	alpha_1_CE 	1.066666666667e+00
+END_CONSTANTS
+
+
+OPTIONS
+	sel_compute_output all  // none, all, zero-ancillae
+	sel_print_output   zero-ancillae // none, all, zero-ancillae
+	flag_circuit 0
+	flag_tex     0
+	tex_CL  16 
+
+	flag_matrix 1
+END_OPTIONS
+
+//  2*nv + nx + 11
+CIRCUITS_DECLARATION
+	INIT  3  a_ce 1 1 rv <nv> 0
+
+
+	Shpm  1 ar 3 1
+	Shpp  1 ar 3 1
+	Shppp 1 ar 3 1
+	Shmm  1 ar 3 1
+	Shmmm 1 ar 3 1
+
+	U_BE_CE  2  a_ce 1 1 rv <nv> 0
+
+	OF_VAR   7       af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+	OF_XB   7        af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+	OFN_XE   7       af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+	OF_VB   7        af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+	OFN_VE  7        af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+	OM      7        af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+	OFNI_XE 7        af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+	OFNI_VE 7        af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+
+	OH    9 ae 1 1 a_ce 1 1 af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+
+	U_BE  9 ae 1 1 a_ce 1 1 af 1 1 axr 3 1 avr 3 1 av <nv> 1 rf 1 0 rx <nx> 0 rv <nv> 0
+END_CIRCUITS_DECLARATION
+
+
+
+MAIN_CIRCUIT   U_BE       
+	// --- to check BE oracle ---
+	// INPUT_STATE  3 rf 0 rv 1 rx 0
+	// INPUT_STATE  4 axr 0 avr 0 rv 7 rx 0
+END_MAIN_CIRCUIT
+
+
+CIRCUIT_STRUCTURE Shpm
+	gate H ar[0]               end_gate
+	gate H ar[2] control ar[0] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE Shpp
+	gate H ar[2] control ar[0] end_gate
+	//---
+	gate H ar[1] ocontrol ar[0] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE Shppp
+	gate H ar[2] control ar[0] end_gate
+	//---
+	gate H ar[1] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE Shmm
+	circuit Shpp -1 end_circuit
+	gate X ar[2] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE Shmmm
+	circuit Shppp -1 end_circuit
+	gate X ar[2] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE OM
+	// *** matrices CE and Cf ***
+	gate swap  av -1 rv -1 control af 1 ocontrol rf 1  end_gate
+	gate swap  av -1 rv -1 control rf 1 ocontrol af 1  end_gate
+	//*** variables' subblocks ---
+	gate swap af -1 rf -1 end_gate
+	//*** matrix F: spatial subblocks ***
+	gate adder1  rx -1 control_e axr 1 end_gate
+	gate adder2  rx -1 control_e axr 2 end_gate
+	igate adder1 rx -1 ocontrol_e axr 2 end_gate
+	igate adder2 rx -1 ocontrol_e axr 1 end_gate
+	//*** matrix F: velocity subblocks ***
+	gate adder1  rv -1 control_e avr 1 end_gate
+	gate adder2  rv -1 control_e avr 2 end_gate
+	gate adder3  rv -1 control_e avr 3 end_gate
+	igate adder1 rv -1 ocontrol_e avr 2 end_gate
+	igate adder2 rv -1 ocontrol_e avr 1 end_gate
+	igate adder3 rv -1 ocontrol_e avr 0 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+CIRCUIT_STRUCTURE OF_VAR
+	// *** create subblocks corresponding to two variables ***
+	gate H af 1              ocontrol rf 1  end_gate
+	gate X af 1 control rf 1                end_gate
+	gate H af 1 control rf 1 ocontrol rv -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// *** matrix F: axis x: bulk points ***
+CIRCUIT_STRUCTURE OF_XB
+	// --- x: bulk spatial points:
+	circuit Shpm 1 axr -1                 ocontrol 2 rf 1 af 1        end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+// *** matrix F: axis x: edge points ***
+CIRCUIT_STRUCTURE OFN_XE
+	// left x boundary: v > 0:
+	icircuit Shpm 1 axr -1 control rv[-1] ocontrol 3 rf 1 af 1 rx -1  end_circuit 
+	// right x boundary: v < 0:
+	icircuit Shpm 1 axr -1 control rx -1  ocontrol 3 rf 1 af 1 rv[-1] end_circuit	
+	// left x boundary: v < 0:
+	circuit Shpp 1 axr -1                        ocontrol 4 rf 1 af 1 rx -1 rv[-1] end_circuit
+	// right x boundary: v > 0:
+	circuit Shmm 1 axr -1 control 2 rx -1 rv[-1] ocontrol 2 rf 1 af 1              end_circuit 
+END_CIRCUIT_STRUCTURE
+
+
+
+CIRCUIT_STRUCTURE OFNI_XE
+	// left x boundary: v < 0:
+	gate H axr[1] control_e rx 2  ocontrol 3 rf 1 af 1 rv[-1] end_gate
+
+	// for x right boundary: v > 0:
+	gate H axr 4  control rx -1           ocontrol 2 rf 1 af 1  ocontrol_e rv[-1]  end_gate  
+	gate H axr 4  control 2 rv[-1] rx -1  ocontrol 2 rf 1 af 1                     end_gate  
+	gate H axr 3  control rv[-1]          ocontrol 2 rf 1 af 1  ocontrol_e rx 2    end_gate 
+END_CIRCUIT_STRUCTURE
+
+
+// *** matrix F: axis v: bulk ***
+CIRCUIT_STRUCTURE OF_VB
+	// *** matrix Cf ***
+	gate H av -1 control rf 1 ocontrol 2 af 1 rv -1 end_gate 
+	// --- v: bulk velocity points:
+	circuit Shpm 1 avr -1 ocontrol 3 af 1 rf 1 axr 3 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+// *** matrix F: axis v: edge ***
+CIRCUIT_STRUCTURE OFN_VE
+	// v: left boundary:
+	circuit Shppp 1 avr -1                ocontrol 4 af 1 rf 1 axr 3 rv -1 end_circuit
+	// v: right boundary:
+	circuit Shmmm 1 avr -1 control rv -1  ocontrol 3 af 1 rf 1 axr 3       end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+CIRCUIT_STRUCTURE OFNI_VE
+	// left v boundary: 
+	gate H avr[1] control_e rv 2 ocontrol 3 af 1 rf 1 axr 3  end_gate
+	gate H avr[1] control_e rv 3 ocontrol 3 af 1 rf 1 axr 3  end_gate
+
+	// right v boundary:
+	gate H  avr[2] control rv -1 ocontrol 3 af 1 rf 1 axr 3                 end_gate
+	gate H  avr 2                ocontrol 3 af 1 rf 1 axr 3 ocontrol_e rv 2 end_gate
+	gate H  avr 2                ocontrol 3 af 1 rf 1 axr 3 ocontrol_e rv 3 end_gate
+	gate Ry avr 4   1            ocontrol 3 af 1 rf 1 axr 3 ocontrol_e rv 2 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+CIRCUIT_STRUCTURE U_BE_CE
+	gate SIN a_ce 1 <alpha_0_CE> <alpha_1_CE> rv -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+CIRCUIT_STRUCTURE OH
+	// // *** submatrix FF ***
+	// with ocontrol 2 af 1 rf 1 do
+	// 	file circuit_OH
+	// end_with
+	// // *** submatrix FP ***
+	// with ocontrol 2 af 1 rf 1 do
+	// 	// left blocks FB1
+	// 	gate SIN ae 1 <alpha_0_LFB1> <alpha_1_LFB1> rv -1 control axr 1 end_gate
+	// 	// right blocks FB1
+	// 	// gate SIN ae 1 <alpha_0_LFB1> <alpha_0_LFB1> rv -1 control_e axr 1 end_gate
+	// 	gate Rz ae 1 <pi2> control_e axr 1 end_gate
+	// 	// block FL2
+	// 	gate SIN ae 1 <alpha_0_FL2> <alpha_1_FL2> rv -1 control_e axr 2 end_gate
+	// 	// block FR2
+	// 	gate SIN ae 1 <alpha_0_FR2> <alpha_1_FR2> rv -1 control_e axr 6 end_gate
+	// 	gate Rz ae 1 <pi2> control_e axr 6 end_gate
+	// end_with
+	// // *** submatrix CF ***
+	// with control rf 1 ocontrol af 1  do
+	// 	gate SIN ae 1 <alpha_0_cf> <alpha_1_cf> av -1 end_gate
+	// end_with
+	// *** submatrix CE ***
+	with ocontrol rf 1 control af 1  do
+		gate QSVT  vH  ae 1  U_BE_CE 2 a_ce 1 rv -1 end_gate
+	end_with
+	// // *** submatrix S ***
+	// with control rf 1 control af 1  do
+	// 	gate Rx ae 1 <angle_sb>                end_gate
+	// 	gate Rx ae 1 <angle_se> ocontrol rv -1 end_gate
+	// 	gate X  ae 1                           end_gate
+	// end_with
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+CIRCUIT_STRUCTURE U_BE
+	circuit  OF_VAR   7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	circuit  OF_XB    7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	circuit  OFN_XE   7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	circuit  OF_VB    7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	circuit  OFN_VE   7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	// --- comment next line to compute the matrix D ---
+	circuit  OH -1   end_circuit
+	// ---
+	circuit  OM       7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	// ---
+	circuit  OFNI_VE  7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	icircuit OF_VB    7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	circuit  OFNI_XE  7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	icircuit OF_XB    7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+	icircuit OF_VAR   7 rv -1 rx -1 rf -1 av -1 avr -1 axr -1 af -1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
