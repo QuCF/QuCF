@@ -429,7 +429,7 @@ void construct_polynomial(
     orig_func = new double[2*Nx_half];
 
     for(auto ii = 0; ii < (2*Nx_half); ii++)
-        x[ii] = cos((2*ii + 1)*M_PI / (2*Nx_half));
+        x[ii] = cos((2*ii + 1)*M_PI / (4*Nx_half));
 
     if(
         function_h.id == 2 || function_h.id == 3 || function_h.id == 5 || 

@@ -252,10 +252,11 @@ class QCircuit{
         YISS istr, YCS path_in, std::map<std::string, YSQ>& ocs, YCB flag_inv
     );
     void read_structure_gate_qsvt(
-        YISS istr, YCS path_in, 
+        YISS istr, 
         std::map<std::string, YSQ>& ocs, 
         YCB flag_inv, 
-        QuCF_complex_data& qucf_data
+        QuCF_complex_data& qucf_data,
+        YCB flag_QETU = false
     );
     void read_structure_compression_gadget(
         YISS istr, 
@@ -689,7 +690,7 @@ class QCircuit{
         YCB flag_inv = false
     );
 
-    /** @brief QSVT inversion of the matrix encoded by the oracle \p BE, which sits on qubits \p qs_be.
+    /** @brief QSVT of the matrix encoded by the oracle \p BE, which sits on qubits \p qs_be.
      * The QSVT single rotations are placed at the qubit \p a_qsvt.
      * @param flag_box if true, draw the operator as a box, not as a circuit;
      */
@@ -702,6 +703,21 @@ class QCircuit{
         YCB flag_inv = false,
         YCB flag_box = false
     );
+
+    /** @brief QETU of the matrix encoded by the oracle \p BE, which sits on qubits \p qs_be.
+     * The QSVT single rotations are placed at the qubit \p a_qsvt.
+     * @param flag_box if true, draw the operator as a box, not as a circuit;
+     */
+    YQCP qetu_def_parity(
+        YCVQ phis,
+        YCI a_qsvt,
+        YCVI qs_be, 
+        const std::shared_ptr<const QCircuit> BE,
+        YCVI cs_unit = {}, YCVI cs_zero = {}, 
+        YCB flag_inv = false,
+        YCB flag_box = false
+    );
+
 
     /** @brief Hamiltonian simulation using the original (fully-coherent) QSP approach.
      * @param name_qsp_cricuit a unique name of the QSP circuit;

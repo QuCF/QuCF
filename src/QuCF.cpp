@@ -504,7 +504,12 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
         }
         if(YMIX::compare_strings(gate_name, "QSVT"))
         {
-            oc->read_structure_gate_qsvt(istr, path_inputs_, ocs_, flag_inv, cd_);
+            oc->read_structure_gate_qsvt(istr, ocs_, flag_inv, cd_);
+        }
+        if(YMIX::compare_strings(gate_name, "QETU"))
+        {
+            bool flag_QETU = true;
+            oc->read_structure_gate_qsvt(istr, ocs_, flag_inv, cd_, flag_QETU);
         }
         if(YMIX::compare_strings(gate_name, "CompressionGadget"))
         {

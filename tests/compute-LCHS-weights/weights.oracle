@@ -21,7 +21,10 @@ END_OPTIONS
 CIRCUITS_DECLARATION
 	INIT     1  				     rk <nk> 0
 	U_BE     2  		    a_be 1 1 rk <nk> 0  // block-encoding oracle;
-	U        3   a_qsvt 1 1 a_be 1 1 rk <nk> 0  // Gauss QSVT circuit;
+	// REF      3  aref 1 0  a_qsvt 1 0 a_be 1 0            // for reflection from zero-ancillae
+	REF      2            a_qsvt 1 0 a_be 1 0            // for reflection from zero-ancillae
+	Uw       3            a_qsvt 1 1 a_be 1 1 rk <nk> 0  // Gauss QSVT circuit;
+	U        4  aref 1 1  a_qsvt 1 1 a_be 1 1 rk <nk> 0  // QSVT + ROAA;
 END_CIRCUITS_DECLARATION
 
 
@@ -42,6 +45,23 @@ CIRCUIT_STRUCTURE U_BE
 END_CIRCUIT_STRUCTURE
 
 
+CIRCUIT_STRUCTURE REF
+	// gate X aref 1 ocontrol 2 a_qsvt -1 a_be -1 end_gate	
+	// gate Z aref 1 ocontrol 2 a_qsvt -1 a_be -1 end_gate
+	// gate X aref 1 ocontrol 2 a_qsvt -1 a_be -1 end_gate
+
+	gate X a_qsvt 1 ocontrol a_be -1 end_gate	
+	gate Z a_qsvt 1 ocontrol a_be -1 end_gate
+	gate X a_qsvt 1 ocontrol a_be -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE Uw
+// 	gate QSVT  weights  a_qsvt 1  U_BE 2 a_be 1 rk -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
 	// circuit U_BE 2 rk -1 a_be 1 end_circuit // to check the SIN gate
@@ -53,6 +73,126 @@ CIRCUIT_STRUCTURE   U
 	gate Rx a_qsvt 1  <alpha_k_corr>  ocontrol 2 rk -1 a_be -1 end_gate
 	gate Rx a_qsvt 1  <alpha_k_corr>  ocontrol a_be -1 control rk -1 end_gate
 END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+// // --- Final circuit ---
+// CIRCUIT_STRUCTURE   U
+
+
+// 	circuit INIT  rk -1  end_circuit
+// 	circuit Uw  3 rk -1 a_be -1 a_qsvt -1 end_circuit
+
+
+// 	circuit REF 2  a_be -1 a_qsvt -1  end_circuit
+
+// 	icircuit Uw 3 rk -1 a_be -1 a_qsvt -1  end_circuit
+// 	icircuit INIT  rk -1  end_circuit
+
+// 	circuit REF 2  a_be -1 a_qsvt -1  end_circuit
+
+// 	circuit INIT  rk -1  end_circuit
+// 	circuit Uw  3 rk -1 a_be -1 a_qsvt -1  end_circuit
+
+
+
+
+// 	// circuit REF 2  a_be -1 a_qsvt -1  end_circuit
+
+// 	// icircuit Uw 3 rk -1 a_be -1 a_qsvt -1  end_circuit
+// 	// icircuit INIT  rk -1  end_circuit
+
+// 	// circuit REF 2  a_be -1 a_qsvt -1  end_circuit
+
+// 	// circuit INIT  rk -1  end_circuit
+// 	// circuit Uw  3 rk -1 a_be -1 a_qsvt -1  end_circuit
+
+
+
+
+// 	// circuit REF 2  a_be -1 a_qsvt -1  end_circuit
+
+// 	// icircuit Uw 3 rk -1 a_be -1 a_qsvt -1  end_circuit
+// 	// icircuit INIT  rk -1  end_circuit
+
+// 	// circuit REF 2  a_be -1 a_qsvt -1  end_circuit
+
+// 	// circuit INIT  rk -1  end_circuit
+// 	// circuit Uw  3 rk -1 a_be -1 a_qsvt -1  end_circuit
+
+
+
+
+
+
+// 	// gate Ry a_be 1 2.6 end_gate
+
+// 	// gate X a_be 1 ocontrol aref 1 end_gate	
+// 	// gate Z a_be 1 ocontrol aref 1 end_gate
+// 	// gate X a_be 1 ocontrol aref 1 end_gate
+
+// 	// igate Ry a_be 1 2.6  end_gate
+
+// 	// gate X a_be 1 ocontrol aref 1 end_gate	
+// 	// gate Z a_be 1 ocontrol aref 1 end_gate
+// 	// gate X a_be 1 ocontrol aref 1 end_gate
+
+// 	// gate Ry a_be 1 2.6 end_gate
+
+
+
+// 	// gate X a_be 1 ocontrol aref 1 end_gate	
+// 	// gate Z a_be 1 ocontrol aref 1 end_gate
+// 	// gate X a_be 1 ocontrol aref 1 end_gate
+
+// 	// igate Ry a_be 1 2.6  end_gate
+
+// 	// gate X a_be 1 ocontrol aref 1 end_gate	
+// 	// gate Z a_be 1 ocontrol aref 1 end_gate
+// 	// gate X a_be 1 ocontrol aref 1 end_gate
+
+// 	// gate Ry a_be 1 2.6 end_gate
+
+
+
+	
+// 	// circuit INIT   rk -1    ocontrol aref 1      end_circuit
+//     // circuit Uw  3 rk -1 a_be -1 a_qsvt -1 ocontrol aref 1 end_circuit
+
+// 	// circuit REF 3       a_be -1 a_qsvt -1 aref -1 end_circuit
+
+// 	// icircuit Uw 3 rk -1 a_be -1 a_qsvt -1 ocontrol aref 1 end_circuit
+// 	// icircuit INIT   rk -1   ocontrol aref 1       end_circuit
+
+// 	// circuit REF 3       a_be -1 a_qsvt -1 aref -1 end_circuit
+
+// 	// circuit INIT   rk -1    ocontrol aref 1      end_circuit
+// 	// circuit Uw  3 rk -1 a_be -1 a_qsvt -1 ocontrol aref 1 end_circuit
+
+
+
+// 	// circuit Uw 3 rk -1 a_be -1 a_qsvt -1 end_circuit
+// 	// circuit REF 3 a_be -1 a_qsvt -1 aref -1 end_circuit
+// 	// icircuit Uw 3 rk -1 a_be -1 a_qsvt -1 end_circuit
+// 	// circuit REF 3 a_be -1 a_qsvt -1 aref -1 end_circuit
+// 	// circuit Uw 3 rk -1 a_be -1 a_qsvt -1 end_circuit
+
+// 	// // --- correcting gates ---
+// 	// gate Rx a_qsvt 1  <alpha_k_corr>  ocontrol 2 rk -1 a_be -1 end_gate
+// 	// gate Rx a_qsvt 1  <alpha_k_corr>  ocontrol a_be -1 control rk -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
 
 
 

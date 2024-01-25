@@ -1458,10 +1458,10 @@ void QCircuit::read_structure_gate_phase_estimation(YISS istr, YCS path_in, std:
 
 void QCircuit::read_structure_gate_qsvt(
     YISS istr, 
-    YCS path_in, 
     std::map<std::string, YSQ>& ocs, 
     YCB flag_inv, 
-    QuCF_complex_data& qucf_d
+    QuCF_complex_data& qucf_d,
+    YCB flag_QETU
 ){
     string name_circuit;
     string be_name;
@@ -1489,7 +1489,6 @@ void QCircuit::read_structure_gate_qsvt(
         if(ids_a_qsvt.size() != 2)
             throw "QSVT/QSP circuit of type ["s + data.type + "] must have two ancilla specific qubits."s;
     }
-         
     
     // --- read the name of the block-encoding oracle ---
     istr >> be_name;
@@ -1511,45 +1510,52 @@ void QCircuit::read_structure_gate_qsvt(
     read_end_gate(istr, ids_unit, ids_zero);
 
     // --- add the QSVT circuit ---
-    if(data.parity == 0)
-        qsvt_def_parity(data.angles_phis_even, ids_a_qsvt[0], ids_be, oc_be, ids_unit, ids_zero, flag_inv);
-    if(data.parity == 1)
-        qsvt_def_parity(data.angles_phis_odd, ids_a_qsvt[0], ids_be, oc_be, ids_unit, ids_zero, flag_inv); 
-    if(data.parity == -1)
+    if(flag_QETU)
     {
-        // auto c_unit_new = YVIv(ids_unit);
-        // auto c_zero_new = YVIv(ids_zero);
-        // c_unit_new.push_back(ids_a_qsvt[1]);
-        // c_zero_new.push_back(ids_a_qsvt[1]);
-        // for(int i_repeat = 0; i_repeat < data.n_repeat; i_repeat++)
-        // {
-        //     h(ids_a_qsvt[1]);
+        cout << "Constructing QETU circuit..." << endl;
+        vector<double> angles_qetu;
+        if(data.parity == 0)
+            angles_qetu = data.angles_phis_even;
+        if(data.parity == 1)
+            angles_qetu = data.angles_phis_odd;
 
-        //     // how to add control ??
-        //     qsvt_def_parity(data.angles_phis_even, ids_a_qsvt[0], ids_be, oc_be, c_unit_new, ids_zero,   flag_inv);
-        //     qsvt_def_parity(data.angles_phis_odd,  ids_a_qsvt[0], ids_be, oc_be, ids_unit,   c_zero_new, flag_inv);
-
-        //     h(ids_a_qsvt[1]);
-
-        //     // put a STOP gate !!! to extract data;
-        // }
-
-        cout << "a-qsp: " << ids_a_qsvt[1] << endl;
-        cout << "a-qu: "  << ids_a_qsvt[0] << endl;
-        cout << "be[0]: " << ids_be[0] << endl;
-        if(YMIX::compare_strings(data.type, "QSP-ham")){
-            qsp_ham(
-                name_circuit,
-                data.angles_phis_arbitrary, 
-                data.n_repeat,
-                ids_a_qsvt[1], ids_a_qsvt[0], 
-                ids_be, 
-                oc_be, 
-                ids_unit, ids_zero, 
-                flag_inv
-            );
+        // // correct angles: from QSVT to QETU:
+        // int Na = angles_qetu.size();
+        // angles_qetu[0]    += M_PI_4;
+        // angles_qetu[Na-1] += M_PI_4;
+        // for(int ii = 1; ii < (Na-1); ii++)
+        //     angles_qetu[ii] += M_PI_2;
+ 
+        // construct the QET circuit: 
+        qetu_def_parity(angles_qetu, ids_a_qsvt[0], ids_be, oc_be, ids_unit, ids_zero, flag_inv);
+    }
+    else
+    {
+        cout << "Constructing QSVT circuit..." << endl;
+        if(data.parity == 0)
+            qsvt_def_parity(data.angles_phis_even, ids_a_qsvt[0], ids_be, oc_be, ids_unit, ids_zero, flag_inv);
+        if(data.parity == 1)
+            qsvt_def_parity(data.angles_phis_odd, ids_a_qsvt[0], ids_be, oc_be, ids_unit, ids_zero, flag_inv); 
+        if(data.parity == -1)
+        {
+            // cout << "a-qsp: " << ids_a_qsvt[1] << endl;
+            // cout << "a-qu: "  << ids_a_qsvt[0] << endl;
+            // cout << "be[0]: " << ids_be[0] << endl;
+            if(YMIX::compare_strings(data.type, "QSP-ham")){
+                qsp_ham(
+                    name_circuit,
+                    data.angles_phis_arbitrary, 
+                    data.n_repeat,
+                    ids_a_qsvt[1], ids_a_qsvt[0], 
+                    ids_be, 
+                    oc_be, 
+                    ids_unit, ids_zero, 
+                    flag_inv
+                );
+            }
         }
     }
+    
 
     // store the QSVT data:
     map_qsvt_data[name_circuit] = data;
@@ -2595,11 +2601,99 @@ YQCP QCircuit::qsvt_def_parity(
             x(a_qsvt, cs_unit, cs_total_zero);
         }
     }
-    h(a_qsvt, cs_unit, cs_total_zero);
+    h(a_qsvt, cs_unit, cs_zero);
     timer.StopPrint();
     
     return get_the_circuit();
 }
+
+
+YQCP QCircuit::qetu_def_parity(
+    YCVQ phis_in,
+    YCI a_qsvt,
+    YCVI qs_be_in, 
+    const std::shared_ptr<const QCircuit> BE,
+    YCVI cs_unit, YCVI cs_zero, 
+    YCB flag_inv,
+    YCB flag_box
+){
+    YMIX::YTimer timer;
+    auto phis = YVQv(phis_in);
+    auto N_angles = phis.size();
+    auto n_be     = BE->get_n_qubits();
+    auto n_be_anc = BE->get_na();
+
+    string qsvt_name_tex = "QETU";
+    string be_box_name = "BE";
+    string be_box_name_tex;
+    string be_box_cc_name_tex;
+
+    // N_angles = 4; /// for testing;
+
+    // --- separate BE ancillae and input qubits ---
+    auto qs_be = YVIv(qs_be_in);
+    vector<int> be_input(qs_be.begin(),                   qs_be.begin() + n_be - n_be_anc);
+    vector<int>   be_anc(qs_be.begin() + n_be - n_be_anc, qs_be.end()                    );
+
+    // 1-control qubits of the BE oracle:
+    auto cs_unit_qsvt = YVIv(cs_unit);
+    cs_unit_qsvt.push_back(a_qsvt);
+
+    // --- pre-initialize the BE oracle ---
+    // of the same size as the whole current circuit:
+    auto oc_be = make_shared<QCircuit>(be_box_name, env_, path_to_output_, nq_);
+    oc_be->add_register("r", nq_);
+    oc_be->copy_gates_from(BE, qs_be, YSB(nullptr), cs_unit_qsvt, cs_zero, flag_inv);
+
+    // --- create the adjoint block-encoding oracle ---
+    auto oc_be_inv = make_shared<QCircuit>(oc_be);
+    oc_be_inv->h_adjoint();
+
+    // --- QSVT circuit ---
+    be_box_name_tex    = be_box_name;
+    be_box_cc_name_tex = be_box_name + "^\\dagger"s;
+    if(flag_inv)
+    {
+        reverse(phis.begin(), phis.end());
+        be_box_name_tex    = be_box_cc_name_tex;
+        be_box_cc_name_tex = be_box_name;
+    }
+
+    timer.StartPrint("Creating the QETU circuit... ");
+    // h(a_qsvt, cs_unit, cs_zero);  
+
+    // form the first controlled projector (here, X-gates are necessary):
+    rx(a_qsvt, -2*phis[0], cs_unit, cs_zero, flag_inv);
+
+    // other controlled projectors:
+    for(uint32_t count_angle = 1; count_angle < N_angles; ++count_angle)
+    {
+        // oracle:
+        insert_gates_from(
+            oc_be.get(), 
+            make_shared<Box__>(be_box_name, qs_be, cs_unit_qsvt, cs_zero, be_box_name_tex)
+            // YSB(nullptr) // without embedding into a box
+        );
+        rx(a_qsvt, -2*phis[count_angle], cs_unit, cs_zero, flag_inv);
+
+        count_angle += 1;
+        if(count_angle < N_angles)
+        {
+            // inverse oracle:
+            insert_gates_from(
+                oc_be_inv.get(), 
+                make_shared<Box__>(be_box_name, qs_be, cs_unit_qsvt, cs_zero, be_box_cc_name_tex)
+                // YSB(nullptr) // without embedding into a box
+            );
+            rx(a_qsvt, -2*phis[count_angle], cs_unit, cs_zero, flag_inv);
+        }
+    }
+    // h(a_qsvt, cs_unit, cs_zero);
+    timer.StopPrint();
+    
+    return get_the_circuit();
+}
+
 
 
 YQCP QCircuit::qsp_ham(
@@ -2783,6 +2877,9 @@ YQCP QCircuit::LCHS_QSP(
     for(int it = 0; it < Nt; it++)
         oc_selector->insert_gates_from(oc_temp_Ut.get());
 
+    // --- Data for the compression gadget ---
+    GADGET_pars data_cg;
+
     // --- Create the LCHS (LCU) circuit ---
     auto oc_LCHS = make_shared<QCircuit>("LCHS-QSP", env_, path_to_output_, nq_);
 
@@ -2791,6 +2888,12 @@ YQCP QCircuit::LCHS_QSP(
 
     // - add the selector -
     oc_LCHS->copy_gates_from(oc_selector, all_qubits, YSB(nullptr), YVIv{}, ids_anc_Ow);
+
+    // // - selector via the compression gadget -
+    // compression_gadget(
+    //     data_cg, ids_counter, oc_U, ids_U_target, N_mult, flag_step_output, 
+    //     ids_unit, ids_zero, flag_inv
+    // );
 
     // - right Ow-adjoint -
     oc_LCHS->copy_gates_from(Ow,          ids_Ow,     YSB(nullptr), YVIv{}, ids_anc_Ut_unique, true);
