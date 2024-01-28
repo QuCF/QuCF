@@ -1,4 +1,4 @@
-### Hi there 👋
+### QuCF
 
 <!--
 **QuCF/QuCF** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
@@ -16,10 +16,10 @@ Here are some ideas to get you started:
 -->
 
 
-QuCF uses slightly modified version of the QuEST toolkit.
+QuCF uses slightly modified version of the [QuEST toolkit](https://github.com/QuEST-Kit/QuEST).
 
 
-To compile QuCF, type:
+To compile QuCF, type in bash:
 - cd QuCF/build_qucf
 - source tobuild
 - make
