@@ -10,13 +10,16 @@ build_*/qc_circuit
 build_*/compute_angles
 *archive*
 
+tests/*/*_OUTPUT.hdf5
+tests/*/*/*_OUTPUT.hdf5
+
 
 *.png
 *.jpg
 *.pylog
 *.clog
 *.circuit
-*_OUTPUT.hdf5
+# *_OUTPUT.hdf5
 *.pdf
 *.eps
 *.tgn

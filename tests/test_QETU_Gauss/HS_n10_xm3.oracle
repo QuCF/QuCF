@@ -1,0 +1,10 @@
+gate Rz rx[0] -6.141921121388e-03 end_gate
+gate Rz rx[1] -1.228384224278e-02 end_gate
+gate Rz rx[2] -2.456768448555e-02 end_gate
+gate Rz rx[3] -4.913536897110e-02 end_gate
+gate Rz rx[4] -9.827073794220e-02 end_gate
+gate Rz rx[5] -1.965414758844e-01 end_gate
+gate Rz rx[6] -3.930829517688e-01 end_gate
+gate Rz rx[7] -7.861659035376e-01 end_gate
+gate Rz rx[8] -1.572331807075e+00 end_gate
+gate Rz rx[9] -3.144663614150e+00 end_gate

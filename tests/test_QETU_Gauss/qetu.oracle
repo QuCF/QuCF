@@ -1,0 +1,341 @@
+
+// // $qucf qetu ./ 
+CONSTANTS
+	nx 	10
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION 
+	U_BE  2            as 1 1 rx <nx> 0 
+	U     3 a_qetu 1 1 as 1 1 rx <nx> 0 
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+// --- BE for the QETU---
+CIRCUIT_STRUCTURE   U_BE
+	file HS_n10_xm1
+	gate X as 1 end_gate
+	gate Z as 1 end_gate
+	gate X as 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- FINAL CIRCUIT ---
+CIRCUIT_STRUCTURE   U
+	gate H rx -1 end_gate
+	// circuit U_BE -1 end_circuit
+	gate QETU qetu_data a_qetu -1 U_BE 2 as -1 rx -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+// // --------------------------------------------------------------------------
+// // --- QSVT ---
+// // --------------------------------------------------------------------------
+
+
+// CONSTANTS
+// 	nx 	10
+// 	alpha_k0 	-1.000000000000e+00
+// 	alpha_k1 	1.000977517107e+00
+// 	pi 	3.141592653590e+00
+// END_CONSTANTS
+
+
+// OPTIONS
+//     sel_compute_output zero-ancillae
+// 	sel_print_output   none  // none, all, zero-ancillae
+// 	flag_circuit 0 
+// 	flag_tex     0
+// 	tex_CL  6 
+// END_OPTIONS
+
+
+// CIRCUITS_DECLARATION
+// 	U_SIN 2  		   asin 1 1 rx <nx> 0  
+// 	U     3 a_qetu 1 1 asin 1 1 rx <nx> 0 
+// END_CIRCUITS_DECLARATION
+
+
+// MAIN_CIRCUIT   U       
+// 	INPUT_STATE  0
+// END_MAIN_CIRCUIT
+
+
+
+// CIRCUIT_STRUCTURE U_SIN
+// 	gate SIN asin 1 <alpha_k0> <alpha_k1> rx -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE   U
+// 	gate H  rx -1 end_gate
+// 	gate QSVT qetu_data 1 a_qetu -1 U_SIN 2 asin -1 rx -1 end_gate
+// END_CIRCUIT_STRUCTURE
+// // --------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// CONSTANTS
+// 	nx 	10
+// 	// alpha_k0 	-1.000000000000e+00
+// 	// alpha_k1 	1.000977517107e+00
+// 	alpha_k0 	-5.000000000000e-01
+// 	alpha_k1 	5.004887585533e-01
+// 	pi 	3.141592653590e+00
+// END_CONSTANTS
+
+
+// OPTIONS
+//     sel_compute_output zero-ancillae
+// 	sel_print_output   none  // none, all, zero-ancillae
+// 	flag_circuit 0 
+// 	flag_tex     0
+// 	tex_CL  6 
+// END_OPTIONS
+
+
+// CIRCUITS_DECLARATION
+// 	U_SIN 2  		          asin 1 1 rx <nx> 0  
+// 	// U_BE  3            aq 1 1 asin 1 1 rx <nx> 0 
+// 	U     4 a_qetu 1 1 aq 1 1 asin 1 1 rx <nx> 0 
+// END_CIRCUITS_DECLARATION
+
+
+// MAIN_CIRCUIT   U       
+// 	INPUT_STATE  0
+// END_MAIN_CIRCUIT
+
+
+
+
+
+// // --- SIN gate ---
+// CIRCUIT_STRUCTURE U_SIN
+// 	gate SIN asin 1 <alpha_k0> <alpha_k1> rx -1 end_gate
+// 	// gate X asin 1 end_gate
+// 	// gate Z asin 1 end_gate
+// 	// gate X asin 1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// // // --- quitization ---
+// // CIRCUIT_STRUCTURE U_BE
+// // 	circuit U_SIN -1 ocontrol aq 1 end_circuit
+// // 	circuit U_SIN -1  control aq 1 end_circuit
+
+// // 	gate H aq 1 end_gate
+// // 	gate X aq 1 end_gate
+// // 	gate Phase aq 1 <pi> ocontrol asin 1 end_gate
+// // 	gate Phase aq 1 <pi> end_gate
+// // 	gate X aq 1 end_gate
+// // 	gate H aq 1 end_gate
+// // END_CIRCUIT_STRUCTURE
+
+
+
+// // --- FINAL CIRCUIT ---
+// CIRCUIT_STRUCTURE   U
+// 	gate H  rx -1 end_gate
+// 	gate QSVT qetu_data 1 a_qetu -1 U_SIN 2 asin -1 rx -1 end_gate
+// 	// circuit U_BE -1 end_circuit
+// 	// gate QSVT qetu_data 1 a_qetu -1 U_BE 3 aq -1 asin -1 rx -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// CONSTANTS
+// 	nx 	10
+
+// 	// For the sin-gate:
+// 	alpha_k0 	-1.000000000000e+00
+// 	alpha_k1 	1.000977517107e+00
+
+// 	// alpha_k0 	-5.000000000000e-01
+// 	// alpha_k1 	1.000977517107e+00
+// END_CONSTANTS
+
+
+// OPTIONS
+//     sel_compute_output zero-ancillae
+// 	sel_print_output   none  // none, all, zero-ancillae
+// 	flag_circuit 0 
+// 	flag_tex     0
+// 	tex_CL  6 
+// END_OPTIONS
+
+
+// CIRCUITS_DECLARATION
+// 	U_SIN 2  		             asin 1 1 rx <nx> 0  
+// 	// U_BE  3            a_qsp 2 1 asin 1 1 rx <nx> 0 
+// 	U     4 a_qetu 1 1 a_qsp 2 1 asin 1 1 rx <nx> 0 
+// END_CIRCUITS_DECLARATION
+
+
+// MAIN_CIRCUIT   U       
+// 	INPUT_STATE  0
+// END_MAIN_CIRCUIT
+
+
+
+
+
+// // --- SIN gate ---
+// CIRCUIT_STRUCTURE U_SIN
+// 	gate SIN asin 1 <alpha_k0> <alpha_k1> rx -1 end_gate
+
+
+// 	// gate X asin 1 end_gate
+// 	// gate Z asin 1 end_gate
+// 	// gate X asin 1 end_gate
+
+// 	// igate SIN asin 1 <alpha_k0> <alpha_k1> rx -1 end_gate
+
+// 	// gate X asin 1 end_gate
+// 	// gate Z asin 1 end_gate
+// 	// gate X asin 1 end_gate
+
+// 	// gate SIN asin 1 <alpha_k0> <alpha_k1> rx -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// // // --- BE for the QETU---
+// // CIRCUIT_STRUCTURE   U_BE
+// // 	gate QSVT hamiltonian 1 a_qsp -1 U_SIN 2 asin -1 rx -1 end_gate
+// // END_CIRCUIT_STRUCTURE
+
+
+// // --- FINAL CIRCUIT ---
+// CIRCUIT_STRUCTURE   U
+// 	gate H  rx -1 end_gate
+// 	circuit U_SIN -1 end_circuit
+
+// 	// gate QSVT qetu_data 1 a_qetu -1 U_SIN 2 asin -1 rx -1 end_gate
+
+
+// 	// gate QETU qetu_data 1 a_qetu -1 U_BE 3 a_qsp -1 asin -1 rx -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
