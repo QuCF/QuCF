@@ -1,8 +1,10 @@
-// $qucf flat ./ 
+// $qucf BE ./ 
 
 CONSTANTS
 	nx 4
 	nv 4
+
+	// The parameters below should be changed when one changes nx and nv.
 	alpha_0_cf 	-2.841788633538e-02
 	alpha_1_cf 	3.031241209107e-02
 	angle_sb 	-0.002131341879
@@ -34,9 +36,6 @@ END_OPTIONS
 
 //  2*nv + nx + 11
 CIRCUITS_DECLARATION
-	INIT  3  a_ce 1 1 rv <nv> 0
-
-
 	Shpm  1 ar 3 1
 	Shpp  1 ar 3 1
 	Shppp 1 ar 3 1
@@ -203,10 +202,11 @@ END_CIRCUIT_STRUCTURE
 
 
 CIRCUIT_STRUCTURE OH
-	// // *** submatrix FF ***
-	// with ocontrol 2 af 1 rf 1 do
-	// 	file circuit_OH
-	// end_with
+	// *** submatrix FF ***
+	with ocontrol 2 af 1 rf 1 do
+		file circuit_OH
+	end_with
+
 	// // *** submatrix FP ***
 	// with ocontrol 2 af 1 rf 1 do
 	// 	// left blocks FB1
@@ -220,14 +220,17 @@ CIRCUIT_STRUCTURE OH
 	// 	gate SIN ae 1 <alpha_0_FR2> <alpha_1_FR2> rv -1 control_e axr 6 end_gate
 	// 	gate Rz ae 1 <pi2> control_e axr 6 end_gate
 	// end_with
+
 	// // *** submatrix CF ***
 	// with control rf 1 ocontrol af 1  do
 	// 	gate SIN ae 1 <alpha_0_cf> <alpha_1_cf> av -1 end_gate
 	// end_with
-	// *** submatrix CE ***
-	with ocontrol rf 1 control af 1  do
-		gate QSVT  vH  ae 1  U_BE_CE 2 a_ce 1 rv -1 end_gate
-	end_with
+
+	// // *** submatrix CE ***
+	// with ocontrol rf 1 control af 1  do
+	// 	gate QSVT  vH  ae 1  U_BE_CE 2 a_ce 1 rv -1 end_gate
+	// end_with
+
 	// // *** submatrix S ***
 	// with control rf 1 control af 1  do
 	// 	gate Rx ae 1 <angle_sb>                end_gate
