@@ -1,0 +1,132 @@
+// $qucf kvn ./ 
+
+CONSTANTS
+	nx 	4
+
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output none
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+	flag_matrix 1
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	Usin_BE    2        asin 1 1        rx <nx> 0
+
+	U_BE_a     4 ae 1 1 asin 1 1 ax 1 1 rx <nx> 0
+	OF_h_F     2                 ax 2 1 rx <nx> 0
+	OF_h_B     2                 ax 2 1 rx <nx> 0
+	OM_h       2                 ax 2 1 rx <nx> 0
+	U_BE_kmax  4 ae 1 1 asin 1 1 ax 2 1 rx <nx> 0 
+	U_BE_k     4 ae 1 1 asin 1 1 ax 2 1 rx <nx> 0   
+
+	U          4 ae 1 1 asin 1 1 ax 2 1 rx <nx> 0 
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U        
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+
+// -----------------------------------------------------------------------
+CIRCUIT_STRUCTURE Usin_BE
+	// gate SIN a_sin 1 <alpha_k0> <alpha_k1> rk -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
+// --- Block-Encoding oracle: A_a ---
+CIRCUIT_STRUCTURE U_BE_a
+	// --- OF_FORWARD ---
+	gate H ax 1 end_gate
+	gate H ax 1 ocontrol rx -1 end_gate
+	gate H ax 1  control rx -1 end_gate
+	gate X ax 1  control rx -1 end_gate
+	// --- OH-sqrt ---
+	// to do
+	// --- OM ---
+	gate incrementor rx -1 ocontrol ax 1 end_gate
+	gate decrementor rx -1 control  ax 1 end_gate
+	// --- OH-sqrt* ---
+	// to do
+	// --- OF_BACKWARD ---
+	// gate X ax 1  control rx -1 end_gate
+	// gate H ax 1  control rx -1 end_gate
+	// gate H ax 1 ocontrol rx -1 end_gate
+	gate H ax 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
+// --- Oracle OF-FORWARD for B_kmax and Bk ---
+CIRCUIT_STRUCTURE OF_h_F
+	gate H ax 3 end_gate
+	gate H ax[1] ocontrol rx -1 end_gate
+	gate H ax[0]  control rx -1  end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
+// --- Oracle OF-BACKWARD for B_kmax and Bk ---
+CIRCUIT_STRUCTURE OF_h_B
+	gate H ax 3 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
+// --- Oracle OM for B_kmax and Bk ---
+CIRCUIT_STRUCTURE OM_h
+	gate incrementor rx -1 ocontrol ax[1] control ax[0] end_gate
+	gate decrementor rx -1 ocontrol ax[0] control ax[1] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
+// --- Block-Encoding oracle: B_kmax = - k_max_ * Ah_ ---
+CIRCUIT_STRUCTURE U_BE_kmax
+	// --- OF_FORWARD ---
+	circuit OF_h_F -1 end_circuit
+	// --- OH-sqrt ---
+	// to do
+	// --- OM ---
+	circuit OM_h -1 end_circuit
+	// --- OH-sqrt* ---
+	// to do
+	// --- OF_BACKWARD ---
+	circuit OF_h_B -1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
+// --- Block-Encoding oracle: B_kmax = dk_ * Ah_ ---
+CIRCUIT_STRUCTURE U_BE_k
+	// --- OF_FORWARD ---
+	circuit OF_h_F -1 end_circuit
+	// --- OH-sqrt ---
+	// to do
+	// --- OM ---
+	circuit OM_h -1 end_circuit
+	// --- OH-sqrt* ---
+	// to do
+	// --- OF_BACKWARD ---
+	circuit OF_h_B -1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+// -----------------------------------------------------------------------
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	// circuit U_BE_a -1 end_circuit
+	circuit U_BE_k -1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
