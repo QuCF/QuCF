@@ -1,8 +1,10 @@
 // $qucf kvn ./ 
 
 CONSTANTS
-	nx 	4
-
+	// --- Parameters for the SIN-X-gate ---
+	nx 	7
+	alpha_x0 	-1.000000000000e+00
+	alpha_x1 	1.007874015748e+00
 END_CONSTANTS
 
 
@@ -37,8 +39,9 @@ END_MAIN_CIRCUIT
 
 
 // -----------------------------------------------------------------------
+// --- SIN-X-gate ---
 CIRCUIT_STRUCTURE Usin_BE
-	// gate SIN a_sin 1 <alpha_k0> <alpha_k1> rk -1 end_gate
+	gate SIN asin 1 <alpha_x0> <alpha_x1> rx -1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
@@ -51,16 +54,11 @@ CIRCUIT_STRUCTURE U_BE_a
 	gate H ax 1  control rx -1 end_gate
 	gate X ax 1  control rx -1 end_gate
 	// --- OH-sqrt ---
-	// to do
+	gate QSVT  A_m1  ae 1 Usin_BE 2 asin 1 rx -1 control ax 1 end_gate
 	// --- OM ---
 	gate incrementor rx -1 ocontrol ax 1 end_gate
 	gate decrementor rx -1 control  ax 1 end_gate
-	// --- OH-sqrt* ---
-	// to do
 	// --- OF_BACKWARD ---
-	// gate X ax 1  control rx -1 end_gate
-	// gate H ax 1  control rx -1 end_gate
-	// gate H ax 1 ocontrol rx -1 end_gate
 	gate H ax 1 end_gate
 END_CIRCUIT_STRUCTURE
 
@@ -125,8 +123,8 @@ END_CIRCUIT_STRUCTURE
 // -----------------------------------------------------------------------
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
-	// circuit U_BE_a -1 end_circuit
-	circuit U_BE_k -1 end_circuit
+	circuit U_BE_a -1 end_circuit
+	// circuit U_BE_k -1 end_circuit
 END_CIRCUIT_STRUCTURE
 
 
