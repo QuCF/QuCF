@@ -162,6 +162,9 @@ protected:
     // gradient_phi of the cost function  (ix, i_phi):
     double** grad_cost_; 
 
+    // name of the output file:
+    std::string output_name_;
+
     /**
      * Output \p project_name_.hdf5 file in \p work_directory_ directory.
     */
@@ -174,11 +177,23 @@ public:
     {
         using namespace std::complex_literals;
 
+        output_name_ = "";
+
         dd_.max_n_iters = 5e4;
         dd_.N_pairs = 200;
 
-        create_output_hdf5();
         read_input_data();
+        create_output_hdf5();
+
+        // --- Save some input parameters into the output .hdf5 file ---
+        std::cout << "\nSaving some input parameters into the output .hdf5 file..." << std::endl;
+        hfo_.open_w();
+        hfo_.add_scalar(dd_.function_type, "function-type",      "basic");
+        hfo_.add_scalar(dd_.parity,        "function-parity",    "basic");
+        hfo_.add_scalar(dd_.parameter,     "function-parameter", "basic");
+        hfo_.add_scalar(dd_.abs_error,     "abs-error",          "basic");
+        hfo_.add_scalar(dd_.coef_norm,     "factor-norm",        "basic");
+        hfo_.close();
 
         // Create samples (using roots of Chebyschev polynomials - Chebyschev nodes):
         std::cout << "\nInitialising x-grid and the grid of sougth-after angles..." << std::endl;
@@ -618,8 +633,14 @@ protected:
 
         printf("Creating output %s.hdf5 file in the directory:\n", project_name_.c_str());
         printf("%s\n", work_directory_.c_str());
-        string filename_hdf5 = work_directory_ +"/" + project_name_ + ".hdf5";
 
+        string fname;
+        if(YMIX::compare_strings(output_name_, "")) 
+            fname = project_name_;
+        else
+            fname = output_name_;
+
+        string filename_hdf5 = work_directory_ +"/" + fname + ".hdf5";
         hfo_.create(filename_hdf5);
         hfo_.add_group("basic");
         hfo_.add_group("results");
@@ -668,6 +689,13 @@ protected:
             {
                 istr >> dd_.stopping_criterion;
             }
+
+
+            if(YMIX::compare_strings(word, "output_name"))
+            {
+                cout << "here";
+                istr >> output_name_;
+            }
         }
         
         // --- Print input parameters ---
@@ -681,17 +709,8 @@ protected:
         printf("stopping criterion square: %0.3e\n", 
             dd_.stopping_criterion * dd_.stopping_criterion
         );
+        cout << "Output file name: " << output_name_ << ".hdf" << endl;
         cout << "Done." << endl;
-
-        // --- Save some input parameters into the output .hdf5 file ---
-        cout << "\nSaving some input parameters into the output .hdf5 file..." << endl;
-        hfo_.open_w();
-        hfo_.add_scalar(dd_.function_type, "function-type",      "basic");
-        hfo_.add_scalar(dd_.parity,        "function-parity",    "basic");
-        hfo_.add_scalar(dd_.parameter,     "function-parameter", "basic");
-        hfo_.add_scalar(dd_.abs_error,     "abs-error",          "basic");
-        hfo_.add_scalar(dd_.coef_norm,     "factor-norm",        "basic");
-        hfo_.close();
     }
 
 
