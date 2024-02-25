@@ -1496,6 +1496,9 @@ void QCircuit::read_structure_gate_qsvt(
         throw string("QSVT definition: a circuit with the name ["s + be_name + "] is not found."s);
     YSQ oc_be = make_shared<QCircuit>(ocs[be_name]);
 
+    // auto oc_be_inv = make_shared<QCircuit>(oc_be);
+    // oc_be_inv->h_adjoint();
+
     // --- read qubits where the BE oracle must be placed ---
     read_reg_int(istr, ids_be);
     if(oc_be->get_n_qubits() != ids_be.size())

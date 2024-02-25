@@ -7,7 +7,6 @@ with ocontrol axr 3 control_e avr 7  do
 // ---
 // ---
 // ---
-// ---
    gate Rc ae 1 1.005309649146e+02 1.005308821495e+02 control_e 2 rx 0 rv 15 end_gate
 // ---
    gate Rc ae 1 1.005309649203e+02 1.005310133977e+02 control_e 2 rx 13 rv 15 end_gate
@@ -19,7 +18,6 @@ end_with
 with ocontrol axr 3 control_e avr 6  do
 // ---
    gate Ry ae 1 3.143259759493e+00 control 1 rv[-1 -2 -3 -4] end_gate
-// ---
 // ---
 // ---
 // ---
@@ -48,6 +46,9 @@ with ocontrol axr 3 control_e avr 5  do
 // ---
    gate Rc ae 1 1.005308945892e+02 1.005307651016e+02 control 2 rx[-1 -2 -3 -4] rv[-1] end_gate
 // ---
+   gate Rc ae 1 1.833878460418e-09 8.276536872981e-05 ocontrol 1 rv[-1] control 1 rv[-2] end_gate
+// ---
+   gate Rc ae 1 1.833878460418e-09 8.276536872981e-05 ocontrol 1 rv[-1 -2] end_gate
 // ---
 // ---
 // ---
@@ -67,14 +68,9 @@ with ocontrol axr 3 control_e avr 5  do
 // ---
 // ---
 // ---
+   gate Rc ae 1 1.005304971126e+02 1.005307651016e+02 control_e 2 rx 0 rv 3 end_gate
 // ---
-// ---
-// ---
-// ---
-// ---
-   gate Rc ae 1 1.005309649119e+02 1.005308478670e+02 control_e 2 rx 0 rv 3 end_gate
-// ---
-   gate Rc ae 1 1.005309649119e+02 1.005308478670e+02 control_e 2 rx 0 rv 4 end_gate
+   gate Rc ae 1 1.005304971126e+02 1.005307651016e+02 control_e 2 rx 0 rv 4 end_gate
 // ---
    gate Rc ae 1 1.005309649166e+02 1.005309891563e+02 control_e 2 rx 0 rv 13 end_gate
 // ---
@@ -82,131 +78,131 @@ with ocontrol axr 3 control_e avr 5  do
 // ---
    gate Rc ae 1 1.005309649147e+02 1.005306137711e+02 control_e 2 rx 0 rv 15 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 1 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 1 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 1 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 1 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 1 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 1 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 1 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 1 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 1 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 1 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649119e+02 1.005308478670e+02 control_e 2 rx 2 rv 3 end_gate
+   gate Rc ae 1 1.005304971126e+02 1.005307651016e+02 control_e 2 rx 2 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649119e+02 1.005308478670e+02 control_e 2 rx 2 rv 4 end_gate
+   gate Rc ae 1 1.005304971126e+02 1.005307651016e+02 control_e 2 rx 2 rv 4 end_gate
 // ---
    gate Rc ae 1 1.005309649115e+02 1.005308821495e+02 control_e 2 rx 2 rv 8 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 3 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 3 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 3 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 3 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 3 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 3 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 3 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 3 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 3 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 3 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 4 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 4 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 4 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 4 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 4 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 4 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 4 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 4 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 4 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 4 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 5 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 5 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 5 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 5 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 5 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 5 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 5 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 5 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 5 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 5 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 6 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 6 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 6 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 6 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 6 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 6 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 6 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 6 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 6 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 6 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 7 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 7 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 7 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 7 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 7 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 7 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 7 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 7 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 7 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 7 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 8 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 8 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 8 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 8 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 8 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 8 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 8 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 8 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 8 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 8 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 9 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 9 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 9 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 9 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 9 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 9 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 9 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 9 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 9 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 9 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 10 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 10 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 10 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 10 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 10 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 10 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 10 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 10 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 10 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 10 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 11 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 11 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 11 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 11 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 11 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 11 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 11 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 11 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 11 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 11 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 12 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 12 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 12 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 12 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 12 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 12 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 12 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 12 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 12 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 12 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 13 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 13 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 13 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 13 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 13 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 13 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 13 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 13 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 13 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 13 rv 7 end_gate
 // ---
    gate Rc ae 1 1.005309649191e+02 1.005309306323e+02 control_e 2 rx 13 rv 9 end_gate
 // ---
@@ -222,29 +218,29 @@ with ocontrol axr 3 control_e avr 5  do
 // ---
    gate Rc ae 1 0.000000000000e+00 1.714127057532e-04 control_e 2 rx 13 rv 15 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 14 rv 1 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 14 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 14 rv 2 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 14 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 14 rv 5 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 14 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 14 rv 6 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 14 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 14 rv 7 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 14 rv 7 end_gate
 // ---
-   gate Rc ae 1 1.005309649153e+02 1.005311062042e+02 control_e 2 rx 15 rv 1 end_gate
+   gate Rc ae 1 1.005309649158e+02 1.005310234388e+02 control_e 2 rx 15 rv 1 end_gate
 // ---
-   gate Rc ae 1 1.005309649153e+02 1.005311062042e+02 control_e 2 rx 15 rv 2 end_gate
+   gate Rc ae 1 1.005309649158e+02 1.005310234388e+02 control_e 2 rx 15 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 15 rv 3 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 15 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 15 rv 4 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 15 rv 4 end_gate
 // ---
-   gate Rc ae 1 1.005309649153e+02 1.005311062042e+02 control_e 2 rx 15 rv 5 end_gate
+   gate Rc ae 1 1.005309649158e+02 1.005310234388e+02 control_e 2 rx 15 rv 5 end_gate
 // ---
-   gate Rc ae 1 1.005309649153e+02 1.005311062042e+02 control_e 2 rx 15 rv 6 end_gate
+   gate Rc ae 1 1.005309649158e+02 1.005310234388e+02 control_e 2 rx 15 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649153e+02 1.005311062042e+02 control_e 2 rx 15 rv 7 end_gate
+   gate Rc ae 1 1.005309649158e+02 1.005310234388e+02 control_e 2 rx 15 rv 7 end_gate
 // ---
    gate Rc ae 1 1.005309649135e+02 1.005308821495e+02 control_e 2 rx 15 rv 13 end_gate
 // ---
@@ -266,14 +262,7 @@ with ocontrol axr 3 ocontrol avr 3  do
 // ---
    gate Rc ae 1 1.006445462798e+02 1.005238690986e+02 ocontrol 1 rv[-1 -2 -3 -4] end_gate
 // ---
-   gate Rc ae 1 5.569148977659e+00 6.263846389578e+00 control 1 rv[-1 -2 -3 -4] end_gate
-// ---
-// ---
-// ---
-// ---
-// ---
-// ---
-// ---
+   gate Rc ae 1 5.569148977755e+00 6.263846389578e+00 control 1 rv[-1 -2 -3 -4] end_gate
 // ---
 // ---
 // ---
@@ -307,7 +296,7 @@ with ocontrol axr 3 ocontrol avr 3  do
 // ---
    gate Rc ae 1 4.559958727090e-14 4.994520176733e-03 control_e 2 rx 0 rv 14 end_gate
 // ---
-   gate Rc ae 1 1.527308425675e-01 1.022700685644e-02 control_e 2 rx 0 rv 15 end_gate
+   gate Rc ae 1 1.527308425582e-01 1.022700685658e-02 control_e 2 rx 0 rv 15 end_gate
 // ---
    gate Rc ae 1 1.156236164070e-01 -1.012647163000e-02 control_e 2 rx 2 rv 0 end_gate
 // ---
@@ -339,7 +328,7 @@ with ocontrol axr 3 ocontrol avr 3  do
 // ---
    gate Rc ae 1 1.005309649149e+02 1.005280391453e+02 control_e 2 rx 13 rv 14 end_gate
 // ---
-   gate Rc ae 1 -1.515397226805e-01 -6.486229230839e-03 control_e 2 rx 13 rv 15 end_gate
+   gate Rc ae 1 -1.515397226266e-01 -6.486229230334e-03 control_e 2 rx 13 rv 15 end_gate
 // ---
    gate Rc ae 1 -3.637236087983e-02 7.073128304819e-03 control_e 2 rx 15 rv 0 end_gate
 // ---
@@ -373,6 +362,13 @@ with ocontrol axr 3 control_e avr 1  do
 // ---
    gate Rc ae 1 1.005309649115e+02 1.005308821495e+02 ocontrol 2 rx[-1 -2 -3 -4] rv[-1] end_gate
 // ---
+   gate Rc ae 1 1.833878460418e-09 8.276536872981e-05 ocontrol 1 rv[-1 -2] control 1 rv[-3 -4] end_gate
+// ---
+   gate Rc ae 1 -9.697879144630e-11 2.397759243489e-03 ocontrol 1 rv[-1 -2 -3 -4] end_gate
+// ---
+   gate Rc ae 1 -5.155062521083e-09 5.852395347416e-05 ocontrol 1 rv[-3] control 1 rv[-1 -2 -4] end_gate
+// ---
+   gate Rc ae 1 -2.610822147147e-09 4.064494877155e-07 ocontrol 1 rv[-3 -4] control 1 rv[-1 -2] end_gate
 // ---
 // ---
 // ---
@@ -402,13 +398,13 @@ with ocontrol axr 3 control_e avr 1  do
 // ---
 // ---
 // ---
-   gate Rc ae 1 1.005309649184e+02 1.005338592664e+02 control_e 2 rx 0 rv 0 end_gate
+   gate Rc ae 1 1.005309648797e+02 1.005314615071e+02 control_e 2 rx 0 rv 0 end_gate
 // ---
    gate Rc ae 1 1.005309649165e+02 1.005309306323e+02 control_e 2 rx 0 rv 1 end_gate
 // ---
    gate Rc ae 1 1.005309649165e+02 1.005309306323e+02 control_e 2 rx 0 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649179e+02 1.005310476802e+02 control_e 2 rx 0 rv 3 end_gate
+   gate Rc ae 1 1.005309649157e+02 1.005309649149e+02 control_e 2 rx 0 rv 3 end_gate
 // ---
    gate Rc ae 1 1.005309649155e+02 1.005310234388e+02 control_e 2 rx 0 rv 8 end_gate
 // ---
@@ -418,19 +414,17 @@ with ocontrol axr 3 control_e avr 1  do
 // ---
    gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 0 rv 11 end_gate
 // ---
-   gate Rc ae 1 1.005309649151e+02 1.005310263122e+02 control_e 2 rx 0 rv 12 end_gate
+   gate Rc ae 1 1.005309649177e+02 1.005310259057e+02 control_e 2 rx 0 rv 12 end_gate
 // ---
    gate Rc ae 1 1.005309649138e+02 1.005310062976e+02 control_e 2 rx 0 rv 14 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 1 rv 0 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 1 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 1 rv 3 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 1 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 1 rv 12 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 1 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 1 rv 13 end_gate
-// ---
-   gate Rc ae 1 1.005309649153e+02 1.005337765010e+02 control_e 2 rx 2 rv 0 end_gate
+   gate Rc ae 1 2.555216724552e-10 4.138268939594e-04 control_e 2 rx 2 rv 0 end_gate
 // ---
    gate Rc ae 1 1.005309649119e+02 1.005308478670e+02 control_e 2 rx 2 rv 1 end_gate
 // ---
@@ -442,93 +436,71 @@ with ocontrol axr 3 control_e avr 1  do
 // ---
    gate Rc ae 1 1.005309649115e+02 1.005308821495e+02 control_e 2 rx 2 rv 6 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 2 rv 12 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 2 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 2 rv 13 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 2 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 3 rv 0 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 3 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 3 rv 3 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 3 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 3 rv 12 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 3 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 3 rv 13 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 4 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 4 rv 0 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 4 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 4 rv 3 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 4 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 4 rv 12 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 5 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 4 rv 13 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 5 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 5 rv 0 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 5 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 5 rv 3 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 6 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 5 rv 12 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 6 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 5 rv 13 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 6 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 6 rv 0 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 7 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 6 rv 3 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 7 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 6 rv 12 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 7 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 6 rv 13 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 8 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 7 rv 0 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 8 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 7 rv 3 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 8 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 7 rv 12 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 9 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 7 rv 13 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 9 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 8 rv 0 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 9 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 8 rv 3 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 10 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 8 rv 12 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 10 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 8 rv 13 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 10 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 9 rv 0 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 11 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 9 rv 3 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 11 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 9 rv 12 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 11 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 9 rv 13 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 12 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 10 rv 0 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 12 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 10 rv 3 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 12 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 10 rv 12 end_gate
-// ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 10 rv 13 end_gate
-// ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 11 rv 0 end_gate
-// ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 11 rv 3 end_gate
-// ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 11 rv 12 end_gate
-// ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 11 rv 13 end_gate
-// ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 12 rv 0 end_gate
-// ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 12 rv 3 end_gate
-// ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 12 rv 12 end_gate
-// ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 12 rv 13 end_gate
-// ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 13 rv 0 end_gate
-// ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 13 rv 3 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 13 rv 3 end_gate
 // ---
    gate Rc ae 1 1.005309649191e+02 1.005309306323e+02 control_e 2 rx 13 rv 7 end_gate
 // ---
@@ -540,27 +512,25 @@ with ocontrol axr 3 control_e avr 1  do
 // ---
    gate Rc ae 1 9.580127071397e-10 -4.848282805020e-05 control_e 2 rx 13 rv 11 end_gate
 // ---
-   gate Rc ae 1 1.005309649183e+02 1.005309295934e+02 control_e 2 rx 13 rv 12 end_gate
+   gate Rc ae 1 1.005309649211e+02 1.005309291869e+02 control_e 2 rx 13 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649107e+02 1.005308721084e+02 control_e 2 rx 13 rv 13 end_gate
+   gate Rc ae 1 -2.122186435846e-09 -1.513304398578e-04 control_e 2 rx 13 rv 13 end_gate
 // ---
    gate Rc ae 1 1.005309649190e+02 1.005309406735e+02 control_e 2 rx 13 rv 14 end_gate
 // ---
-   gate Rc ae 1 1.005309649148e+02 1.005333626741e+02 control_e 2 rx 14 rv 0 end_gate
+   gate Rc ae 1 1.005309649150e+02 1.005309649149e+02 control_e 2 rx 14 rv 3 end_gate
 // ---
-   gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 14 rv 3 end_gate
+   gate Rc ae 1 1.005309649148e+02 1.005309649147e+02 control_e 2 rx 14 rv 12 end_gate
 // ---
-   gate Rc ae 1 1.005309649123e+02 1.005309653211e+02 control_e 2 rx 14 rv 12 end_gate
+   gate Rc ae 1 1.005309649062e+02 1.005308478670e+02 control_e 2 rx 14 rv 13 end_gate
 // ---
-   gate Rc ae 1 1.005309649097e+02 1.005309063909e+02 control_e 2 rx 14 rv 13 end_gate
-// ---
-   gate Rc ae 1 1.005309649147e+02 1.005330700543e+02 control_e 2 rx 15 rv 0 end_gate
+   gate Rc ae 1 1.005309649157e+02 1.005306722951e+02 control_e 2 rx 15 rv 0 end_gate
 // ---
    gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 15 rv 1 end_gate
 // ---
    gate Rc ae 1 1.005309649167e+02 1.005310476802e+02 control_e 2 rx 15 rv 2 end_gate
 // ---
-   gate Rc ae 1 1.005309649153e+02 1.005311062042e+02 control_e 2 rx 15 rv 3 end_gate
+   gate Rc ae 1 1.005309649158e+02 1.005310234388e+02 control_e 2 rx 15 rv 3 end_gate
 // ---
    gate Rc ae 1 1.005309649155e+02 1.005310234388e+02 control_e 2 rx 15 rv 4 end_gate
 // ---
@@ -574,9 +544,9 @@ with ocontrol axr 3 control_e avr 1  do
 // ---
    gate Rc ae 1 1.005304323558e+02 1.005306823362e+02 control_e 2 rx 15 rv 11 end_gate
 // ---
-   gate Rc ae 1 1.004061383018e+02 1.005307562721e+02 control_e 2 rx 15 rv 12 end_gate
+   gate Rc ae 1 1.005310516716e+02 1.005307566782e+02 control_e 2 rx 15 rv 12 end_gate
 // ---
-   gate Rc ae 1 -2.026893273530e-18 -2.583372157065e-04 control_e 2 rx 15 rv 13 end_gate
+   gate Rc ae 1 1.005309649174e+02 1.005306480537e+02 control_e 2 rx 15 rv 13 end_gate
 // ---
    gate Rc ae 1 1.005299346360e+02 1.005308236255e+02 control_e 2 rx 15 rv 14 end_gate
 end_with
@@ -585,7 +555,6 @@ end_with
 with ocontrol axr 3 control_e avr 2  do
 // ---
    gate Ry ae 1 3.140793400515e+00 ocontrol 1 rv[-1 -2 -3 -4] end_gate
-// ---
 // ---
 // ---
 // ---
@@ -601,7 +570,6 @@ end_with
 with ocontrol axr 3 control_e avr 3  do
 // ---
    gate Ry ae 1 3.141875232218e+00 ocontrol 1 rv[-1 -2 -3 -4] end_gate
-// ---
 // ---
 // ---
 // ---
