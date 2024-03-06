@@ -295,7 +295,7 @@ CIRCUIT_STRUCTURE OH
 			// - right edge -
 			with control rv[-1] control rx -1 do
 				gate H ae 1 end_gate
-					gate SIN ae 1 <a0_FB0_R> <a1_FB0_R> rv <Nvhm1> ocontrol ae 1 end_gate
+					gate SIN a_lcu 1 <a0_FB0_R> <a1_FB0_R> rv <Nvhm1> ocontrol ae 1 end_gate
 					gate Rx  a_lcu 1 <a0_FB0_iw_R> control ae 1 end_gate
 					gate X   a_lcu 1 control ae 1 end_gate
 				gate H ae 1 end_gate
