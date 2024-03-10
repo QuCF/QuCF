@@ -498,6 +498,14 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
         {
             oc->read_structure_sin(istr, path_inputs_, flag_inv);
         }
+        if(YMIX::compare_strings(gate_name, "sinCO"))
+        {
+            oc->read_structure_sinC(istr, path_inputs_, flag_inv);
+        }
+        // if(YMIX::compare_strings(gate_name, "sinCTRL"))
+        // {
+        //     oc->read_structure_sinCTRL(istr, path_inputs_, flag_inv);
+        // }
         if(YMIX::compare_strings(gate_name, "PE"))
         {
             oc->read_structure_gate_phase_estimation(istr, path_inputs_, ocs_, flag_inv);
@@ -514,6 +522,10 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
         if(YMIX::compare_strings(gate_name, "CompressionGadget"))
         {
             oc->read_structure_compression_gadget(istr, ocs_, flag_inv, cd_);
+        }
+        if(YMIX::compare_strings(gate_name, "repeat"))
+        {
+            oc->read_structure_repeat(istr, ocs_, flag_inv);
         }
         if(YMIX::compare_strings(gate_name, "SelectorPower"))
         {

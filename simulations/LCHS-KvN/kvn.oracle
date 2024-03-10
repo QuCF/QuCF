@@ -94,8 +94,7 @@ CIRCUIT_STRUCTURE U_BE_a
 	
 	// right diagonal
 	gate QSVT  A_p1  ae 1 Usin_right 2 asin 1 rx -1 ocontrol ax 1 end_gate
-	
-	// --- Comment the two suboracles below to compute correcting angles ---
+
 	// --- correcting edges ---
 	gate Rc ae 1 <az_Am1_corr> <ay_Am1_corr>  control 2 ax 1 rx -1 ocontrol asin 1 end_gate
 	gate Rc ae 1 <az_Ap1_corr> <ay_Ap1_corr> ocontrol 2 ax 1 rx -1 ocontrol asin 1 end_gate
@@ -130,7 +129,6 @@ CIRCUIT_STRUCTURE U_BE_kmax
 	// right diagonal:
 	gate QSVT  kmax_p1  ae 1 Usin_right 2 asin 1 rx -1 control_e ax[0] end_gate
 	
-	// --- Comment the two suboracles below to compute correcting angles ---
 	// --- correcting edges ---
 	// left diag
 	gate Rc ae 1 <az_Bm_m1_corr> <ay_Bm_m1_corr> control_e ax[1]  control rx -1 end_gate

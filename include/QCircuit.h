@@ -248,6 +248,7 @@ class QCircuit{
     void read_structure_gate_swap(YISS istr, YCS path_in, YCB flag_inv=false);
     void read_structure_gate_fourier(YISS istr, YCS path_in, YCB flag_inv=false);
     void read_structure_sin(YISS istr, YCS path_in, YCB flag_inv=false);
+    void read_structure_sinC(YISS istr, YCS path_in, YCB flag_inv=false);
     void read_structure_gate_phase_estimation(
         YISS istr, YCS path_in, std::map<std::string, YSQ>& ocs, YCB flag_inv
     );
@@ -264,6 +265,7 @@ class QCircuit{
         YCB flag_inv,
         QuCF_complex_data& qucf_data
     );
+    void read_structure_repeat(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv);
     void read_selector_power(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv=false);
     void read_structure_LCHS_QSP(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv=false);
 
@@ -654,6 +656,21 @@ class QCircuit{
         YCB flag_box = false
     );
 
+    /** @brief Create 
+     *  sin(y) exp(i z), where 
+     *      y_j = alpha_0_y + j*dy, dy = 2*alpha_y / N,  
+     *      z_j = alpha_0_z + j*dz, dz = 2*alpha_z / N.          
+     * Here, j = [0, N), N = 2^size(\p conds)
+     */
+    YQCP gate_sinC(
+        YCVI anc, 
+        YCVI conds, 
+        YCQR alpha_0_y, YCQR alpha_y, 
+        YCQR alpha_0_z, YCQR alpha_z,
+        YCVI cs_unit = {}, YCVI cs_zero = {}, 
+        YCB flag_inv = false
+    );
+
 
     /** @brief Phase estimation (PE) operator to find an eigenphase of the operator \p A, 
      *         which sits on the qubits \p ta.
@@ -686,6 +703,20 @@ class QCircuit{
         YCVI ids_U_target, 
         YCI N_mult, 
         YCB flag_step_output,
+        YCVI cs_unit = {}, YCVI cs_zero = {},
+        YCB flag_inv = false
+    );
+
+    /** @brief Repeat the oracle \p oc_U \p N_mult times.
+     * @param[in] oc_U circuit which multiplication is to be computed;
+     * @param[in] ids_U_target qubits where the operator \p oc_U sits;
+     * @param[in] N_mult number of copies of \p oc_U in the product;
+     * @param[in] flag_step_output whether state should be outputed after call to \p oc_U;
+    */
+    YQCP repeat(
+        YCCQ& oc_U, 
+        YCVI ids_U_target, 
+        YCI N_mult, 
         YCVI cs_unit = {}, YCVI cs_zero = {},
         YCB flag_inv = false
     );

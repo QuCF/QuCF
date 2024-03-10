@@ -1318,6 +1318,43 @@ void QCircuit::read_structure_sin(YISS istr, YCS path_in, YCB flag_inv)
 }
 
 
+void QCircuit::read_structure_sinC(YISS istr, YCS path_in, YCB flag_inv)
+{
+    YVIv ids_a, ids_main, ids_unit, ids_zero;
+    qreal alpha_0_y, alpha_y, alpha_0_z, alpha_z;
+    string word;
+
+    // --- read an ancilla qubit to put rotations there ---
+    read_reg_int(istr, ids_a);
+
+    // --- read angles ---
+    istr >> word;
+    alpha_0_y = get_value_from_word(word);
+
+    istr >> word;
+    alpha_y = get_value_from_word(word);
+
+    istr >> word;
+    alpha_0_z = get_value_from_word(word);
+
+    istr >> word;
+    alpha_z = get_value_from_word(word);
+
+    // --- read the condition qubits ---
+    read_reg_int(istr, ids_main);
+
+    // --- read end of gate structure ---
+    read_end_gate(istr, ids_unit, ids_zero);
+
+    // add the quantum Fourier circuit:
+    gate_sinC(
+        ids_a, ids_main, 
+        alpha_0_y, alpha_y, alpha_0_z, alpha_z, 
+        ids_unit, ids_zero, flag_inv
+    );
+}
+
+
 void QCircuit::read_structure_compression_gadget(
     YISS istr, 
     std::map<std::string, 
@@ -1414,6 +1451,47 @@ void QCircuit::read_structure_compression_gadget(
     // store the gadget data:
     map_gadget_data[gadget_name] = data;
 }
+
+
+
+
+void QCircuit::read_structure_repeat(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv)
+{
+    YVIv ids_U_target;
+    string name_U;
+    int N_mult;
+    YVIv ids_unit, ids_zero; 
+    string word;
+
+    // --- Read the name of the circuit U to repeat ---
+    istr >> name_U;
+    if(ocs.find(name_U) == ocs.end())
+        throw string("CompressionGadget: a circuit with the name ["s + name_U + "] is not found."s);
+    YSQ oc_U = ocs[name_U];
+
+    // --- Read qubits where the circuit U sits ---
+    read_reg_int(istr, ids_U_target);
+
+    // --- Read the integer indicating how many copies of U are multiplied ---
+    try
+    {
+        istr >> word;
+        N_mult = get_value_from_word(word);
+    }
+    catch(YCS e)
+    {
+        throw "CompressionGadget: wrong format of the N_mult.";
+    }
+
+    // --- read the end of the gate structure ---
+    read_end_gate(istr, ids_unit, ids_zero);
+
+    // --- Construct the compression gadget ---
+    repeat(oc_U, ids_U_target, N_mult, ids_unit, ids_zero, flag_inv);
+}
+
+
+
 
 
 
@@ -2175,6 +2253,70 @@ YQCP QCircuit::gate_sin(
 }
 
 
+YQCP QCircuit::gate_sinC(
+        YCVI anc, 
+        YCVI conds, 
+        YCQR alpha_0_y, YCQR alpha_y, 
+        YCQR alpha_0_z, YCQR alpha_z,
+        YCVI cs_unit, YCVI cs_zero, YCB flag_inv
+){
+    auto na = 1;
+    auto n_cond = conds.size();
+    auto n_tot = n_cond + na;
+    string name_tex = "SIN";
+
+    // --- all target qubits ---
+    vector<int> qubits_tot = YVIv(conds);
+    qubits_tot.insert(qubits_tot.end(), anc.begin(), anc.end());
+
+    // --- create an envelop circuit for the sin gate ---
+    auto oc_sin = make_shared<QCircuit>(
+        "SIN_C", env_, path_to_output_, n_tot
+    );
+    auto a_loc    = oc_sin->add_register("a", na)[0];
+    auto cond_loc = oc_sin->add_register("cond", n_cond);
+
+    // --- ampl: Ry rotations ---
+    oc_sin->ry(a_loc, 2*alpha_0_y);
+    for(auto ii = 0; ii < n_cond; ii++)
+    {
+        qreal aa = 2*alpha_y / pow(2., n_cond - 1 - ii);
+        oc_sin->ry(a_loc, aa, YVIv{cond_loc[ii]});
+    }
+
+    // --- phase: Rz rotations ---
+    oc_sin->rz(a_loc, 2*alpha_0_z);
+    for(auto ii = 0; ii < n_cond; ii++)
+    {
+        qreal aa = 2*alpha_z / pow(2., n_cond - 1 - ii);
+        oc_sin->rz(a_loc, aa, YVIv{cond_loc[ii]});
+    }
+
+    // --- choose sin(y) * exp(iz) ---
+    oc_sin->x(a_loc);
+
+    // --- invert the circuit if necessary ---
+    if(flag_inv)
+    {
+        oc_sin->h_adjoint();
+        name_tex += "^\\dagger";
+    }
+
+    // --- copy the env. circuit to the current circuit ---
+    auto box = YSB(nullptr);
+    copy_gates_from(
+        oc_sin,
+        qubits_tot,
+        box, 
+        cs_unit, cs_zero,
+        false        
+    );
+    return get_the_circuit();
+}
+
+
+
+
 YQCP QCircuit::compression_gadget(
     GADGET_pars& data ,
     YCVI ids_counter, 
@@ -2243,6 +2385,45 @@ YQCP QCircuit::compression_gadget(
     ); 
     return get_the_circuit();
 }
+
+
+
+YQCP QCircuit::repeat(
+    YCCQ& oc_U_in, 
+    YCVI ids_U_target, 
+    YCI N_mult, 
+    YCVI cs_unit, YCVI cs_zero,
+    YCB flag_inv
+){
+    auto oc_U = make_shared<QCircuit>(oc_U_in);
+    auto oc_repeat = make_shared<QCircuit>("CG", env_, path_to_output_, nq_);
+    oc_repeat->add_register("r", nq_);
+
+    auto nq_U = oc_U->get_n_qubits();
+    if(nq_U != ids_U_target.size())
+    {
+        throw string("Error in repeat: the indicated number of target qubits for the oracle\n") +
+            string("does not equal the number of qubits that the oracle requires.");
+    }
+
+    // --- Calls to the operator oc_U ---
+    for(int i_mult = 0; i_mult < N_mult; i_mult++)
+        oc_repeat->copy_gates_from(oc_U, ids_U_target);
+
+    // --- Transfer the gates to the main circuit ---
+    auto all_qubits = YMATH::get_range(0, nq_);
+    copy_gates_from(
+        oc_repeat,
+        all_qubits,
+        YSB(nullptr), 
+        cs_unit, cs_zero,
+        flag_inv        
+    ); 
+    return get_the_circuit();
+}
+
+
+
 
 
 YQCP QCircuit::phase_estimation(

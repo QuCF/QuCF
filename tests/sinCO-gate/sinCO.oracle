@@ -1,0 +1,61 @@
+// $qucf sin ./ 
+
+CONSTANTS
+	n 	6
+	alpha_0 	-1.000000000000e+00
+	alpha_1 	1.015873015873e+00
+	id_inv 	2
+	angle_inv 	-1.873015873016e+00
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   zero-ancillae  // none, all, zero-ancillae
+	flag_tex     1
+	tex_CL  6 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	U     2 a_be 1 1 j <n> 0  
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   
+    U       
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+
+// --- The final circuit ---
+CIRCUIT_STRUCTURE U
+	gate H   j -1 end_gate
+	gate sin a_be 1 <alpha_0> <alpha_1> j -1 end_gate
+	// --- invert one point ---
+	igate X a_be 1 control_e j <id_inv>  end_gate
+	igate Ry a_be 1 <angle_inv> control_e j <id_inv> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
