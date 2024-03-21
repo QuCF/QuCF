@@ -110,13 +110,13 @@ CIRCUIT_STRUCTURE   U
 	// initialization:
 	circuit INIT rx -1  end_circuit
 
-	// weights:
+	// create a sum:
 	gate H rk -1 end_gate
 
 	// Selector:
 	gate repeat U_t_step 5 rk -1 a_qsp -1 ae -1 ac -1 rx -1   <Nt>  end_gate
 
-	// inverse weights:
+	// weights:
 	circuit Ow 3 rk -1 a_sin -1 a_qsvt_w -1 ocontrol 3 ac -1 ae -1 a_qsp -1 end_circuit
 END_CIRCUIT_STRUCTURE
 

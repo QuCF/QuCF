@@ -174,13 +174,25 @@ struct QuCF_complex_data
     std::map<std::string, QSVT_pars>   qsvt;
     std::map<std::string, GADGET_pars> gadgets;
 
-    void check_name(YCS name_structure)
+    // void check_name(YCS name_structure)
+    // {
+    //     // if(
+    //     //     qsvt.find(name_structure) != qsvt.end() or
+    //     //     gadgets.find(name_structure) != gadgets.end()
+    //     // ) 
+    //     //     throw std::string("In QuCF_complex_data: the name " + name_structure + " has alredy been used.");
+    // }
+
+    // True: this data has already been read;
+    bool check_name(YCS name_structure)
     {
         if(
             qsvt.find(name_structure) != qsvt.end() or
             gadgets.find(name_structure) != gadgets.end()
         ) 
-            throw std::string("In QuCF_complex_data: the name " + name_structure + " has alredy been used.");
+            return true;
+        else
+            return false;
     }
 };
 

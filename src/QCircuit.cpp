@@ -1374,9 +1374,11 @@ void QCircuit::read_structure_compression_gadget(
     auto& map_gadget_data = qucf_d.gadgets;
     GADGET_pars data;
 
+    bool flag_data_read;
+
     // --- read the unique name of the gadget ---
     istr >> gadget_name;
-    qucf_d.check_name(gadget_name);
+    flag_data_read = qucf_d.check_name(gadget_name);
 
     data.name = gadget_name;
     data.type = "compression";
@@ -1449,7 +1451,8 @@ void QCircuit::read_structure_compression_gadget(
     );
 
     // store the gadget data:
-    map_gadget_data[gadget_name] = data;
+    if(!flag_data_read)
+        map_gadget_data[gadget_name] = data;
 }
 
 
@@ -1548,9 +1551,11 @@ void QCircuit::read_structure_gate_qsvt(
     auto& map_qsvt_data = qucf_d.qsvt;
     QSVT_pars data;
 
+    bool flag_data_read;
+
     // --- read QSVT parameters ---
     istr >> name_circuit;
-    qucf_d.check_name(name_circuit);
+    flag_data_read = qucf_d.check_name(name_circuit);
     data.name = name_circuit;
 
     qsvt_read_parameters(name_circuit, data);
@@ -1639,7 +1644,8 @@ void QCircuit::read_structure_gate_qsvt(
     
 
     // store the QSVT data:
-    map_qsvt_data[name_circuit] = data;
+    if(!flag_data_read)
+        map_qsvt_data[name_circuit] = data;
 }
 
 
@@ -3004,7 +3010,7 @@ YQCP QCircuit::selector_power(
 
     for(uint32_t is = 0; is < ns; is++)
         for(uint32_t i_repeat = 0; i_repeat < (1<<is); i_repeat++)
-            oc_selector->copy_gates_from(oc_U, all_qubits, YSB(nullptr), YVIv{rs[is]});
+            oc_selector->copy_gates_from(oc_U, ids_U_target, YSB(nullptr), YVIv{rs[is]});
 
     // --- Transfer the gates to the main circuit ---
     copy_gates_from(

@@ -17,7 +17,6 @@ CONSTANTS
 	ay_11_k  2.619556006432e+00
 
 	//--- The angles for the initialization ---
-	// ay_init  1.772154247585e+00
 	ay_init  3.141592653590e+00
 
 	//--- For weights ---
@@ -25,9 +24,6 @@ CONSTANTS
 	alpha_k0 	-1.000000000000e+00
 	alpha_k1 	1.032258064516e+00
 	alpha_k_corr 	6.688884929755e-02
-
-	// --- Flag for the compression gadget ---
-	flag_compr_gadget  0
 END_CONSTANTS
 
 
@@ -44,17 +40,17 @@ END_OPTIONS
 CIRCUITS_DECLARATION
 	INIT  1 rx <nx> 0
 	// --- 
-	U_be_weights 2                 a_sin 1 1 rk <nk> 0
-	Ow           3    a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
+	U_be_weights 2               a_sin 1 1 rk <nk> 0
+	Ow           3  a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
 	// ---
-	U_BE_a       3                                                             ae 1 1 ac 1 1 rx <nx> 0 
-	U_BE_kmax    2                                                             ae 1 1        rx <nx> 0
-	U_BE_k       2                                                             ae 1 1        rx <nx> 0 
+	U_BE_a       3                                             ae 1 1 ac 1 1 rx <nx> 0 
+	U_BE_kmax    2                                             ae 1 1        rx <nx> 0
+	U_BE_k       2                                             ae 1 1        rx <nx> 0 
 	// --- 
-	U_QSP_k      3                                                   a_qsp 2 1 ae 1 1        rx <nx> 0
-	U_t_step     6                           rk <nk> 1 r_trotter 3 1 a_qsp 2 1 ae 1 1 ac 1 1 rx <nx> 0
+	U_QSP_k      4                                   a_qsp 2 1 ae 1 1 ac 1 1 rx <nx> 0
+	U_t_step     5                         rk <nk> 1 a_qsp 2 1 ae 1 1 ac 1 1 rx <nx> 0
     // ---
-	U    9  rt <nt> 1 a_qsvt_w 1 1 a_sin 1 1 rk <nk> 1 r_trotter 3 1 a_qsp 2 1 ae 1 1 ac 1 1 rx <nx> 0  
+	U            7  a_qsvt_w 1 1 a_sin 1 1 rk <nk> 1 a_qsp 2 1 ae 1 1 ac 1 1 rx <nx> 0  
 END_CIRCUITS_DECLARATION
 
 
@@ -77,12 +73,12 @@ END_CIRCUIT_STRUCTURE
 
 // --- Oracle Ow ---
 CIRCUIT_STRUCTURE  Ow
-	gate H rk -1 end_gate
+	// gate H rk -1 end_gate
     gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin 1 rk -1 end_gate
 
-	// correcting gates
-	gate Rx a_qsvt_w 1  <alpha_k_corr>  ocontrol 2 rk -1 a_sin -1 end_gate
-	gate Rx a_qsvt_w 1  <alpha_k_corr>  ocontrol a_sin -1 control rk -1 end_gate
+	// // correcting gates
+	// gate Rx a_qsvt_w 1  <alpha_k_corr>  ocontrol 2 rk -1 a_sin -1 end_gate
+	// gate Rx a_qsvt_w 1  <alpha_k_corr>  ocontrol a_sin -1 control rk -1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
@@ -92,10 +88,10 @@ CIRCUIT_STRUCTURE U_BE_a
 	// OF
 	gate H  ac[0] end_gate
 	// OH
-	gate Ry ae[0] <ay_00_a>        ocontrol 2 ac[0] rx 1 end_gate
+	gate Ry ae[0] <ay_00_a> ocontrol 2 ac[0] rx 1 end_gate
 	gate Ry ae[0] <ay_01_a> ocontrol rx 1  control ac[0] end_gate
 	gate Ry ae[0] <ay_10_a>  control rx 1 ocontrol ac[0] end_gate
-	gate Ry ae[0] <ay_11_a>         control 2 ac[0] rx 1 end_gate
+	gate Ry ae[0] <ay_11_a>  control 2 ac[0] rx 1 end_gate
 	// OM
 	gate SWAP ac[0] rx[0] end_gate
 	// OF adjoint
@@ -123,38 +119,25 @@ END_CIRCUIT_STRUCTURE
 // --- QSP realization of the k-dependent part ---
 CIRCUIT_STRUCTURE U_QSP_k
 	gate QSVT qsp_k   a_qsp -1  U_BE_k 2 ae -1 rx -1 end_gate
+	// gate Y a_qsp 2 end_gate
+	// circuit U_BE_k 2 rx -1  ae -1 end_circuit
 END_CIRCUIT_STRUCTURE
 
 
 // --- One time step ---
 CIRCUIT_STRUCTURE U_t_step
-	// --- Here, the compression gadget is implemented explicitely ---
+	// // Aa:
+	// gate QSVT qsp_a   a_qsp -1     U_BE_a    3          ae -1 ac -1 rx -1 end_gate
 
-	// Four incrementors to initialize the compression gadget.
-	gate adder1 r_trotter -1 end_gate
-	gate adder1 r_trotter -1 end_gate
-	gate adder1 r_trotter -1 end_gate
-	gate adder1 r_trotter -1 end_gate
+	// // (- kmax*Ah):
+	// gate QSVT qsp_kmax   a_qsp -1  U_BE_kmax 2          ae -1       rx -1 end_gate
 
-	// Aa:
-	gate QSVT qsp_a   a_qsp -1  U_BE_a  3 ae -1 ac -1 rx -1 end_gate
-	gate decrementor r_trotter -1   ocontrol 3 a_qsp -1 ae -1 ac -1 end_gate
+	// i_k * dk*Ah:
+	gate SelectorPower  rk -1      U_QSP_k   4 a_qsp -1 ae -1 ac -1 rx -1 end_gate
 
-	// (- kmax*Ah):
-	gate QSVT qsp_kmax   a_qsp -1  U_BE_kmax 2 ae -1 rx -1 end_gate
-	gate decrementor r_trotter -1   ocontrol 3 a_qsp -1 ae -1 ac -1 end_gate
-
-	// k*dk*Ah:
-	gate SelectorPower  rk -1   U_QSP_k  3 a_qsp -1 ae -1 rx -1 end_gate
-	gate decrementor r_trotter -1   ocontrol 3 a_qsp -1 ae -1 ac -1 end_gate
-
-	// Aa:
-	gate QSVT qsp_a   a_qsp -1  U_BE_a  3 ae -1 ac -1 rx -1 end_gate
-	gate decrementor r_trotter -1   ocontrol 3 a_qsp -1 ae -1 ac -1 end_gate
+	// // Aa:
+	// gate QSVT qsp_a   a_qsp -1     U_BE_a    3          ae -1 ac -1 rx -1 end_gate
 END_CIRCUIT_STRUCTURE
-
-
-
 
 
 // --- Final circuit ---
@@ -162,12 +145,12 @@ CIRCUIT_STRUCTURE   U
 	// initialization:
 	circuit INIT rx -1  end_circuit
 
-	// weights:
-	circuit Ow 3 rk -1 a_sin -1 a_qsvt_w -1   ocontrol 5 ac -1 ae -1 a_qsp -1 r_trotter -1 rt -1  end_circuit
+	// create a sum:
+	gate H rk -1 end_gate
 
 	// Selector:
-	gate CompressionGadget Gt rt -1 U_t_step 6 rk -1 r_trotter -1 a_qsp -1 ae -1 ac -1 rx -1   <Nt>  <flag_compr_gadget> end_gate
+	gate repeat U_t_step 5 rk -1 a_qsp -1 ae -1 ac -1 rx -1  <Nt> end_gate
 
 	// inverse weights:
-	icircuit Ow 3 rk -1 a_sin -1 a_qsvt_w -1  ocontrol 5 ac -1 ae -1 a_qsp -1 r_trotter -1 rt -1  end_circuit
+	circuit Ow 3 rk -1 a_sin -1 a_qsvt_w -1  ocontrol 3 ac -1 ae -1 a_qsp -1 end_circuit
 END_CIRCUIT_STRUCTURE
