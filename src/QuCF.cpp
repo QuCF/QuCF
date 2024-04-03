@@ -23,7 +23,8 @@ QuCF__::QuCF__(
     flag_zero_state_of_ = false;
     flag_output_qsp_ = false;
     flag_output_gadget_ = false;
-
+    flag_stop_gates_ = true;
+    flag_repeat_insert_ = false;
     read_data();
 }
 
@@ -172,6 +173,18 @@ void QuCF__::read_options(YISS istr)
                 istr >> flag_matrix_;
                 continue;
             }
+
+            if(YMIX::compare_strings(word, "flag_stop_gates"))
+            {
+                istr >> flag_stop_gates_;
+                continue;
+            }
+
+            if(YMIX::compare_strings(word, "flag_repeat_insert"))
+            {
+                istr >> flag_repeat_insert_;
+                continue;
+            }
         }
 
         // correct the printing options:
@@ -199,6 +212,12 @@ void QuCF__::read_options(YISS istr)
             YMIX::print_log(
                 "-> length of a single row in the .tex file = " + to_string(YGV::tex_circuit_length)
             );
+        if(flag_stop_gates_)
+            YMIX::print_log("-> Include stop gates.");
+        else
+            YMIX::print_log("-> Do not include stop gates.");
+        if(flag_repeat_insert_)
+            YMIX::print_log("-> In the repeat-gate, just INSERT gates.");
         YMIX::print_log( "---\n");
     }
     catch(YCS e)
@@ -294,7 +313,7 @@ void QuCF__::read_circuit_declaration(YISS istr)
                 ocs_[circ_name] = make_shared<QCircuit>(
                     circ_name, env_, path_inputs_, nq_circ, 
                     constants_,
-                    flag_circuit_, flag_tex_, flag_layers_
+                    flag_circuit_, flag_tex_, flag_layers_, flag_stop_gates_, flag_repeat_insert_
                 );
             }
                 
@@ -340,7 +359,7 @@ void QuCF__::read_circuit_structure(YISS istr, YSQ* oc_ext)
     if(oc_ext == nullptr)
     {
         istr >> word;
-        YMIX::print_log("Reading structure of the circuit " + word, 0, true);
+        YMIX::print_log("\n\n----> Reading structure of the circuit " + word, 0, false);
         if(ocs_.find(word) == ocs_.end()) 
         {
             YMIX::print_log(
@@ -535,6 +554,10 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
         {
             oc->read_structure_LCHS_QSP(istr, ocs_, flag_inv);
         }
+        if(YMIX::compare_strings(gate_name, "DirDec"))
+        {
+            oc->read_structure_dirdec(istr, flag_inv);
+        }
     }
     catch(YCS e)
     {
@@ -680,7 +703,7 @@ void QuCF__::read_main_circuit(YISS istr)
                 if(!flag_init_file)
                     read_state(istr);
             }
-                
+       
             if(YMIX::compare_strings(word, "compute_prob"))
             {
                 istr >> flag_prob_;
@@ -761,20 +784,29 @@ void QuCF__::read_state_init_file()
 
 void QuCF__::launch()
 {
-    
+    YMIX::print_log( 
+        "\n-------------------------------------------------------------------------------"s + 
+        "\n-------------------------------------------------------------------------------"s
+    );
     YMIX::print_log( 
         "--- Analysis of the circuit [" + oc_to_launch_->get_name() + "] ---"
     );
-
+    
     // working circuit object:
     shared_ptr<QCircuit> u_work = oc_to_launch_;
-
+    
     // ---- store basic data:
     hfo_.open_w();
 
     // number of qubits
     hfo_.add_scalar(u_work->get_n_qubits(), "nq", "basic");
     hfo_.add_scalar(u_work->get_na(), "na", "basic");
+    YMIX::print_log("nq: " + to_string(u_work->get_n_qubits()));
+    YMIX::print_log("na: " + to_string(u_work->get_na()));
+
+    // number of gates
+    hfo_.add_scalar(u_work->get_N_gates(), "N_gates", "basic");
+    YMIX::print_log("N-gates: " + to_string(u_work->get_N_gates()));
 
     // register names
     string res_lin = "";
@@ -866,7 +898,6 @@ void QuCF__::launch()
             }
         }
     }
-
 
     // number of initial states:
     uint32_t n_init_states = flag_init_state_file_ ? 1: init_states_.size();
@@ -1245,9 +1276,10 @@ void QuCF__::calc_matrix(shared_ptr<QCircuit>& u_work, bool flag_sparse_format)
         u_work->set_init_binary_state();
 
         // compute an output state:
-        string stop_point_name;
-        int id_current_gate = 0;
-        u_work->generate(stop_point_name, id_current_gate);
+        // string stop_point_name;
+        // int id_current_gate = 0;
+        // u_work->generate(stop_point_name, id_current_gate);
+        u_work->generate();
 
         // get the output state:
         YMIX::StateVectorOut out_state;

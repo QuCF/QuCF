@@ -13,14 +13,18 @@ QCircuit::QCircuit(
     const std::map<std::string, qreal>& constants,
     YCB flag_circuit,
     YCB flag_tex,
-    YCB flag_layers
+    YCB flag_layers,
+    YCB flag_stop_gates,
+    YCB flag_repeat_insert
 ) :
 name_(name),
 env_(env),
 path_to_output_(path_to_output),
 flag_circuit_(flag_circuit),
 flag_tex_(flag_tex),
-flag_layers_(flag_layers)
+flag_layers_(flag_layers),
+flag_stop_gates_(flag_stop_gates),
+flag_repeat_insert_(flag_repeat_insert)
 {
     timer_.Start();
     nq_ = 0;
@@ -80,13 +84,17 @@ QCircuit::QCircuit(YCCQ oc, YCS cname)
         flag_circuit_ = false;
         flag_tex_     = false;
         flag_layers_  = false;
+        flag_stop_gates_ = true;
+        flag_repeat_insert_ = false;
     }
     else
     {
         name_ = cname;
-        flag_circuit_ = oc->flag_circuit_;
-        flag_tex_     = oc->flag_tex_;
-        flag_layers_  = oc->flag_layers_;
+        flag_circuit_    = oc->flag_circuit_;
+        flag_tex_        = oc->flag_tex_;
+        flag_layers_     = oc->flag_layers_;
+        flag_stop_gates_ = oc->flag_stop_gates_;
+        flag_repeat_insert_ = oc->flag_repeat_insert_;
     }
         
     env_ = oc->env_;
@@ -299,8 +307,43 @@ void QCircuit::generate(string& stop_name, int& id_current)
     auto start  = gates_.begin() + id_start_;
     auto it_end = gates_.end();
     stop_name = name_;
+
+    int perc_prev = 0;
+    float perc_float = 0.;
+    int perc_int = 0;
+    int Ng = gates_.size();
+    int counter_g = -1;
+    int step_prog = 2;
+    if(id_start_ == 0 & !flag_stop_gates_)
+        cout << "\nProgress: " << std::flush;
     for(auto it = start; it != gates_.end(); ++it) 
     {
+        if(!flag_stop_gates_)
+        {
+            counter_g++;
+            perc_float = (counter_g*1.)/(Ng-1) * 100.;
+            perc_int = perc_float;
+            if((perc_int - perc_prev) >= step_prog)
+            {
+                for(int ii = 0; ii < 12; ii++)
+                    cout << "\b";
+                cout << "| " << std::setw(10) << perc_float << "%" << std::flush;
+                perc_prev = perc_int;
+            }
+            else
+            {
+                if(counter_g%1000 == 0)
+                {
+                    if(counter_g > 0)
+                        for(int ii = 0; ii < 12; ii++)
+                            cout << "\b";
+                    cout << std::setw(11) << perc_float << "%" << std::flush;
+                }
+            }
+            if(perc_int == 100)
+                cout << endl;
+        }
+
         if(YMIX::compare_strings((*it)->get_type(), "stop"))
         {
             it_end = it+1;
@@ -1417,18 +1460,17 @@ void QCircuit::read_structure_compression_gadget(
         if(nc < 2)
             throw string("CompressionGadget: if N_mult >= 2, "s + 
                 "then n of qubits in the counter register has to be >= 2."s);
-    if(N_mult >= 3)
-    {
-        int temp = ceil(log2(N_mult));
-        temp = temp + (1 - ceil( (N_mult%int(pow(2,temp))) / N_mult)) + 1;
-        if(nc < temp)
-        {
-            throw string("CompressionGadget: the number of qubits" + 
-                " in the counter register is not large enough: "s + 
-                "(nc-minimum = " + to_string(temp) + ").");
-        }
-            
-    }
+    // if(N_mult >= 3)
+    // {
+    //     int temp = ceil(log2(N_mult));
+    //     temp = temp + (1 - ceil( (N_mult%int(pow(2,temp))) / N_mult)) + 1;
+    //     if(nc < temp)
+    //     {
+    //         throw string("CompressionGadget: the number of qubits" + 
+    //             " in the counter register is not large enough: "s + 
+    //             "(nc-minimum = " + to_string(temp) + ").");
+    //     }
+    // }
         
     // --- read the flag whether output state after each call to oc_U should be written ---
     istr >> word;
@@ -1712,6 +1754,97 @@ void QCircuit::read_structure_LCHS_QSP(YISS istr, std::map<std::string, YSQ>& oc
         Ow, ids_Ow,
         ids_unit, ids_zero, flag_inv
     );
+}
+
+
+void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
+{
+    YVIv ids_ctrl, cs_unit, cs_zero;
+    int id_targ;
+    string sel_prof, word;
+    int N_pars;
+    YVQv pars;
+
+    // --- Read the target qubit ---
+    YVIv temp_vec;
+    read_reg_int(istr, temp_vec);
+    id_targ = temp_vec[0];
+
+    // --- Read control qubits ---
+    read_reg_int(istr, ids_ctrl);
+
+    // --- Read the string defining the profile to compute ---
+    istr >> sel_prof;
+    YMIX::print_log("DirDec: compute the profile: " + sel_prof);
+
+    // --- Read the number of parameters for the target profile ---
+    istr >> word;
+    N_pars = get_value_from_word(word);
+    YMIX::print_log("DirDec: N_pars = " + to_string(N_pars));
+
+    // --- Read the parameters for the target profile ---
+    double v1;
+    for(int i_par = 0; i_par < N_pars; i_par++)
+    {
+        istr >> word;
+        v1 = get_value_from_word(word);
+        pars.push_back(v1);
+        YMIX::print_log("DirDec: par" + to_string(i_par) + " = " + to_string(v1));
+    }
+
+    // --- read the end of the gate structure ---
+    read_end_gate(istr, cs_unit, cs_zero);
+
+    // --- Construct direct decomposition ---
+    int n_ctrl = ids_ctrl.size();
+    int Nc = 1 << n_ctrl;
+    if(YMIX::compare_strings(sel_prof, "LCHS_weights_sqrt"))
+    {
+        YVQv phis_y(Nc);
+        double k;
+        double dk = 2./(Nc - 1);
+        for(int ii = 0; ii < Nc; ii++)
+        {
+            k = -1.0 + ii * dk;
+            k *= pars[0];
+            v1 = 1. / sqrt(1 + k*k);
+            phis_y[ii] = 2. * acos(v1);
+        }
+        DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
+    }
+    else if(YMIX::compare_strings(sel_prof, "LCHS_weights_full"))
+    {
+        YVQv phis_y(Nc);
+        double k;
+        double dk = 2./(Nc - 1);
+        for(int ii = 0; ii < Nc; ii++)
+        {
+            k = -1.0 + ii * dk;
+            k *= pars[0];
+            v1 = 1. / (1 + k*k);
+            phis_y[ii] = 2. * acos(v1);
+        }
+        DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
+    }
+    else if(YMIX::compare_strings(sel_prof, "linear"))
+    {
+        YVQv phis_y(Nc);
+        double k;
+        double dk = (pars[1] - pars[0])/(Nc - 1);
+        for(int ii = 0; ii < Nc; ii++)
+        {
+            k = pars[0] + ii * dk;
+            phis_y[ii] = 2. * acos(k);
+        }
+        DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
+    }
+    else
+    {
+        YMIX::print_log(
+            ">>> WARNING: DirDec: the profile " + sel_prof + 
+            " is not recognized. Skipping the DirDec."
+        );  
+    }
 }
 
 
@@ -2373,10 +2506,11 @@ YQCP QCircuit::compression_gadget(
         oc_U->activate_gadget(N_mult-i_mult, N_mult);
         oc_gadget->copy_gates_from(oc_U, ids_U_target);
         oc_gadget->subtractor_1(ids_t_adder, YVIv{}, anc_U);
-        if(flag_step_output)
+        if(flag_step_output && flag_stop_gates_)
         {
             name_stop = "CompressionGadget <" + gadget_name + ">: i = " + to_string(i_mult);
             oc_gadget->add_stop_gate(name_stop);
+            // cout << "CG: add stop gate" << endl;
         }
     }
 
@@ -2401,30 +2535,38 @@ YQCP QCircuit::repeat(
     YCVI cs_unit, YCVI cs_zero,
     YCB flag_inv
 ){
-    auto oc_U = make_shared<QCircuit>(oc_U_in);
-    auto oc_repeat = make_shared<QCircuit>("CG", env_, path_to_output_, nq_);
-    oc_repeat->add_register("r", nq_);
-
-    auto nq_U = oc_U->get_n_qubits();
-    if(nq_U != ids_U_target.size())
+    if(flag_repeat_insert_)
     {
-        throw string("Error in repeat: the indicated number of target qubits for the oracle\n") +
-            string("does not equal the number of qubits that the oracle requires.");
+        for(int i_mult = 0; i_mult < N_mult; i_mult++)
+            insert_gates_from(oc_U_in.get());
     }
+    else
+    {
+        auto oc_U = make_shared<QCircuit>(oc_U_in);
+        auto oc_repeat = make_shared<QCircuit>("CG", env_, path_to_output_, nq_);
+        oc_repeat->add_register("r", nq_);
 
-    // --- Calls to the operator oc_U ---
-    for(int i_mult = 0; i_mult < N_mult; i_mult++)
-        oc_repeat->copy_gates_from(oc_U, ids_U_target);
+        auto nq_U = oc_U->get_n_qubits();
+        if(nq_U != ids_U_target.size())
+        {
+            throw string("Error in repeat: the indicated number of target qubits for the oracle\n") +
+                string("does not equal the number of qubits that the oracle requires.");
+        }
 
-    // --- Transfer the gates to the main circuit ---
-    auto all_qubits = YMATH::get_range(0, nq_);
-    copy_gates_from(
-        oc_repeat,
-        all_qubits,
-        YSB(nullptr), 
-        cs_unit, cs_zero,
-        flag_inv        
-    ); 
+        // --- Calls to the operator oc_U ---
+        for(int i_mult = 0; i_mult < N_mult; i_mult++)
+            oc_repeat->copy_gates_from(oc_U, ids_U_target);
+
+        // --- Transfer the gates to the main circuit ---
+        auto all_qubits = YMATH::get_range(0, nq_);
+        copy_gates_from(
+            oc_repeat,
+            all_qubits,
+            YSB(nullptr), 
+            cs_unit, cs_zero,
+            flag_inv        
+        ); 
+    }
     return get_the_circuit();
 }
 
@@ -2752,8 +2894,8 @@ YQCP QCircuit::qsvt_def_parity(
         // oracle:
         insert_gates_from(
             oc_be.get(), 
-            make_shared<Box__>(be_box_name, qs_be, cs_unit, cs_zero, be_box_name_tex)
-            // YSB(nullptr) // without embedding into a box
+            // make_shared<Box__>(be_box_name, qs_be, cs_unit, cs_zero, be_box_name_tex)
+            YSB(nullptr) // without embedding into a box
         );
 
         if((N_angles % 2) == 0)
@@ -2781,8 +2923,8 @@ YQCP QCircuit::qsvt_def_parity(
             // inverse oracle:
             insert_gates_from(
                 oc_be_inv.get(), 
-                make_shared<Box__>(be_box_name, qs_be, cs_unit, cs_zero, be_box_cc_name_tex)
-                // YSB(nullptr) // without embedding into a box
+                // make_shared<Box__>(be_box_name, qs_be, cs_unit, cs_zero, be_box_cc_name_tex)
+                YSB(nullptr) // without embedding into a box
             );
 
             // projector:
@@ -2861,8 +3003,8 @@ YQCP QCircuit::qetu_def_parity(
         // oracle:
         insert_gates_from(
             oc_be.get(), 
-            make_shared<Box__>(be_box_name, qs_be, cs_unit_qsvt, cs_zero, be_box_name_tex)
-            // YSB(nullptr) // without embedding into a box
+            // make_shared<Box__>(be_box_name, qs_be, cs_unit_qsvt, cs_zero, be_box_name_tex)
+            YSB(nullptr) // without embedding into a box
         );
         rx(a_qsvt, -2*phis[count_angle], cs_unit, cs_zero, flag_inv);
 
@@ -2872,8 +3014,8 @@ YQCP QCircuit::qetu_def_parity(
             // inverse oracle:
             insert_gates_from(
                 oc_be_inv.get(), 
-                make_shared<Box__>(be_box_name, qs_be, cs_unit_qsvt, cs_zero, be_box_cc_name_tex)
-                // YSB(nullptr) // without embedding into a box
+                // make_shared<Box__>(be_box_name, qs_be, cs_unit_qsvt, cs_zero, be_box_cc_name_tex)
+                YSB(nullptr) // without embedding into a box
             );
             rx(a_qsvt, -2*phis[count_angle], cs_unit, cs_zero, flag_inv);
         }
@@ -2971,9 +3113,14 @@ YQCP QCircuit::qsp_ham(
     qsp_qubits.push_back(a_qsp);
 
     // to save the state just before the QSP simulation:
-    string name_stop = "QSP-H <" + name_qsp_circuit + ">: t = " + to_string(0);
-    add_stop_gate(name_stop);
-
+    string name_stop;
+    if(flag_stop_gates_)
+    {
+        name_stop = "QSP-H <" + name_qsp_circuit + ">: t = " + to_string(0);
+        add_stop_gate(name_stop);
+        // cout << "QSP: add stop gate" << endl;
+    }
+        
     // QSP simulation with several intervals
     for(int it = 0; it < nt; it++)
     { 
@@ -2986,8 +3133,12 @@ YQCP QCircuit::qsp_ham(
         ); 
 
         // to save a state after the simulation of a time interval:
-        name_stop = "QSP-H <" + name_qsp_circuit + ">: t = " + to_string(it+1);
-        add_stop_gate(name_stop);
+        if(flag_stop_gates_)
+        {
+            name_stop = "QSP-H <" + name_qsp_circuit + ">: t = " + to_string(it+1);
+            add_stop_gate(name_stop);
+            // cout << "QSP: add stop gate" << endl;
+        }
     }
     timer.StopPrint();
     return get_the_circuit();
@@ -3099,6 +3250,47 @@ YQCP QCircuit::LCHS_QSP(
     return get_the_circuit();
 }
 
+
+
+YQCP QCircuit::DirDec_Y(
+        YCVQ phis_y_in,
+        YCVI ids_ctrl_in, 
+        YCI id_targ,
+        YCVI cs_unit, YCVI cs_zero,
+        YCB flag_inv
+){
+    YVIv ids_ctrl = vector<int>(ids_ctrl_in);
+    YVQv phis_y   = vector<qreal>(phis_y_in);
+    int nc = ids_ctrl.size();
+    int Nc = 1 << nc;
+    if(flag_inv)
+        std::reverse(phis_y.begin(), phis_y.end());
+    std::sort(ids_ctrl.begin(), ids_ctrl.end());
+    for(int i_int = 0; i_int < Nc; i_int++)
+    {
+        YVshv bs(nc);
+        YMATH::intToBinary(i_int, bs);
+        // cout << i_int << endl;
+        // YMIX::print(bs);
+
+        YVIv ids_unit = vector<int>(cs_unit);
+        YVIv ids_zero = vector<int>(cs_zero);
+        for(int ib = 0; ib < nc; ib++)
+        {
+            if(bs[ib] == 0)
+                ids_zero.push_back(ids_ctrl[nc - ib - 1]);
+            else
+                ids_unit.push_back(ids_ctrl[nc - ib - 1]);
+        }
+        // YMIX::print(ids_zero);
+        // YMIX::print(ids_unit);
+        // cout << endl;
+
+
+        ry(id_targ, phis_y[i_int], ids_unit, ids_zero, flag_inv);
+    }
+    return get_the_circuit();
+}
 
 
 

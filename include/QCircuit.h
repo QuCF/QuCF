@@ -30,7 +30,9 @@ class QCircuit{
         const std::map<std::string, qreal>& constants = std::map<std::string, qreal>(),
         YCB flag_circuit = false,
         YCB flag_tex = false,
-        YCB flag_layers = false
+        YCB flag_layers = false,
+        YCB flag_stop_gates = true,
+        YCB flag_repeat_insert = false
     );
 
     /**
@@ -268,6 +270,7 @@ class QCircuit{
     void read_structure_repeat(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv);
     void read_selector_power(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv=false);
     void read_structure_LCHS_QSP(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv=false);
+    void read_structure_dirdec(YISS istr, YCB flag_inv=false);
 
     inline void read_global_control(YISS istr)
     {
@@ -805,6 +808,22 @@ class QCircuit{
 
 
     /**
+     * Compute a profile by using multiple heavy controlled rotations Ry.
+     * @param phis_y is the vector with rotation angles for the gate Ry;
+     * @param ids_ctrl are the qubits controlling the rotations.
+     * @param id_targ is the qubit storing the resulting profile.
+    */
+    YQCP DirDec_Y(
+        YCVQ phis_y,
+        YCVI ids_ctrl, 
+        YCI id_targ,
+        YCVI cs_unit, YCVI cs_zero,
+        YCB flag_inv
+    );
+
+
+
+    /**
      * @brief Add a Stop gate to a quantum state at this point.
      * @param name is a name to identify this stop position.
      * @return YQCP 
@@ -856,6 +875,8 @@ class QCircuit{
         YVI n_qubits
     );
 
+    inline int get_N_gates(){ return gates_.size(); }
+
 private:
     qreal get_value_from_word(YCS word);
     void  qsvt_read_parameters(YCS filename, QSVT_pars& data);
@@ -887,7 +908,6 @@ private:
         YISS istr, YVI ids_target, YVI ids_target_e,
         YCB flag_sort = true, YCS word_start=std::string(), YCB flag_e = false
     );
-
 
 private:
     // if one addes a new property, do not forget to add it to the copy constructor.
@@ -966,6 +986,9 @@ private:
 
     // // Number of repeatitions for the "repeat" block:
     // std::vector<int> Ns_repeat_;
+
+    bool flag_stop_gates_;
+    bool flag_repeat_insert_;
 
 };
 

@@ -29,6 +29,8 @@ int main(int argc, char *argv[])
 
     id_arg = 1;
     string pname(argv[id_arg]); // project name
+    cout << "\n\n********************************************************" << endl;
+    cout << "********************************************************" << endl;
     cout << "Project name: "   << pname << endl;
 
     try

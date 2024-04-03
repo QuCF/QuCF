@@ -103,6 +103,16 @@ private:
     bool flag_output_gadget_;
 
     /**
+     * True: include stop gates into circuits.
+    */
+    bool flag_stop_gates_;
+
+    /**
+     * True: in the repeat gate, simply insert gates.
+    */
+    bool flag_repeat_insert_;
+
+    /**
      * Output amplitudes of all states entagled with the zero state of the following qubits.
     */
     std::vector<short>  qs_chosen_state_;

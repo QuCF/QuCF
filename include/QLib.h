@@ -256,10 +256,11 @@ namespace YMATH{
     /** Check if the variable \p x is zero.*/
     bool is_zero(YCQR x);
 
-    /** Convert an integer \p x to an array of bits \p binaryNum :
+    /** Convert the integer \p x to an array of bits \p binaryNum :
     * 2 -> {1, 0}; 
     * 6 -> {1, 1, 0} etc.
-    * @param[out] binaryNum resulting array of bits. THe array with a necessary size must have been initialized.
+    * @param[out] binaryNum resulting array of bits. 
+    * The array should be initialized with a necessary size in advance.
     */
     void intToBinary(int x, YVsh binaryNum);
 

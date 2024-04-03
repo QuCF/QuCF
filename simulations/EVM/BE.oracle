@@ -283,10 +283,10 @@ END_CIRCUIT_STRUCTURE
 
 
 CIRCUIT_STRUCTURE OH
-	// // *** submatrix FF ***
-	// with ocontrol 2 af 1 rf 1 do
-	// 	file circuit_OH
-	// end_with
+	// *** submatrix FF ***
+	with ocontrol 2 af 1 rf 1 do
+		file circuit_OH
+	end_with
 
 	// *** submatrix FP ***
 	with ocontrol 2 af 1 rf 1 do

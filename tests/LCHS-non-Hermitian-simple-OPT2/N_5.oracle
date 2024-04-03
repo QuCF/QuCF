@@ -54,8 +54,9 @@ CIRCUITS_DECLARATION
 END_CIRCUITS_DECLARATION
 
 
-MAIN_CIRCUIT   U        
+MAIN_CIRCUIT   U  
 	INPUT_STATE  0
+	// INPUT_STATE  rk 10
 END_MAIN_CIRCUIT
 
 
@@ -113,30 +114,25 @@ CIRCUIT_STRUCTURE U_BE_k
 END_CIRCUIT_STRUCTURE
 
 
-
-
-
 // --- QSP realization of the k-dependent part ---
 CIRCUIT_STRUCTURE U_QSP_k
 	gate QSVT qsp_k   a_qsp -1  U_BE_k 2 ae -1 rx -1 end_gate
-	// gate Y a_qsp 2 end_gate
-	// circuit U_BE_k 2 rx -1  ae -1 end_circuit
 END_CIRCUIT_STRUCTURE
 
 
 // --- One time step ---
 CIRCUIT_STRUCTURE U_t_step
-	// // Aa:
-	// gate QSVT qsp_a   a_qsp -1     U_BE_a    3          ae -1 ac -1 rx -1 end_gate
+	// Aa:
+	gate QSVT qsp_a   a_qsp -1     U_BE_a    3          ae -1 ac -1 rx -1 end_gate
 
-	// // (- kmax*Ah):
-	// gate QSVT qsp_kmax   a_qsp -1  U_BE_kmax 2          ae -1       rx -1 end_gate
+	// (- kmax*Ah):
+	gate QSVT qsp_kmax   a_qsp -1  U_BE_kmax 2          ae -1       rx -1 end_gate
 
 	// i_k * dk*Ah:
 	gate SelectorPower  rk -1      U_QSP_k   4 a_qsp -1 ae -1 ac -1 rx -1 end_gate
 
-	// // Aa:
-	// gate QSVT qsp_a   a_qsp -1     U_BE_a    3          ae -1 ac -1 rx -1 end_gate
+	// Aa:
+	gate QSVT qsp_a   a_qsp -1     U_BE_a    3          ae -1 ac -1 rx -1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
@@ -153,4 +149,5 @@ CIRCUIT_STRUCTURE   U
 
 	// inverse weights:
 	circuit Ow 3 rk -1 a_sin -1 a_qsvt_w -1  ocontrol 3 ac -1 ae -1 a_qsp -1 end_circuit
+	gate H rk -1 end_gate
 END_CIRCUIT_STRUCTURE

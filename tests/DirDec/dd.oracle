@@ -1,0 +1,107 @@
+// $qucf Ng ./ 
+
+CONSTANTS
+	nx  1
+	nk  4
+	ny  2
+END_CONSTANTS
+
+
+OPTIONS
+	sel_compute_output zero-ancillae // none, all, zero-ancillae
+	sel_print_output   zero-ancillae  // none, all, zero-ancillae
+	flag_circuit 0
+	flag_tex     1
+	tex_CL  6 
+	flag_matrix 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	U   3 ry <ny> 1 rk <nk> 1 rx <nx> 0 
+END_CIRCUITS_DECLARATION
+
+
+
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0  
+END_MAIN_CIRCUIT
+
+
+// --- LCU test ---
+CIRCUIT_STRUCTURE U
+	gate H   rk -1 end_gate
+	// gate H 2 rk -1 ry 1 end_gate
+	gate DirDec  ry 1 rk -1 LCHS_weights_sqrt 1 10. end_gate
+
+	gate DirDec  rx 1 rk -1 linear 2 -0.5 0.7 ocontrol ry -1 end_gate
+
+	igate DirDec ry 2 rk -1 LCHS_weights_sqrt 1 10. end_gate
+	// igate H 2 rk -1 ry 1 end_gate
+	igate H rk -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+// CONSTANTS
+// 	nx  6
+// 	ny  1
+// END_CONSTANTS
+
+
+// OPTIONS
+// 	sel_compute_output zero-ancillae // none, all, zero-ancillae
+// 	sel_print_output   none  // none, all, zero-ancillae
+// 	flag_circuit 0
+// 	flag_tex     1
+// 	tex_CL  6 
+// 	flag_matrix 0
+// END_OPTIONS
+
+
+// CIRCUITS_DECLARATION
+// 	U   2 ry <ny> 1 rx <nx> 0 
+// END_CIRCUITS_DECLARATION
+
+
+
+// MAIN_CIRCUIT   U       
+// 	INPUT_STATE  0  
+// END_MAIN_CIRCUIT
+
+
+// CIRCUIT_STRUCTURE U
+// 	gate H rx -1 end_gate
+// 	// gate DirDec ry 1 rx -1 linear 2 -0.5 0.7 end_gate
+// 	gate DirDec ry 1 rx -1 LCHS_weights_full 1 10. end_gate
+// 	// gate DirDec ry 1 rx -1 LCHS_weights_sqrt 1 10. end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
