@@ -1,0 +1,7 @@
+for NN in 5 10 15 20 25 30 35 40
+do
+    cp ./N_5.oracle ./"N_$NN.oracle"
+    sed -i "s/Nt 	5/Nt 	$NN/g"  ./"N_$NN.oracle"
+    $qucf N_$NN ./
+done
+

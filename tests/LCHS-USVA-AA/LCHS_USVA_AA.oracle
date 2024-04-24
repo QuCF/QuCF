@@ -1,0 +1,238 @@
+// $qucf LCHS_USVA_AA ./ 
+
+CONSTANTS
+	nk 	5
+	alpha_k0 	-1.000000000000e+00
+	alpha_k1 	1.032258064516e+00
+	N_AA        1
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  10 
+	flag_matrix 0
+	flag_stop_gates 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	U_be_weights 2                        a_sin 1 1 rk <nk> 0
+	Ow           3           a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
+	U            4  a_AA 1 1 a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U      
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+
+CIRCUIT_STRUCTURE U_be_weights
+	// gate H rk -1 end_gate // !!!!!!!!!!!!!
+	gate SIN a_sin 1 <alpha_k0> <alpha_k1> rk -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE Ow
+	gate H rk -1 end_gate
+    gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin 1 rk -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE U
+	circuit Ow -1 end_circuit
+
+	// gate QSVT  USVA  a_AA 1 Ow 3 a_qsvt_w 1 a_sin 1 rk -1 end_gate 
+
+	// circuit U_be_weights -1 end_circuit
+	// gate QSVT  USVA  a_AA 1 U_be_weights 2 a_sin 1 rk -1 end_gate 
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+// // -------------------------------------------------------------------
+// // --- OAA: version 3 (does not work) ---
+// // -------------------------------------------------------------------
+// CIRCUIT_STRUCTURE  Ow
+//     gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin 1 rk -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE   PREP
+// 	gate H a_AA 1 end_gate
+// 	gate H rk -1 ocontrol a_AA 1 end_gate
+// 	circuit Ow 3 rk -1 a_sin 1 a_qsvt_w 1 end_circuit
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE RA
+// 	// sign change of the state |1>
+// 	gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate 
+// 	gate Z a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate
+// 	gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate      
+// 	//
+// 	icircuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	// sign change of the state |1> again
+// 	gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate 
+// 	gate Z a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate 
+// 	gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate 
+// 	// 
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE U
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	gate repeat RA 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1  3  end_gate 
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+// // -------------------------------------------------------------------
+// // --- OAA: version 1 (does not work) ---
+// // -------------------------------------------------------------------
+// CIRCUIT_STRUCTURE   PREP
+// 	gate X a_AA 1 end_gate
+// 	circuit Ow 3 rk -1 a_sin 1 a_qsvt_w 1 end_circuit
+// 	gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE RA
+// 	// sign change of the state |1>)
+// 	gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate 
+// 	gate Z a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate
+// 	gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate      
+// 	//
+// 	icircuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	// sign change of the state |1> again
+// 	gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate 
+// 	gate Z a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate 
+// 	gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate 
+// 	// 
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE U
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	gate repeat RA 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1   <N_AA>  end_gate 
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE RA
+// 	// sign change of the state |1>)
+// 	gate Z a_AA 1 end_gate     
+// 	//
+// 	icircuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	// sign change of the state |1> again
+// 	gate Z a_AA 1 end_gate 
+// 	// 
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+// // -------------------------------------------------------------------
+// // --- OAA: version 2 (does not work) ---
+// // -------------------------------------------------------------------
+// CIRCUIT_STRUCTURE   PREP
+// 	// gate X a_AA 1 end_gate
+// 	circuit Ow 3 rk -1 a_sin 1 a_qsvt_w 1 end_circuit
+// 	// gate X a_AA 1 ocontrol 2 a_qsvt_w 1 a_sin 1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE RA
+// 	//
+// 	gate X a_qsvt_w 1 ocontrol a_sin 1 end_gate
+// 	gate Z a_qsvt_w 1 ocontrol a_sin 1 end_gate
+// 	gate X a_qsvt_w 1 ocontrol a_sin 1 end_gate     
+// 	//
+// 	icircuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	// 
+// 	gate X a_qsvt_w 1 ocontrol a_sin 1 end_gate
+// 	gate Z a_qsvt_w 1 ocontrol a_sin 1 end_gate
+// 	gate X a_qsvt_w 1 ocontrol a_sin 1 end_gate 
+// 	// 
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE U
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	gate repeat RA 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 <N_AA> end_gate 
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+// // -------------------------------------------------------------------
+// // --- Standard amplitude amplification ---
+// // -------------------------------------------------------------------
+// CIRCUIT_STRUCTURE RA
+// 	// sign change of the good state (state |1>)
+// 	gate  Z a_AA 1 end_gate     
+// 	//
+// 	icircuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	// sign change of the initial state (state |0>|0>|0>):
+// 	gate X a_AA 1 ocontrol 3 rk -1 a_sin -1 a_qsvt_w -1 end_gate
+// 	gate Z a_AA 1 ocontrol 3 rk -1 a_sin -1 a_qsvt_w -1 end_gate
+// 	gate X a_AA 1 ocontrol 3 rk -1 a_sin -1 a_qsvt_w -1 end_gate
+// 	// 
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE U
+// 	// circuit Ow -1 end_circuit
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	gate repeat RA 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 <N_AA> end_gate
+// 	gate X a_AA 1 end_gate // to save data in the zero state of the ancilla a_AA
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+// CIRCUIT_STRUCTURE RA
+// 	// sign change of the good state (state |1>)
+// 	gate  Z a_AA 1 end_gate     
+// 	//
+// 	icircuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// 	// sign change of the initial state (state |0>):
+// 	gate X a_AA 1 end_gate
+// 	gate Z a_AA 1 end_gate
+// 	gate X a_AA 1 end_gate
+// 	// 
+// 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
+// END_CIRCUIT_STRUCTURE
+
+ 
+
+
+
+
+
+
+
+
+
+
+

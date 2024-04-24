@@ -1,0 +1,10 @@
+
+
+$qucf N_2 ./
+for NN in 4 6 8 11 13 15 17
+do
+    cp ./N_2.oracle ./"N_$NN.oracle"
+    sed -i "s/Nt 	2/Nt 	$NN/g"  ./"N_$NN.oracle"
+    $qucf N_$NN ./
+done
+
