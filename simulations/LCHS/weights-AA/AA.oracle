@@ -1,18 +1,29 @@
-// $qucf weights_AA ./ 
+// $qucf AA ./ 
 
 CONSTANTS
-    // kmax = 10
+    // // kmax = 10, nk = 5
 	// nk 	5       
 	// alpha_k0 	-1.000000000000e+00
 	// alpha_k1 	1.032258064516e+00
 	// N_AA        2
 
-	// kmax = 40.968
-	nk 	7
-	alpha_k0 	-1.000000000000e+00
-	alpha_k1 	1.007874015748e+00
-	N_AA        3
+	// // kmax = 10, nk = 7
+	// nk 	7
+	// alpha_k0 	-1.000000000000e+00
+	// alpha_k1 	1.007874015748e+00
+	// N_AA        2
 
+	// kmax = 20.079, nk = 8
+	nk 	8
+	alpha_k0 	-1.000000000000e+00
+	alpha_k1 	1.003921568627e+00
+	N_AA        2
+
+	// // kmax = 40.968
+	// nk 	7
+	// alpha_k0 	-1.000000000000e+00
+	// alpha_k1 	1.007874015748e+00
+	// N_AA        3
 
 	// kmax = 100
 	// nk 	8

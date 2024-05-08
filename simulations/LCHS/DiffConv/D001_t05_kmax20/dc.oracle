@@ -6,29 +6,30 @@ CONSTANTS
 
 	// --- BE: Ba ---
 	ay_Ba_l  1.570796326795e+00
-	az_Ba_l  -3.141592653590e+00
+	az_Ba_l  3.141592653590e+00
 	ay_Ba_r  1.570796326795e+00
-	az_Ba_r  3.141592653590e+00
+	az_Ba_r  -3.141592653590e+00
 
 	// --- BE: Bm ---
-	ay_Bm_l  2.300523983022e+00
-	ay_Bm_c  5.052225889839e+00
-	ay_Bm_r  2.730454791267e+00
+	ay_Bm_l  3.982661324158e+00
+	ay_Bm_c  1.230959417341e+00
+	ay_Bm_r  3.552730515912e+00
 
 	// --- Angles for the weight-oracle ---
-	nk 	9
+	nk 	8
 	alpha_k0 	-1.000000000000e+00
-	alpha_k1 	1.001956947162e+00
-
-	// --- Time steps ---
-	Nt	 2
+	alpha_k1 	1.003921568627e+00
 
 	// --- Initialization ---
-	alpha_init_0 	-6.283185307180e+00
-	alpha_init_1 	6.382918407294e+00
+	alpha_init_0 	-5.000000000000e-01
+	alpha_init_1 	5.079365079365e-01
 
 	// --- For the amplification ---
-	N_AA        2
+	N_AA_init     2
+	N_AA_w        2
+
+	// --- Time steps ---
+	Nt	 10
 END_CONSTANTS
 
 
@@ -45,21 +46,25 @@ END_OPTIONS
 
 
 CIRCUITS_DECLARATION
-	INIT 2 a_init 1 1 rx <nx> 0
-	// --- 
-	U_be_weights 2                                   a_sin 1 1 rk <nk> 0
-	Ow           3                      a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
-	PREP         4             a_AA 1 1 a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
-	RA           4             a_AA 1 1 a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
-	// --- for block-encoding LCHS matrices ---
-	U_BE_a       3                                                                 ae 1 1 ax 2 1 rx <nx> 0
-	U_BE_kmax    3                                                                 ae 1 1 ax 2 1 rx <nx> 0 
-	U_BE_k       3                                                                 ae 1 1 ax 2 1 rx <nx> 0 
-	// --- 
-	U_QSP_k      4                                                       a_qsp 2 1 ae 1 1 ax 2 1 rx <nx> 0
-	U_t_step     5                                             rk <nk> 1 a_qsp 2 1 ae 1 1 ax 2 1 rx <nx> 0
 	// ---
-	U            9  a_init 1 1 a_AA 1 1 a_qsvt_w 1 1 a_sin 1 1 rk <nk> 1 a_qsp 2 1 ae 1 1 ax 2 1 rx <nx> 0
+	INIT_SIN   2                               a_init 1 1 rx <nx> 0
+	INIT_GAUSS 3               a_qsvt_init 1 1 a_init 1 1 rx <nx> 0
+	PREP_init  4 a_AA_init 1 1 a_qsvt_init 1 1 a_init 1 1 rx <nx> 0
+	RA_init    4 a_AA_init 1 1 a_qsvt_init 1 1 a_init 1 1 rx <nx> 0
+	// --- 
+	U_be_weights 2                                                      a_sin 1 1 rk <nk> 0
+	Ow           3                                         a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
+	PREP         4                                a_AA 1 1 a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
+	RA           4                                a_AA 1 1 a_qsvt_w 1 1 a_sin 1 1 rk <nk> 0 
+	// --- for block-encoding LCHS matrices ---
+	U_BE_a       3                                                                                    ae 1 1 ax 2 1 rx <nx> 0
+	U_BE_kmax    3                                                                                    ae 1 1 ax 2 1 rx <nx> 0 
+	U_BE_k       3                                                                                    ae 1 1 ax 2 1 rx <nx> 0 
+	// --- 
+	U_QSP_k      4                                                                          a_qsp 2 1 ae 1 1 ax 2 1 rx <nx> 0
+	U_t_step     5                                                                rk <nk> 1 a_qsp 2 1 ae 1 1 ax 2 1 rx <nx> 0
+	// ---
+	U 11 a_AA_init 1 1 a_qsvt_init 1 1 a_init 1 1 a_AA 1 1 a_qsvt_w 1 1 a_sin 1 1 rk <nk> 1 a_qsp 2 1 ae 1 1 ax 2 1 rx <nx> 0
 END_CIRCUITS_DECLARATION
 
 
@@ -70,12 +75,39 @@ END_MAIN_CIRCUIT
 
 // -----------------------------------------------------------------------
 // --- Initialization ---
-CIRCUIT_STRUCTURE INIT
-	gate H rx -1 end_gate
+CIRCUIT_STRUCTURE INIT_SIN
+	// gate H rx -1 end_gate
 	gate SIN a_init 1 <alpha_init_0> <alpha_init_1> rx -1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
+CIRCUIT_STRUCTURE INIT_GAUSS
+	gate H rx -1 end_gate
+	gate QSVT init  a_qsvt_init 1  INIT_SIN 2 a_init 1 rx -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREP_init
+	circuit INIT_GAUSS 3 rx -1 a_init -1 a_qsvt_init -1 end_circuit
+	gate X a_AA_init 1 ocontrol 2 a_init -1 a_qsvt_init -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RA_init
+	// sign change of the good state (state |1>)
+	gate  Z a_AA_init 1 end_gate     
+	//
+	icircuit PREP_init 4 rx -1 a_init -1 a_qsvt_init -1 a_AA_init 1 end_circuit
+	// sign change of the initial state (state |0>|0>|0>):
+	gate X a_AA_init 1 ocontrol 3 rx -1 a_init -1 a_qsvt_init -1  end_gate
+	gate Z a_AA_init 1 ocontrol 3 rx -1 a_init -1 a_qsvt_init -1  end_gate
+	gate X a_AA_init 1 ocontrol 3 rx -1 a_init -1 a_qsvt_init -1  end_gate
+	// 
+	circuit PREP_init 4 rx -1 a_init -1 a_qsvt_init -1 a_AA_init 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
 // --- Sin BE oracle for the oracle Ow ---
 CIRCUIT_STRUCTURE U_be_weights
 	gate SIN a_sin 1 <alpha_k0> <alpha_k1> rk -1 end_gate
@@ -85,7 +117,7 @@ END_CIRCUIT_STRUCTURE
 // --- Oracle Ow ---
 CIRCUIT_STRUCTURE  Ow
 	gate H rk -1 end_gate
-    gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin 1 rk -1 end_gate
+ gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin 1 rk -1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
@@ -188,19 +220,26 @@ END_CIRCUIT_STRUCTURE
 
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
-	// initialization:
-	circuit INIT 2 rx -1 a_init -1 end_circuit
+	// // --- OPTION 1: Initialization w/o AA---
+	// circuit INIT_GAUSS 3 rx -1 a_init -1 a_qsvt_init -1 end_circuit
 
-	// create a sum:
-	circuit   PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1              ocontrol a_init 1 end_circuit
-	gate repeat RA 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 <N_AA>       ocontrol a_init 1 end_gate
+	// --- OPTION 2: Initialization with AA ---
+	circuit PREP_init   4 rx -1 a_init -1 a_qsvt_init -1 a_AA_init -1 end_circuit
+	gate repeat RA_init 4 rx -1 a_init -1 a_qsvt_init -1 a_AA_init -1 <N_AA_init> end_gate
+	gate Z a_AA_init 1 end_gate  // to adjust the sign
+	gate X a_AA_init 1 end_gate  // to entangle the result with the zero state of the ancilla
+	
+	// --- LCHS ---
+	with ocontrol 3 a_init -1 a_qsvt_init -1 a_AA_init 1 do
+		// create a sum:
+		circuit   PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1              end_circuit
+		gate repeat RA 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 <N_AA_w>     end_gate
 
-	// Selector:
-	gate repeat U_t_step 5 rk -1 a_qsp -1 ae -1 ax -1 rx -1  <Nt> ocontrol a_init 1 end_gate
+		// Selector:
+		gate repeat U_t_step 5 rk -1 a_qsp -1 ae -1 ax -1 rx -1  <Nt> end_gate
 
-	// inverse weights:
-	igate repeat RA 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 <N_AA>      ocontrol a_init 1 end_gate
-	icircuit   PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1             ocontrol a_init 1 end_circuit
+		// inverse weights:
+		igate repeat RA 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 <N_AA_w>    end_gate
+		icircuit   PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1             end_circuit
+	end_with
 END_CIRCUIT_STRUCTURE
-
-
