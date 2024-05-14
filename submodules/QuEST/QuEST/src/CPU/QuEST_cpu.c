@@ -44,6 +44,7 @@ void copyStateToGPU(Qureg qureg) {
 }
 
 void copyStateFromGPU(Qureg qureg) {
+    printf("\n****************** HERE ****************************\n");
 }
 
 void statevec_copySubstateToGPU(Qureg qureg, long long int startInd, long long int numAmps) {
