@@ -1,6 +1,5 @@
 #!/bin/bash
 #SBATCH -N 1
-##SBATCH -G 1
 ##SBATCH -C gpu&hbm80g
 #SBATCH -C gpu
 #SBATCH -n 1
@@ -10,9 +9,8 @@
 #SBATCH --mail-user=novikau1@llnl.gov
 #SBATCH --account=mp2_g
 #SBATCH --qos=shared
-##SBATCH --qos=regular
-#SBATCH -t 00:10:00
-#SBATCH -J CDE_t01_kmax10
+#SBATCH -t 01:00:00
+#SBATCH -J CDE_t01_kmax20
 #
 ## To run
 export SLURM_CPU_BIND="cores"
