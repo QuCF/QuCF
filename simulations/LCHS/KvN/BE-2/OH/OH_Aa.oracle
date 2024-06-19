@@ -1,0 +1,24 @@
+
+
+	// // --- Starting Comparator ---
+	// gate X               rx <int_rx_half_m> control   rx[-1]         end_gate
+	// gate ComparatorFixed rx <int_rx_half_m> <ib0>   2 rx[-1] acom[0] end_gate
+	// gate X               rx <int_rx_half_m> control   rx[-1]         end_gate
+
+
+	 
+	// --- right diagonal ---
+	circuit LCU_Ra  2 rx <int_rx_half_m> ae -1  ocontrol 2 rx[-1] ax[0]  end_circuit
+	// circuit LCU_Ra  2 rx -1 ae -1  end_circuit
+
+
+
+
+	// // --- Closing Comparator (for zeroing the ancilla "acom") ---
+	// gate X               rx <int_rx_half_m>  control   rx[-1]         end_gate
+	// gate ComparatorFixed rx <int_rx_half_m> <ib0>    2 rx[-1] acom[0] end_gate
+	// gate X               rx <int_rx_half_m>  control   rx[-1]         end_gate
+
+
+
+

@@ -1,25 +1,69 @@
-// $qucf gauss ./ 
+// $qucf jumps ./ 
 
 CONSTANTS
-	nx 		6       
-	alpha_0 	-1.00000000000000e+00
-	alpha 		1.01587301587302e+00
+	nx 	4
+	int_half_m  7
+
+	alpha_0 	-1.000000000000e+00
+	alpha_1 	1.066666666667e+00
+
+	alpha_02 	-5.000000000000e-01
+	alpha_12 	8.000000000000e-01
+
+	int_comp_1    6
 END_CONSTANTS
 
 
 OPTIONS
     sel_compute_output all
-	sel_print_output   none  // none, all, zero-ancillae
+	sel_print_output   all  // none, all, zero-ancillae
 	flag_circuit 0 
 	flag_tex     0
 	tex_CL  6 
 END_OPTIONS
 
 
+// CIRCUITS_DECLARATION
+// 	U_BE      2  		    		    a_be 1 1 j <nx> 0  // block-encoding oracle;
+// 	U_BE2     2  		    		    a_be 1 1 j <nx> 0  // block-encoding oracle;
+// 	U         4   a_qsvt 1 1 a_comp 2 1 a_be 1 1 j <nx> 0  // Gauss QSVT circuit;
+// END_CIRCUITS_DECLARATION
+
+
+// MAIN_CIRCUIT   
+//     U        
+// 	INPUT_STATE  0
+// END_MAIN_CIRCUIT
+
+
+// // --- Block-Encoding oracle ---
+// CIRCUIT_STRUCTURE U_BE
+// 	gate SIN a_be 1 <alpha_0> <alpha_1> j -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+// CIRCUIT_STRUCTURE U_BE2
+// 	gate SIN a_be 1 <alpha_02> <alpha_12> j -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+// // REMARK: Comparator inverts a_comp[-1] for j < int_comp
+// CIRCUIT_STRUCTURE   U
+// 	gate H j -1 end_gate
+
+// 	// --- two Gaussians ---
+// 	gate ComparatorFixed j -1 <int_comp_1> a_comp[0 1] end_gate
+// 	gate QSVT  gauss  a_qsvt 1  U_BE2 2 a_be 1 j -1  control a_comp[1] end_gate
+// 	gate QSVT  gauss  a_qsvt 1  U_BE  2 a_be 1 j -1 ocontrol a_comp[1] end_gate
+// 	gate ComparatorFixed j -1 <int_comp_1> a_comp[0 1] end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
 CIRCUITS_DECLARATION
-	INIT     1  				     j <nx> 0
-	U_BE     2  		    a_be 1 1 j <nx> 0  // block-encoding oracle;
-	U        3   a_qsvt 1 1 a_be 1 1 j <nx> 0  // Gauss QSVT circuit;
+	U  2  a_comp 1 1 j <nx> 0  // Gauss QSVT circuit;
 END_CIRCUITS_DECLARATION
 
 
@@ -29,22 +73,14 @@ MAIN_CIRCUIT
 END_MAIN_CIRCUIT
 
 
-// --- Initialization ---
-CIRCUIT_STRUCTURE INIT
-	gate H   j -1 end_gate
-END_CIRCUIT_STRUCTURE
-
-
-// --- Block-Encoding oracle ---
-CIRCUIT_STRUCTURE U_BE
-	gate SIN a_be 1 <alpha_0> <alpha> j -1 end_gate
-END_CIRCUIT_STRUCTURE
-
-
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
-	circuit INIT   j -1          end_circuit
-    gate QSVT  gauss  a_qsvt 1  U_BE 2 a_be 1 j -1 end_gate
+	gate H j -1 end_gate
+
+	// --- Test comparator with invertion ---
+	gate X j <int_half_m> control j[-1] end_gate
+	gate ComparatorFixed j <int_half_m> <int_comp_1>  2 j[-1] a_comp[0] end_gate
+	gate X j <int_half_m> control j[-1] end_gate
 END_CIRCUIT_STRUCTURE
 
 

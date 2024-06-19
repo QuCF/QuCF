@@ -1,0 +1,89 @@
+// $qucf UD ./ 
+
+CONSTANTS
+	// For each other nx, the parameters below should be modified.
+	nx  7
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   all  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+	flag_matrix 1
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	OF_kmax    2 ax 3 1 rx <nx> 0 
+	U_BE_kmax  2 ax 3 1 rx <nx> 0   
+	U_BE_a     2 ax 3 1 rx <nx> 0
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U_BE_kmax    
+// MAIN_CIRCUIT   U_BE_a 
+	INPUT_STATE  rx  0
+END_MAIN_CIRCUIT 
+
+
+CIRCUIT_STRUCTURE OF_kmax
+	// --- bulk points ---
+	gate H ax[0] end_gate 
+	gate H ax[2] control ax[0] end_gate
+
+	// --- ir = 0 ---
+	gate H ax[2] control ax[0] ocontrol rx -1 end_gate
+	gate H ax[1]               ocontrol rx -1 end_gate
+	gate X ax[2] control ax 3  ocontrol rx -1 end_gate
+
+	// --- ir = 2 and 3 ---
+	gate H ax[1] control 2 ax 5 rx[1] ocontrol rx -4 end_gate
+	gate X ax[0] control 1 ax 6 control_e rx 2 end_gate
+
+	// --- ir = Nx-4 and ir = Nx-3 ---
+	gate H ax[1] control 2 ax[0] rx -4 ocontrol 2 ax[2] rx[1] end_gate
+	gate X ax[0] control ax[1] ocontrol ax[2] ocontrol_e rx 2 end_gate
+
+	// --- ir = Nx - 1 ---
+	gate H ax[2] control 2 ax[0] rx -1 end_gate
+	gate X ax[2] control rx -1 end_gate
+	gate H ax[1] control rx -1 end_gate
+	gate X ax[2] control rx -1 ocontrol ax 3 end_gate 
+END_CIRCUIT_STRUCTURE 
+
+
+
+
+CIRCUIT_STRUCTURE U_BE_kmax
+	// --- OF forward ---
+	circuit OF_kmax -1 end_circuit
+	
+
+	// --- OM ---
+	file add_oracles/OM
+
+	// --- OF backward ---
+	icircuit OF_kmax -1 end_circuit
+END_CIRCUIT_STRUCTURE    
+
+
+
+// CIRCUIT_STRUCTURE U_BE_a
+// 	// --- OF forward ---
+// 	file add_oracles/BE_a_OF_forward
+
+// 	// --- OM ---
+// 	file add_oracles/BE_a_OM
+
+// 	// --- OF backward ---
+// 	file add_oracles/BE_a_OF_backward
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
