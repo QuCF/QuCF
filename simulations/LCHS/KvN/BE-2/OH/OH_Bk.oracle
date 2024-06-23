@@ -1,0 +1,35 @@
+// --- Main diagonal ---
+with ocontrol ax -1 do
+	gate QSVT  D  ae[1]  Usin_R  2 ae[0] rx -1 end_gate
+	gate Rz ae[1] <mpi> end_gate
+end_with
+
+
+// --- First Comparator ---
+gate X               rx <int_rx_half_m> control rx[-1]          end_gate
+gate ComparatorFixed rx <int_rx_half_m> <ib0>  2 rx[-1] acom[0] end_gate
+gate X               rx <int_rx_half_m> control rx[-1]          end_gate
+
+// --- Modifications of the main diagonal---
+with ocontrol ax -1 do
+	gate Rz ae[1] <pi2> ocontrol acom[0] end_gate
+end_with
+
+
+// --- Second Comparator (to zero the ancilla 'acom') ---
+gate X               rx <int_rx_half_m> control rx[-1]          end_gate
+gate ComparatorFixed rx <int_rx_half_m> <ib0>  2 rx[-1] acom[0] end_gate
+gate X               rx <int_rx_half_m> control rx[-1]          end_gate
+
+
+
+// // --- Correction of the main diagonal ---
+// with ocontrol ax -1 do
+// end_with
+
+
+
+
+
+
+

@@ -4,7 +4,7 @@ CONSTANTS
 	nx   7
 	nxm   6
 	int_rx_half_m   63
-	ib0   43
+	ib0   32
 	pi    3.141592653590
 	mpi  -3.141592653590
 	pi2   6.283185307180
@@ -27,18 +27,18 @@ END_OPTIONS
 
 CIRCUITS_DECLARATION
 	// --- sin gates ---
-	Usin_R 2 asin 1 1 rx <nxm> 0
+	Usin_R 2 asin 1 1 rx <nx> 0
 
 	// --- LCU oracles ---
-	LCU_Ra     2 ae 3 1                 rx <nxm> 0
+	LCU_Ra  2 ae 3 1                 rx <nx> 0
 
 	// --- BE oracles ---
-	U_BE_kmax  4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
-	U_BE_a     4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
+	U_BE_k  4 ae 2 1 acom 1 1 ax 2 1 rx <nx> 0
+	U_BE_a  4 ae 2 1 acom 1 1 ax 2 1 rx <nx> 0
 END_CIRCUITS_DECLARATION
 
    
-MAIN_CIRCUIT   U_BE_a  
+MAIN_CIRCUIT   U_BE_k 
 	INPUT_STATE  rx  0
 END_MAIN_CIRCUIT
 
@@ -50,38 +50,36 @@ CIRCUIT_STRUCTURE Usin_R
 END_CIRCUIT_STRUCTURE
 
 
-
-// -----------------------------------------------------------------------
-// --- LCU-gates ---
-CIRCUIT_STRUCTURE LCU_Ra
-	gate Rz  ae[1] <pi> end_gate
-	gate QSVT  Ra_even  ae[1]  Usin_R 2 ae[0] rx -1 end_gate  // real
-	// gate Rz  ae[1] <pi2> end_gate
-	// gate QSVT  Ra_odd  ae[1]  Usin_R 2 ae[0] rx -1 end_gate  // imag
-
-	// gate H ae[2] end_gate
-	// gate Rz  ae[1] <mpi>                             ocontrol ae[2] end_gate
-	// gate QSVT  Ra_even  ae[1]  Usin_R 2 ae[0] rx -1  ocontrol ae[2] end_gate
-	// gate QSVT  Ra_odd   ae[1]  Usin_R 2 ae[0] rx -1   control ae[2] end_gate
-	// gate H ae[2] end_gate
-END_CIRCUIT_STRUCTURE
-
-
-
 // ---------------------------------------------------------------
-// --- BE: matrix Bmax ---
-CIRCUIT_STRUCTURE U_BE_kmax
+// --- BE: matrix Bk ---
+CIRCUIT_STRUCTURE U_BE_k
 	// --- OF forward ---
 	file UD/add_oracles/BE_k_OF_forward
 
 	// --- OH ---
-	file OH/OH_Bmax
+	file OH/OH_Bk
 
 	// --- OM ---
 	file UD/add_oracles/BE_k_OM
 
 	// --- OF backward ---
 	file UD/add_oracles/BE_k_OF_backward
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
+// --- LCU-gates ---
+CIRCUIT_STRUCTURE LCU_Ra
+	// gate Rz  ae[1] <pi> end_gate
+	// gate QSVT  Ra_even  ae[1]  Usin_R 2 ae[0] rx -1 end_gate  // real
+	// // gate Rz  ae[1] <pi2> end_gate
+	// // gate QSVT  Ra_odd  ae[1]  Usin_R 2 ae[0] rx -1 end_gate  // imag
+
+	// // gate H ae[2] end_gate
+	// // gate Rz  ae[1] <mpi>                             ocontrol ae[2] end_gate
+	// // gate QSVT  Ra_even  ae[1]  Usin_R 2 ae[0] rx -1  ocontrol ae[2] end_gate
+	// // gate QSVT  Ra_odd   ae[1]  Usin_R 2 ae[0] rx -1   control ae[2] end_gate
+	// // gate H ae[2] end_gate
 END_CIRCUIT_STRUCTURE
 
 
