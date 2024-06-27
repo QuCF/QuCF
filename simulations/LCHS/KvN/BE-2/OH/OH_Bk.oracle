@@ -1,20 +1,39 @@
 // --- Main diagonal ---
 with ocontrol ax -1 do
-	gate QSVT  D  ae[1]  Usin_R  2 ae[0] rx -1 end_gate
-	gate Rz ae[1] <mpi> end_gate
+	gate QSVT  D  ae[1]  Usin_D  2 ae[0] rx -1 end_gate
 end_with
 
+// --- Right and left diagonals ---
+with control ax[1] do
+	gate QSVT Rk  ae[1]  Usin_R  2 ae[0] rx -1  control ax[0] end_gate
+	gate QSVT Rk  ae[1]  Usin_L  2 ae[0] rx -1 ocontrol ax[0] end_gate
+
+	// --- Shift the indices in "rx" by 1 for the LEFT diagonal ---
+	gate decrementor rx -1 ocontrol ax[0] end_gate
+
+	// --- Set strict zeroes ---
+	gate SubtractorFixed rx -1 <ib0_R> acom[0] end_gate
+	gate X acom[0] ocontrol rx -1 end_gate
+	gate AdderFixed      rx -1 <ib0_R> acom[0] end_gate
+
+	gate SubtractorFixed rx -1 <ib1_R> acom[0] end_gate
+	gate X acom[0] ocontrol rx -1 end_gate
+	gate AdderFixed      rx -1 <ib1_R> acom[0] end_gate
+
+	gate SubtractorFixed rx -1 <ib2_R> acom[0] end_gate
+	gate X acom[0] ocontrol rx -1 end_gate
+	gate AdderFixed      rx -1 <ib2_R> acom[0] end_gate
+end_with
+
+gate Rz ae[1] <mpi> end_gate
 
 // --- First Comparator ---
 gate X               rx <int_rx_half_m> control rx[-1]          end_gate
 gate ComparatorFixed rx <int_rx_half_m> <ib0>  2 rx[-1] acom[0] end_gate
 gate X               rx <int_rx_half_m> control rx[-1]          end_gate
 
-// --- Modifications of the main diagonal---
-with ocontrol ax -1 do
-	gate Rz ae[1] <pi2> ocontrol acom[0] end_gate
-end_with
-
+// --- Modifications of the main and right diagonals---
+gate Rz ae[1] <pi2> ocontrol acom[0] end_gate
 
 // --- Second Comparator (to zero the ancilla 'acom') ---
 gate X               rx <int_rx_half_m> control rx[-1]          end_gate
@@ -22,10 +41,14 @@ gate ComparatorFixed rx <int_rx_half_m> <ib0>  2 rx[-1] acom[0] end_gate
 gate X               rx <int_rx_half_m> control rx[-1]          end_gate
 
 
+// --- Return the indices in "rx" back to the original values for the LEFT diagonal ---
+igate decrementor rx -1 control_e ax 2 end_gate 
 
-// // --- Correction of the main diagonal ---
-// with ocontrol ax -1 do
-// end_with
+
+
+// --- Correcting boundaries ---
+gate Rc ae[1] <az_corr_Rk> <ay_corr_Rk> control   ax -1 ocontrol rx -1 end_gate
+gate Rc ae[1] <az_corr_Lk> <ay_corr_Lk> control_e ax 2   control rx -1 end_gate
 
 
 

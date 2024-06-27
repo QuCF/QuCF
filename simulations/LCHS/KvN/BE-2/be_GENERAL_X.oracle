@@ -20,11 +20,11 @@ CONSTANTS
 	alpha_x0_left 	-1.015748031496e+00
 	alpha_x1_left 	1.015810031620e+00
 
-	// --- the integer determining fixed points ---
-	ib0     31
-	ib0_R   30
+	// --- integers determining fixed points for various diagonals---
+	ib0   32
+	ib0_R   31
 	ib1_R   63
-	ib2_R   96
+	ib2_R   95
 
 	// --- Correcting angles ---
 	ay_corr_Ra 	1.583946984165e-01

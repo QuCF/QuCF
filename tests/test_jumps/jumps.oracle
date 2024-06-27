@@ -1,14 +1,20 @@
 // $qucf jumps ./ 
 
 CONSTANTS
-	nx 	6
-	alpha_0 	-1.000000000000e+00
-	alpha_1 	1.015873015873e+00
-	alpha_02 	-5.000000000000e-01
-	alpha_12 	7.619047619048e-01
-	int_half_m 	31
+	nx 	4
 
-	int_comp_1    16
+	alpha_0 	-1.000000000000e+00
+	alpha_1 	1.066666666667e+00
+
+	alpha_02 	-5.000000000000e-01
+	alpha_12 	8.000000000000e-01
+
+	int_half_m 	7
+
+	// integer
+	int_comp_1    6 
+	int_comp_2    5 // int_comp_1 - 1
+	int_comp_3    10 // 2^nx - int_comp_1
 END_CONSTANTS
 
 
@@ -85,6 +91,62 @@ END_OPTIONS
 
 
 
+// CIRCUITS_DECLARATION
+// 	U_BE      2  		    		a_be 1 1 j <nx> 0  // block-encoding oracle;
+// 	U         3   a_comp 1 1 ae 2 1          j <nx> 0  // Gauss QSVT circuit;
+// END_CIRCUITS_DECLARATION
+
+
+// MAIN_CIRCUIT   
+//     U        
+// 	INPUT_STATE  0
+// END_MAIN_CIRCUIT
+
+
+// // --- Block-Encoding oracle ---
+// CIRCUIT_STRUCTURE U_BE
+// 	gate SIN a_be 1 <alpha_0> <alpha_1> j -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// // REMARK: Comparator inverts a_comp[-1] for j < int_comp
+// CIRCUIT_STRUCTURE   U
+// 	gate H j -1 end_gate
+
+// 	// --- Initial Gaussian ---
+// 	gate QSVT  gauss  ae[1]  U_BE  2 ae[0] j -1 end_gate
+
+	
+// 	// --- First Comparator ---
+// 	// gate ComparatorFixed j -1 <int_comp_1>  a_comp -1 end_gate
+// 	gate X j <int_half_m> control j[-1] end_gate
+// 	gate ComparatorFixed j <int_half_m> <int_comp_1>  2 j[-1] a_comp[0] end_gate
+// 	gate X j <int_half_m> control j[-1] end_gate
+
+// 	// --- Modifications ---
+// 	gate X ae[1] ocontrol 2 a_comp 1 j[-1] end_gate
+// 	gate Z ae[1] ocontrol 2 a_comp 1 j[-1] end_gate
+// 	gate X ae[1] ocontrol 2 a_comp 1 j[-1] end_gate
+
+// 	gate X ae[1] ocontrol a_comp 1 control j[-1] end_gate
+// 	gate Z ae[1] ocontrol a_comp 1 control j[-1] end_gate
+// 	gate X ae[1] ocontrol a_comp 1 control j[-1] end_gate
+
+// 	gate X ae[1] control 2 a_comp 1 j[-1] end_gate
+// 	gate Z ae[1] control 2 a_comp 1 j[-1] end_gate
+// 	gate X ae[1] control 2 a_comp 1 j[-1] end_gate
+
+// 	// --- Second Comparator ---
+// 	gate X j <int_half_m> control j[-1] end_gate
+// 	gate ComparatorFixed j <int_half_m> <int_comp_1>  2 j[-1] a_comp[0] end_gate
+// 	gate X j <int_half_m> control j[-1] end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
 CIRCUITS_DECLARATION
 	U_BE      2  		    		a_be 1 1 j <nx> 0  // block-encoding oracle;
 	U         3   a_comp 1 1 ae 2 1          j <nx> 0  // Gauss QSVT circuit;
@@ -106,36 +168,34 @@ END_CIRCUIT_STRUCTURE
 // REMARK: Comparator inverts a_comp[-1] for j < int_comp
 CIRCUIT_STRUCTURE   U
 	gate H j -1 end_gate
+	gate QSVT  gauss  ae[1]  U_BE  2 ae[0] j -1 ocontrol a_comp[0] end_gate
 
-	// --- Initial Gaussian ---
-	gate QSVT  gauss  ae[1]  U_BE  2 ae[0] j -1 end_gate
 
-	
+	// --- Set strict zeroes ---
+	gate SubtractorFixed j -1 <int_comp_2> a_comp[0] end_gate
+	gate X a_comp[0] ocontrol j -1 end_gate
+	gate AdderFixed      j -1 <int_comp_2> a_comp[0] end_gate
+
+	gate SubtractorFixed j -1 <int_comp_3> a_comp[0] end_gate
+	gate X a_comp[0] ocontrol j -1 end_gate
+	gate AdderFixed      j -1 <int_comp_3> a_comp[0] end_gate
+
+
 	// --- First Comparator ---
-	// gate ComparatorFixed j -1 <int_comp_1>  a_comp -1 end_gate
 	gate X j <int_half_m> control j[-1] end_gate
 	gate ComparatorFixed j <int_half_m> <int_comp_1>  2 j[-1] a_comp[0] end_gate
 	gate X j <int_half_m> control j[-1] end_gate
 
 	// --- Modifications ---
-	gate X ae[1] ocontrol 2 a_comp 1 j[-1] end_gate
-	gate Z ae[1] ocontrol 2 a_comp 1 j[-1] end_gate
-	gate X ae[1] ocontrol 2 a_comp 1 j[-1] end_gate
-
-	gate X ae[1] ocontrol a_comp 1 control j[-1] end_gate
-	gate Z ae[1] ocontrol a_comp 1 control j[-1] end_gate
-	gate X ae[1] ocontrol a_comp 1 control j[-1] end_gate
-
-	gate X ae[1] control 2 a_comp 1 j[-1] end_gate
-	gate Z ae[1] control 2 a_comp 1 j[-1] end_gate
-	gate X ae[1] control 2 a_comp 1 j[-1] end_gate
+	gate X ae[1] ocontrol a_comp[0] end_gate
+	gate Z ae[1] ocontrol a_comp[0] end_gate
+	gate X ae[1] ocontrol a_comp[0] end_gate
 
 	// --- Second Comparator ---
 	gate X j <int_half_m> control j[-1] end_gate
 	gate ComparatorFixed j <int_half_m> <int_comp_1>  2 j[-1] a_comp[0] end_gate
 	gate X j <int_half_m> control j[-1] end_gate
 END_CIRCUIT_STRUCTURE
-
 
 
 

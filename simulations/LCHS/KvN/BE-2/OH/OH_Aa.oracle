@@ -1,24 +1,31 @@
 
 
-	// // --- Starting Comparator ---
-	// gate X               rx <int_rx_half_m> control   rx[-1]         end_gate
-	// gate ComparatorFixed rx <int_rx_half_m> <ib0>   2 rx[-1] acom[0] end_gate
-	// gate X               rx <int_rx_half_m> control   rx[-1]         end_gate
+// --- Right diagonal ---
+with ocontrol ax[0] do
+	gate QSVT  Ra  ae[1]  Usin_R  2 ae[0] rx -1 end_gate
+end_with
 
+// --- Left diagonal ---
+with control ax[0] do
+	gate QSVT  Ra  ae[1]  Usin_L  2 ae[0] rx -1 end_gate
+	gate Rz ae[1] <pi2> end_gate
+end_with
 
-	 
-	// --- right diagonal ---
-	circuit LCU_Ra  2 rx <int_rx_half_m> ae -1  ocontrol 2 rx[-1] ax[0]  end_circuit
-	// circuit LCU_Ra  2 rx -1 ae -1  end_circuit
+// --- Shift the indices in "rx" by 1 for the LEFT diagonal ---
+gate decrementor rx -1 control ax[0] end_gate
 
+// --- Set zeroes at several indices ---
+gate SubtractorFixed rx -1 <ib0_R> acom[0] end_gate
+gate X acom[0] ocontrol rx -1 end_gate
+gate AdderFixed      rx -1 <ib0_R> acom[0] end_gate
 
+gate SubtractorFixed rx -1 <ib2_R> acom[0] end_gate
+gate X acom[0] ocontrol rx -1 end_gate
+gate AdderFixed      rx -1 <ib2_R> acom[0] end_gate
 
+// --- Return the indices in "rx" back to the original values for the LEFT diagonal ---
+igate decrementor rx -1 control ax[0] end_gate 
 
-	// // --- Closing Comparator (for zeroing the ancilla "acom") ---
-	// gate X               rx <int_rx_half_m>  control   rx[-1]         end_gate
-	// gate ComparatorFixed rx <int_rx_half_m> <ib0>    2 rx[-1] acom[0] end_gate
-	// gate X               rx <int_rx_half_m>  control   rx[-1]         end_gate
-
-
-
-
+// --- Correcting boundaries ---
+gate Rc ae[1] <az_corr_Ra> <ay_corr_Ra> ocontrol ax[0] ocontrol rx -1 end_gate
+gate Rc ae[1] <az_corr_La> <ay_corr_La>  control ax[0]  control rx -1 end_gate

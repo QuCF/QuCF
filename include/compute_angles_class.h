@@ -201,6 +201,9 @@ public:
         for(uint32_t ii = 0; ii < dd_.Nc; ii++)
             x_[ii] = cos((2*ii + 1)*M_PI / (4 * dd_.Nc));
 
+        // for(uint32_t ii = 0; ii < dd_.Nc; ii++)
+        //     x_[ii] = sin(x_[ii]);
+
         // initialize sought-after angles:
         phis_ = std::shared_ptr<double[]>(new double[dd_.Nc]);
         for(uint32_t ii = 0; ii < dd_.Nc; ii++)
