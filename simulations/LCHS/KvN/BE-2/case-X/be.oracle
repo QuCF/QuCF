@@ -20,11 +20,11 @@ CONSTANTS
 	alpha_x0_left 	-1.015748031496e+00
 	alpha_x1_left 	1.015810031620e+00
 
-	// --- the integer determining fixed points ---
-	ib0     31
-	ib0_R   30
+	// --- integers determining fixed points for various diagonals---
+	ib0   32
+	ib0_R   31
 	ib1_R   63
-	ib2_R   96
+	ib2_R   95
 
 	// --- Correcting angles ---
 	ay_corr_Ra 	1.583946984165e-01
@@ -80,11 +80,11 @@ CIRCUIT_STRUCTURE Usin_D
 END_CIRCUIT_STRUCTURE
 
 CIRCUIT_STRUCTURE Usin_R
-	gate SIN asin 1 <alpha_x0_right> <alpha_x1_right> rx -1 end_gate
+	gate SIN asin 1 <alpha_x0_right> <alpha_x1_right> rx -1 end_gate  
 END_CIRCUIT_STRUCTURE
 
 CIRCUIT_STRUCTURE Usin_L
-	gate SIN asin 1 <alpha_x0_left> <alpha_x1_left> rx -1 end_gate
+	gate SIN asin 1 <alpha_x0_left> <alpha_x1_left> rx -1 end_gate 
 END_CIRCUIT_STRUCTURE
 
 
@@ -92,16 +92,16 @@ END_CIRCUIT_STRUCTURE
 // --- BE: matrix Bk ---
 CIRCUIT_STRUCTURE U_BE_k
 	// --- OF forward ---
-	file UD/add_oracles/BE_k_OF_forward
+	file ../UD/add_oracles/BE_k_OF_forward
 
 	// --- OH ---
-	file OH/OH_Bk
+	file ../OH/OH_Bk
 
 	// --- OM ---
-	file UD/add_oracles/BE_k_OM
+	file ../UD/add_oracles/BE_k_OM
 
 	// --- OF backward ---
-	file UD/add_oracles/BE_k_OF_backward
+	file ../UD/add_oracles/BE_k_OF_backward
 END_CIRCUIT_STRUCTURE
 
 
@@ -109,16 +109,16 @@ END_CIRCUIT_STRUCTURE
 // --- BE: matrix Ba ---
 CIRCUIT_STRUCTURE U_BE_a
 	// --- OF forward ---
-	file UD/add_oracles/BE_a_OF_forward
+	file ../UD/add_oracles/BE_a_OF_forward
 
 	// --- OH ---
-	file OH/OH_Aa
+	file ../OH/OH_Aa
 
 	// --- OM ---
-	file UD/add_oracles/BE_a_OM
+	file ../UD/add_oracles/BE_a_OM
 
 	// --- OF backward ---
-	file UD/add_oracles/BE_a_OF_backward
+	file ../UD/add_oracles/BE_a_OF_backward
 END_CIRCUIT_STRUCTURE
 
 

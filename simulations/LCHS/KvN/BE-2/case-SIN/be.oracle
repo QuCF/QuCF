@@ -20,24 +20,24 @@ CONSTANTS
 	alpha_x0_left 	-1.015748031496e+00
 	alpha_x1_left 	1.015810031620e+00
 
-	// --- integers determining fixed points for various diagonals---
-	ib0   32
-	ib0_R   31
+	// --- the integer determining fixed points ---
+	ib0     31
+	ib0_R   30
 	ib1_R   63
-	ib2_R   95
+	ib2_R   96
 
 	// --- Correcting angles ---
-	ay_corr_Ra 	1.583946984165e-01
-	az_corr_Ra 	-8.725285585164e-01
+	ay_corr_Ra 	9.985543930904e+01
+	az_corr_Ra 	1.013421353510e+02
 
-	ay_corr_La 	1.583946984169e-01
-	az_corr_La 	-8.725285585167e-01
+	ay_corr_La 	9.985543930904e+01
+	az_corr_La 	1.013421353510e+02
 
-	ay_corr_Rk 	1.203048325347e-01
-	az_corr_Rk 	-8.739134046910e-01
+	ay_corr_Rk 	4.103105107687e+00
+	az_corr_Rk 	2.271269622836e+00
 
-	ay_corr_Lk 	1.203048325349e-01
-	az_corr_Lk 	-8.739134046913e-01
+	ay_corr_Lk 	2.180080199492e+00
+	az_corr_Lk 	4.011915684343e+00
 END_CONSTANTS
 
 
@@ -57,16 +57,15 @@ CIRCUITS_DECLARATION
 	Usin_R 2 asin 1 1 rx <nx> 0
 	Usin_L 2 asin 1 1 rx <nx> 0
 
-	// --- LCU oracles ---
-	LCU_Ra  2 ae 3 1                 rx <nx> 0
-
 	// --- BE oracles ---
-	U_BE_k  4 ae 2 1 acom 1 1 ax 2 1 rx <nx> 0
-	U_BE_a  4 ae 2 1 acom 1 1 ax 2 1 rx <nx> 0
+	U_BE_a     4 ae 2 1 acom 1 1 ax 2 1 rx <nx> 0
+	U_BE_k     4 ae 2 1 acom 1 1 ax 2 1 rx <nx> 0
+	U_BE_kmax  4 ae 2 1 acom 1 1 ax 2 1 rx <nx> 0
 END_CIRCUITS_DECLARATION
 
 
-MAIN_CIRCUIT   U_BE_k 
+MAIN_CIRCUIT U_BE_kmax
+// MAIN_CIRCUIT   U_BE_k 
 // MAIN_CIRCUIT   U_BE_a 
 	INPUT_STATE  rx   0
 	INPUT_STATE  rx  -1
@@ -80,28 +79,11 @@ CIRCUIT_STRUCTURE Usin_D
 END_CIRCUIT_STRUCTURE
 
 CIRCUIT_STRUCTURE Usin_R
-	gate SIN asin 1 <alpha_x0_right> <alpha_x1_right> rx -1 end_gate
+	gate SIN asin 1 <alpha_x0_right> <alpha_x1_right> rx -1 end_gate 
 END_CIRCUIT_STRUCTURE
 
 CIRCUIT_STRUCTURE Usin_L
-	gate SIN asin 1 <alpha_x0_left> <alpha_x1_left> rx -1 end_gate
-END_CIRCUIT_STRUCTURE
-
-
-// ---------------------------------------------------------------
-// --- BE: matrix Bk ---
-CIRCUIT_STRUCTURE U_BE_k
-	// --- OF forward ---
-	file UD/add_oracles/BE_k_OF_forward
-
-	// --- OH ---
-	file OH/OH_Bk
-
-	// --- OM ---
-	file UD/add_oracles/BE_k_OM
-
-	// --- OF backward ---
-	file UD/add_oracles/BE_k_OF_backward
+	gate SIN asin 1 <alpha_x0_left> <alpha_x1_left> rx -1 end_gate 
 END_CIRCUIT_STRUCTURE
 
 
@@ -109,17 +91,49 @@ END_CIRCUIT_STRUCTURE
 // --- BE: matrix Ba ---
 CIRCUIT_STRUCTURE U_BE_a
 	// --- OF forward ---
-	file UD/add_oracles/BE_a_OF_forward
+	file ../UD/add_oracles/BE_a_OF_forward
 
 	// --- OH ---
-	file OH/OH_Aa
+	file ../OH/OH_Aa
 
 	// --- OM ---
-	file UD/add_oracles/BE_a_OM
+	file ../UD/add_oracles/BE_a_OM
 
 	// --- OF backward ---
-	file UD/add_oracles/BE_a_OF_backward
+	file ../UD/add_oracles/BE_a_OF_backward
 END_CIRCUIT_STRUCTURE
+
+
+// ---------------------------------------------------------------
+// --- BE: matrix Bk ---
+CIRCUIT_STRUCTURE U_BE_k
+	// --- OF forward ---
+	file ../UD/add_oracles/BE_k_OF_forward
+
+	// --- OH ---
+	file ../OH/OH_Bk
+
+	// --- OM ---
+	file ../UD/add_oracles/BE_k_OM
+
+	// --- OF backward ---
+	file ../UD/add_oracles/BE_k_OF_backward
+END_CIRCUIT_STRUCTURE
+
+
+// ---------------------------------------------------------------
+// --- BE: matrix Bkmax ---
+CIRCUIT_STRUCTURE U_BE_kmax
+	circuit U_BE_k -1 end_circuit
+
+	// --- correct the sign ---
+	gate X ae[1] end_gate
+	gate Z ae[1] end_gate
+	gate X ae[1] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
 
 
 

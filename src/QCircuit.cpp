@@ -2257,9 +2257,11 @@ YQCP QCircuit::subtractor_fixed(
 ){
     auto ts_total = YVIv(ids_target);
     ts_total.push_back(id_carry);        
-    x(ts_total, cs_unit, cs_zero);
-    adder_fixed(ids_target, id_carry, int_sub, cs_unit, cs_zero, flag_inv);
-    x(ts_total, cs_unit, cs_zero);
+    // x(ts_total, cs_unit, cs_zero);
+    // adder_fixed(ids_target, id_carry, int_sub, cs_unit, cs_zero, flag_inv);
+    // x(ts_total, cs_unit, cs_zero);
+
+    adder_fixed(ids_target, id_carry, int_sub, cs_unit, cs_zero, !flag_inv);
     return get_the_circuit();
 }
 
