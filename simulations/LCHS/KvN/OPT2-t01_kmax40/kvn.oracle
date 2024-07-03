@@ -48,7 +48,7 @@ CONSTANTS
 	N_AA_w        2
 
 	// --- Time steps ---
-	Nt 10
+	Nt 1   // !!!
 END_CONSTANTS
 
 
