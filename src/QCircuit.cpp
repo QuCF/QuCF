@@ -456,12 +456,22 @@ void QCircuit::copy_gates_from(
 
     if(flag_inv)
     {
-        auto gates_c = vector<YSG>(c->gates_);
-        reverse(gates_c.begin(), gates_c.end());
-        for(auto& gate: gates_c)
-        {
-            auto gate_copy = gate->copy_gate();
+        // auto gates_c = vector<YSG>(c->gates_);
+        // reverse(gates_c.begin(), gates_c.end());
+        // for(auto& gate: gates_c)
+        // {
+        //     auto gate_copy = gate->copy_gate();
 
+        //     gate_copy->h_adjoint();
+        //     gate_copy->correct_qubits(regs_new);
+        //     gate_copy->add_control_qubits(cs_unit, cs_zero);
+        //     if(flag_layers_) oo_layers_->add_gate(gate_copy);
+        //     gates_.push_back(gate_copy);
+        // }
+
+        for(auto gate_it = c->gates_.rbegin(); gate_it != c->gates_.rend(); ++gate_it)
+        {
+            auto gate_copy = (*gate_it)->copy_gate();
             gate_copy->h_adjoint();
             gate_copy->correct_qubits(regs_new);
             gate_copy->add_control_qubits(cs_unit, cs_zero);
@@ -507,11 +517,13 @@ void QCircuit::insert_gates_from(const QCircuit* c, YCCB box)
         gates_.push_back(oo);
     }
 
+
     for(const auto& gate: c->gates_)
     {
         // !!! here, do not add the inserted gates to the layers !!!
         gates_.push_back(gate);
     }
+
         
     if(box)
     {

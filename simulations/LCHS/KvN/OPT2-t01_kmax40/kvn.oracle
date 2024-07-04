@@ -59,7 +59,7 @@ OPTIONS
 	flag_tex     0
 	tex_CL      6 
 	flag_matrix 0
-	flag_stop_gates    0
+	flag_stop_gates    0 
 END_OPTIONS
 
 
