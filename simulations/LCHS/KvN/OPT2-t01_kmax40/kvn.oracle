@@ -48,7 +48,7 @@ CONSTANTS
 	N_AA_w        2
 
 	// --- Time steps ---
-	Nt 1   // !!!
+	Nt 10   // !!!
 END_CONSTANTS
 
 
@@ -74,7 +74,7 @@ CIRCUITS_DECLARATION
 	U_BE_k     4 ae 2 1 acom 1 1 ax 2 1 rx <nx> 0
 	U_BE_kmax  4 ae 2 1 acom 1 1 ax 2 1 rx <nx> 0
 
-	// --- 
+	// --- for computing LCHS weights ---
 	U_be_weights 2                       a_sin_k 1 1 rk <nk> 0
 	Ow           3          a_qsvt_w 1 1 a_sin_k 1 1 rk <nk> 0 
 	PREP         4 a_AA 1 1 a_qsvt_w 1 1 a_sin_k 1 1 rk <nk> 0
@@ -91,6 +91,8 @@ MAIN_CIRCUIT   U
 	INPUT_STATE  rx 0
 END_MAIN_CIRCUIT
 
+
+// -----------------------------------------------------------------------
 // --- For LCHS weights ---
 CIRCUIT_STRUCTURE U_be_weights
 	gate SIN a_sin_k 1 <alpha_k0> <alpha_k1> rk -1 end_gate
@@ -215,7 +217,7 @@ CIRCUIT_STRUCTURE   U
 	gate H rx -1 end_gate
 
 	// weights:
-	circuit   PREP 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  end_circuit
+	circuit   PREP 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1           end_circuit
 	gate repeat RA 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  <N_AA_w> end_gate
 
 	// Selector:
@@ -223,7 +225,7 @@ CIRCUIT_STRUCTURE   U
 
 	// inverse weights:
 	igate repeat RA 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  <N_AA_w> end_gate
-	icircuit   PREP 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  end_circuit
+	icircuit   PREP 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1           end_circuit
 END_CIRCUIT_STRUCTURE
 
 
