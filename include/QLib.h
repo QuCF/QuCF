@@ -700,7 +700,7 @@ namespace YMIX{
         const bool& flag_only_file=false, 
         const bool& flag_new_line=true
     );
-    void print_log_flush(YCS line, YCI n_indent=0, YCB flag_file = true);
+    void print_log_flush(YCS line, YCI n_indent=0, YCB flag_file = true, YCB flag_flux = true);
     void print_log_err(YCS line);
 
     /** Timer*/
@@ -712,10 +712,10 @@ namespace YMIX{
             void Stop(){
                 end_ = std::chrono::steady_clock::now();
             }
-            void StartPrint(YCS mess, YCI n_indent=0, YCB flag_file = true)
+            void StartPrint(YCS mess, YCI n_indent=0, YCB flag_file = true, YCB flag_flux = true)
             {
                 Start();
-                print_log_flush(mess, n_indent, flag_file);
+                print_log_flush(mess, n_indent, flag_file, flag_flux);
             }
             void StopPrint(YCI n_indent=0, YCB flag_file = true)
             {

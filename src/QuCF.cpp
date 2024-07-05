@@ -353,13 +353,14 @@ void QuCF__::read_circuit_structure(YISS istr, YSQ* oc_ext)
     string word;
     string curr_circuit_name;
     int n_regs, n_qubits_in_reg;
+    YMIX::YTimer timer;
 
     // choose the circuit according to its name:
     YSQ oc;
     if(oc_ext == nullptr)
     {
         istr >> word;
-        YMIX::print_log("\n\n----> Reading structure of the circuit " + word, 0, false);
+        YMIX::print_log("----> Reading structure of the circuit " + word, 0, false);
         if(ocs_.find(word) == ocs_.end()) 
         {
             YMIX::print_log(
@@ -375,6 +376,7 @@ void QuCF__::read_circuit_structure(YISS istr, YSQ* oc_ext)
     {
         oc = *oc_ext;
     }  
+    timer.StartPrint("reading...", 0, true, false);
 
     // --- gates in the circuit ---
     while(istr >> word)
@@ -411,6 +413,8 @@ void QuCF__::read_circuit_structure(YISS istr, YSQ* oc_ext)
         // if(YMIX::compare_strings(word, "repeat"))
         //     oc->remove_repeat_block();
     }
+    timer.StopPrint();
+    YMIX::print_log("--------------------------------------------", 0, false);
 }
 
 

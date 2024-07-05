@@ -2549,38 +2549,58 @@ YQCP QCircuit::repeat(
     YCVI cs_unit, YCVI cs_zero,
     YCB flag_inv
 ){
+    YMIX::YTimer timer;
+    timer.StartPrint("Creating the gate Repeat... ");
     if(flag_repeat_insert_)
     {
-        for(int i_mult = 0; i_mult < N_mult; i_mult++)
-            insert_gates_from(oc_U_in.get());
+        if(flag_inv)
+        {
+            auto oc_U = make_shared<QCircuit>(oc_U_in);
+            oc_U->h_adjoint();
+            for(int i_mult = 0; i_mult < N_mult; i_mult++)
+                insert_gates_from(oc_U.get());
+        }
+        else
+        {
+            for(int i_mult = 0; i_mult < N_mult; i_mult++)
+                insert_gates_from(oc_U_in.get());
+        }
     }
     else
     {
-        auto oc_U = make_shared<QCircuit>(oc_U_in);
-        auto oc_repeat = make_shared<QCircuit>("CG", env_, path_to_output_, nq_);
-        oc_repeat->add_register("r", nq_);
-
-        auto nq_U = oc_U->get_n_qubits();
+        auto nq_U = oc_U_in->get_n_qubits();
         if(nq_U != ids_U_target.size())
         {
             throw string("Error in repeat: the indicated number of target qubits for the oracle\n") +
                 string("does not equal the number of qubits that the oracle requires.");
         }
 
-        // --- Calls to the operator oc_U ---
-        for(int i_mult = 0; i_mult < N_mult; i_mult++)
-            oc_repeat->copy_gates_from(oc_U, ids_U_target);
+        // auto oc_U = make_shared<QCircuit>(oc_U_in);
+        // auto oc_repeat = make_shared<QCircuit>("CG", env_, path_to_output_, nq_);
+        // oc_repeat->add_register("r", nq_);
+        // for(int i_mult = 0; i_mult < N_mult; i_mult++)
+        //     oc_repeat->copy_gates_from(oc_U, ids_U_target);
 
-        // --- Transfer the gates to the main circuit ---
-        auto all_qubits = YMATH::get_range(0, nq_);
-        copy_gates_from(
-            oc_repeat,
-            all_qubits,
-            YSB(nullptr), 
-            cs_unit, cs_zero,
-            flag_inv        
-        ); 
+        // // --- Transfer the gates to the main circuit ---
+        // auto all_qubits = YMATH::get_range(0, nq_);
+        // copy_gates_from(
+        //     oc_repeat,
+        //     all_qubits,
+        //     YSB(nullptr), 
+        //     cs_unit, cs_zero,
+        //     flag_inv        
+        // ); 
+
+        for(int i_mult = 0; i_mult < N_mult; i_mult++)
+            copy_gates_from(
+                oc_U_in,
+                ids_U_target,
+                YSB(nullptr), 
+                cs_unit, cs_zero,
+                flag_inv        
+            ); 
     }
+    timer.StopPrint();
     return get_the_circuit();
 }
 

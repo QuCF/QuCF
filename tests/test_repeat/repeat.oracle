@@ -1,0 +1,68 @@
+// $qucf repeat ./ 
+
+CONSTANTS
+	nx 	4
+
+	alpha_0 	-1.000000000000e+00
+	alpha_1 	1.066666666667e+00
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   all  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+	flag_repeat_insert 1
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	U_BE      2  		    		a_be 1 1 j <nx> 0  // block-encoding oracle;
+	U_GAUSS   3   a_comp 1 1 ae 2 1          j <nx> 0  // Gauss QSVT circuit;
+	U         3   a_comp 1 1 ae 2 1          j <nx> 0  // Gauss QSVT circuit;
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   
+    U        
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+CIRCUIT_STRUCTURE U_BE
+	gate SIN a_be 1 <alpha_0> <alpha_1> j -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   U_GAUSS
+	gate QSVT  gauss  ae[1]  U_BE  2 ae[0] j -1 ocontrol a_comp[0] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   U
+	// gate H j -1 end_gate
+	// circuit U_GAUSS -1 end_circuit
+	gate repeat U_GAUSS 3 j -1 a_comp 1 ae -1     400  end_gate
+	igate repeat U_GAUSS 3 j -1 a_comp 1 ae -1     400  end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

@@ -570,7 +570,7 @@ void YMIX::print_log(
         if(flag_new_line) cout << "" << endl;
     }
 }
-void YMIX::print_log_flush(YCS line, YCI n_indent, YCB flag_file)
+void YMIX::print_log_flush(YCS line, YCI n_indent, YCB flag_file, YCB flag_flux)
 {
     string line_print = line;
     if(n_indent>0)
@@ -583,9 +583,15 @@ void YMIX::print_log_flush(YCS line, YCI n_indent, YCB flag_file)
     if(flag_file)
     {
         YMIX::LogFile cf;
-        cf   << line_print << flush;   
+        if(flag_flux)
+            cf << line_print << flush;
+        else
+            cf << line_print << endl;   
     }
-    cout << line_print << flush;
+    if(flag_flux)
+        cout << line_print << flush;
+    else
+        cout << line_print << endl;
 }
 void YMIX::print_log_err(YCS line)
 {
