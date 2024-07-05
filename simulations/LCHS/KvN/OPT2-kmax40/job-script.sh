@@ -12,7 +12,7 @@
 #SBATCH --qos=regular
 ##SBATCH --mem=64G
 #SBATCH -t 24:00:00
-#SBATCH -J t01_kmax40
+#SBATCH -J t01_cop
 #
 ## To run
 export SLURM_CPU_BIND="cores"
