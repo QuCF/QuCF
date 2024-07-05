@@ -96,7 +96,7 @@ class QCircuit{
      */
     inline void add_control_qubits(YCVI cs_unit, YCVI cs_zero = {})
     {
-        for(auto& gate: c->gates_)
+        for(auto& gate: gates_)
         {
             gate->add_control_qubits(cs_unit, cs_zero);
         }

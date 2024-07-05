@@ -3093,7 +3093,7 @@ YQCP QCircuit::qsp_ham(
 
     // N_angles = 3; // for testing;
 
-    timer.StartPrint("Creating the QSP circuit... ");
+    timer.StartPrint("Creating the QSP circuit (OPT1)... ");
 
     // --- separate BE ancillae and input qubits ---
     auto qs_be = YVIv(qs_be_in);
@@ -3209,9 +3209,7 @@ YQCP QCircuit::qsp_ham_opt2(
     auto n_be_anc = BE->get_na();
     auto all_qubits = YMATH::get_range(0, nq_);
 
-    // N_angles = 3; // for testing;
-
-    timer.StartPrint("Creating the QSP circuit... ");
+    timer.StartPrint("Creating the QSP circuit (OPT2)... ");
 
     // --- separate BE ancillae and input qubits ---
     auto qs_be = YVIv(qs_be_in);
@@ -3238,7 +3236,7 @@ YQCP QCircuit::qsp_ham_opt2(
     // add control qubits
     auto ctrl_0_ow = YVIv(cs_zero);
     ctrl_0_ow.push_back(a_qsp);
-    oW->add_control_qubits(cs_unit, ctrl_0_ow)
+    oW->add_control_qubits(cs_unit, ctrl_0_ow);
 
     auto ctrl_1_owi = YVIv(cs_unit);
     ctrl_1_owi.push_back(a_qsp);
@@ -3261,23 +3259,23 @@ YQCP QCircuit::qsp_ham_opt2(
             h(a_qsp, cs_unit, cs_zero)->h(a_qu, cs_unit, cs_zero);
             aa = phis[N_angles-1];
             rz(a_qsp, -aa, cs_unit, cs_zero);
-            for(unsigned count_angle = int((N_angles-1)/2)-1; count_angle >= 0; --count_angle)
+            for(int count_angle = int((N_angles-1)/2)-1; count_angle >= 0; --count_angle)
             {
                 aa = phis[2*count_angle+1];
-                rz(a_qsp, aa, cs_unit, cs_zero)
+                rz(a_qsp, -aa, cs_unit, cs_zero);
                 h(a_qsp, cs_unit, cs_zero);
                 phase(a_qsp, -M_PI_2, cs_unit, cs_zero);
-                insert_gates_from(oW);
+                insert_gates_from(oW.get());
                 h(a_qsp, cs_unit, cs_zero);
-                rz(a_qsp, -aa, cs_unit, cs_zero);
+                rz(a_qsp, aa, cs_unit, cs_zero);
 
                 aa = phis[2*count_angle];
-                rz(a_qsp, aa, cs_unit, cs_zero);
+                rz(a_qsp, -aa, cs_unit, cs_zero);
                 h(a_qsp, cs_unit, cs_zero);
                 phase_zero(a_qsp, M_PI_2, cs_unit, cs_zero);
-                insert_gates_from(oWi);
+                insert_gates_from(oWi.get());
                 h(a_qsp, cs_unit, cs_zero);
-                rz(a_qsp, -aa, cs_unit, cs_zero);
+                rz(a_qsp, aa, cs_unit, cs_zero);
             }
             h(a_qsp, cs_unit, cs_zero)->h(a_qu, cs_unit, cs_zero);
         }
@@ -3289,15 +3287,15 @@ YQCP QCircuit::qsp_ham_opt2(
                 aa = phis[2*count_angle];
                 rz(a_qsp, -aa, cs_unit, cs_zero);
                 h(a_qsp, cs_unit, cs_zero);
-                insert_gates_from(oW);
+                insert_gates_from(oW.get());
                 phase_zero(a_qsp, -M_PI_2, cs_unit, cs_zero);
                 h(a_qsp, cs_unit, cs_zero);
                 rz(a_qsp, aa, cs_unit, cs_zero);
 
                 aa = phis[2*count_angle+1];
-                rz(a_qsp, -aa, cs_unit, cs_zero)
+                rz(a_qsp, -aa, cs_unit, cs_zero);
                 h(a_qsp, cs_unit, cs_zero);
-                insert_gates_from(oWi);
+                insert_gates_from(oWi.get());
                 phase(a_qsp, M_PI_2, cs_unit, cs_zero);
                 h(a_qsp, cs_unit, cs_zero);
                 rz(a_qsp, aa, cs_unit, cs_zero);

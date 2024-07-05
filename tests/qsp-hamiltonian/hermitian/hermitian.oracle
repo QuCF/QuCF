@@ -40,6 +40,8 @@ OPTIONS
 	flag_circuit 0 
 	flag_tex     1
 	tex_CL  6 
+
+	flag_output_qsp    1
 END_OPTIONS
 
 
@@ -110,6 +112,7 @@ CIRCUIT_STRUCTURE   U
 
 	circuit INIT 1 rs 1 end_circuit
 	gate QSVT hamiltonian 2 a_qsp 1 a_qu 1  U_BE 2 a_be 3 rs 1 end_gate
+	// igate QSVT hamiltonian 2 a_qsp 1 a_qu 1  U_BE 2 a_be 3 rs 1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
