@@ -10,6 +10,7 @@
 #SBATCH --account=mp2_g
 ##SBATCH --qos=shared
 #SBATCH --qos=regular
+##SBATCH --mem=64G
 #SBATCH -t 24:00:00
 #SBATCH -J t01_kmax40
 #
