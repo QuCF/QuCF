@@ -88,6 +88,22 @@ class QCircuit{
      */
     void h_adjoint();
 
+
+    /**
+     * @brief Add control qubits to the circuit.
+     * @param[in] cs_unit 1-control nodes to add.
+     * @param[in] cs_zero 0-control nodes to add.
+     */
+    inline void add_control_qubits(YCVI cs_unit, YCVI cs_zero = {})
+    {
+        for(auto& gate: c->gates_)
+        {
+            gate->add_control_qubits(cs_unit, cs_zero);
+        }
+    }
+
+
+
     inline Qureg get_qureg(){return c_;}
 
     /**
@@ -766,6 +782,17 @@ class QCircuit{
      * @param flag_inv if True, invert the circuit
     */
     YQCP qsp_ham(
+        YCS name_qsp_cricuit,
+        YCVQ phis,
+        YCI nt,
+        YCI a_qsp,
+        YCI a_qu, 
+        YCVI qs_be, 
+        const std::shared_ptr<const QCircuit> BE,
+        YCVI cs_unit = {}, YCVI cs_zero = {}, 
+        YCB flag_inv = false
+    );
+    YQCP qsp_ham_opt2(
         YCS name_qsp_cricuit,
         YCVQ phis,
         YCI nt,

@@ -1682,7 +1682,17 @@ void QCircuit::read_structure_gate_qsvt(
             // cout << "a-qu: "  << ids_a_qsvt[0] << endl;
             // cout << "be[0]: " << ids_be[0] << endl;
             if(YMIX::compare_strings(data.type, "QSP-ham")){
-                qsp_ham(
+                // qsp_ham(
+                //     name_circuit,
+                //     data.angles_phis_arbitrary, 
+                //     data.n_repeat,
+                //     ids_a_qsvt[1], ids_a_qsvt[0], 
+                //     ids_be, 
+                //     oc_be, 
+                //     ids_unit, ids_zero, 
+                //     flag_inv
+                // );
+                qsp_ham_opt2(
                     name_circuit,
                     data.angles_phis_arbitrary, 
                     data.n_repeat,
@@ -3177,6 +3187,137 @@ YQCP QCircuit::qsp_ham(
     timer.StopPrint();
     return get_the_circuit();
 }
+
+
+
+YQCP QCircuit::qsp_ham_opt2(
+        YCS name_qsp_circuit,
+        YCVQ angles_qsp,
+        YCI nt,
+        YCI a_qsp,
+        YCI a_qu, 
+        YCVI qs_be_in, 
+        const std::shared_ptr<const QCircuit> BE,
+        YCVI cs_unit, 
+        YCVI cs_zero, 
+        YCB flag_inv
+){
+    YMIX::YTimer timer;
+    auto phis = YVQv(angles_qsp);
+    auto N_angles = phis.size();
+    auto n_be     = BE->get_n_qubits();
+    auto n_be_anc = BE->get_na();
+    auto all_qubits = YMATH::get_range(0, nq_);
+
+    // N_angles = 3; // for testing;
+
+    timer.StartPrint("Creating the QSP circuit... ");
+
+    // --- separate BE ancillae and input qubits ---
+    auto qs_be = YVIv(qs_be_in);
+    YVIv be_input(qs_be.begin(),                 qs_be.begin() + n_be - n_be_anc);
+    YVIv be_anc(qs_be.begin() + n_be - n_be_anc, qs_be.end()                    );
+
+    // --- qubitization oracle W ---
+    auto oW = make_shared<QCircuit>("W", env_, path_to_output_, nq_);
+
+    // block-encoding oracles:
+    oW->copy_gates_from(BE, qs_be, YSB(nullptr), YVIv{},     YVIv{a_qu});
+    oW->copy_gates_from(BE, qs_be, YSB(nullptr), YVIv{a_qu}, YVIv{}, true);
+
+    // reflector:
+    oW->h(a_qu);
+    oW->phase_zero(a_qu, M_PI, YVIv{}, be_anc);
+    oW->phase_zero(a_qu, M_PI);
+    oW->h(a_qu);
+
+    // inverse oW
+    auto oWi = make_shared<QCircuit>(oW);
+    oWi->h_adjoint();
+
+    // add control qubits
+    auto ctrl_0_ow = YVIv(cs_zero);
+    ctrl_0_ow.push_back(a_qsp);
+    oW->add_control_qubits(cs_unit, ctrl_0_ow)
+
+    auto ctrl_1_owi = YVIv(cs_unit);
+    ctrl_1_owi.push_back(a_qsp);
+    oWi->add_control_qubits(ctrl_1_owi, cs_zero);
+
+    // to save the state just before the QSP simulation:
+    string name_stop;
+    if(flag_stop_gates_)
+    {
+        name_stop = "QSP-H <" + name_qsp_circuit + ">: t = " + to_string(0);
+        add_stop_gate(name_stop);
+    }
+        
+    // QSP simulation with several intervals
+    qreal aa; 
+    for(int it = 0; it < nt; it++)
+    { 
+        if(flag_inv)
+        {
+            h(a_qsp, cs_unit, cs_zero)->h(a_qu, cs_unit, cs_zero);
+            aa = phis[N_angles-1];
+            rz(a_qsp, -aa, cs_unit, cs_zero);
+            for(unsigned count_angle = int((N_angles-1)/2)-1; count_angle >= 0; --count_angle)
+            {
+                aa = phis[2*count_angle+1];
+                rz(a_qsp, aa, cs_unit, cs_zero)
+                h(a_qsp, cs_unit, cs_zero);
+                phase(a_qsp, -M_PI_2, cs_unit, cs_zero);
+                insert_gates_from(oW);
+                h(a_qsp, cs_unit, cs_zero);
+                rz(a_qsp, -aa, cs_unit, cs_zero);
+
+                aa = phis[2*count_angle];
+                rz(a_qsp, aa, cs_unit, cs_zero);
+                h(a_qsp, cs_unit, cs_zero);
+                phase_zero(a_qsp, M_PI_2, cs_unit, cs_zero);
+                insert_gates_from(oWi);
+                h(a_qsp, cs_unit, cs_zero);
+                rz(a_qsp, -aa, cs_unit, cs_zero);
+            }
+            h(a_qsp, cs_unit, cs_zero)->h(a_qu, cs_unit, cs_zero);
+        }
+        else
+        {
+            h(a_qsp, cs_unit, cs_zero)->h(a_qu, cs_unit, cs_zero);
+            for(unsigned count_angle = 0; count_angle < int((N_angles-1)/2); ++count_angle)
+            {
+                aa = phis[2*count_angle];
+                rz(a_qsp, -aa, cs_unit, cs_zero);
+                h(a_qsp, cs_unit, cs_zero);
+                insert_gates_from(oW);
+                phase_zero(a_qsp, -M_PI_2, cs_unit, cs_zero);
+                h(a_qsp, cs_unit, cs_zero);
+                rz(a_qsp, aa, cs_unit, cs_zero);
+
+                aa = phis[2*count_angle+1];
+                rz(a_qsp, -aa, cs_unit, cs_zero)
+                h(a_qsp, cs_unit, cs_zero);
+                insert_gates_from(oWi);
+                phase(a_qsp, M_PI_2, cs_unit, cs_zero);
+                h(a_qsp, cs_unit, cs_zero);
+                rz(a_qsp, aa, cs_unit, cs_zero);
+            }
+            aa = phis[N_angles-1];
+            rz(a_qsp, aa, cs_unit, cs_zero);
+            h(a_qsp, cs_unit, cs_zero)->h(a_qu, cs_unit, cs_zero);
+        }
+
+        // to save a state after the simulation of a time interval:
+        if(flag_stop_gates_)
+        {
+            name_stop = "QSP-H <" + name_qsp_circuit + ">: t = " + to_string(it+1);
+            add_stop_gate(name_stop);
+        }
+    }
+    timer.StopPrint();
+    return get_the_circuit();
+}
+
 
 
 YQCP QCircuit::selector_power(
