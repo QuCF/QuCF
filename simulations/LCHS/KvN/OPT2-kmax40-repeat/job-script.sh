@@ -11,8 +11,8 @@
 ##SBATCH --qos=shared
 #SBATCH --qos=regular
 ##SBATCH --mem=64G
-#SBATCH -t 01:00:00
-#SBATCH -J t01_repeat
+#SBATCH -t 10:00:00
+#SBATCH -J t1_repeat
 #
 ## To run
 export SLURM_CPU_BIND="cores"
