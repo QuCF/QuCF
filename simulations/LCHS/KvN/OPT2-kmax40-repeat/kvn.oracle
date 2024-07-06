@@ -48,7 +48,7 @@ CONSTANTS
 	N_AA_w        2
 
 	// --- Time steps ---
-	Nt 10   // 10 -> t = 0.1; 100 -> t = 1.0
+	Nt 100   // 10 -> t = 0.1; 100 -> t = 1.0
 END_CONSTANTS
 
 
