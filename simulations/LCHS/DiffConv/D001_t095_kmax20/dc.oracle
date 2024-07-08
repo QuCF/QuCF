@@ -117,7 +117,7 @@ END_CIRCUIT_STRUCTURE
 // --- Oracle Ow ---
 CIRCUIT_STRUCTURE  Ow
 	gate H rk -1 end_gate
- gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin 1 rk -1 end_gate
+   	gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin 1 rk -1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
