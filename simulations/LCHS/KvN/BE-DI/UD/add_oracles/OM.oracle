@@ -1,8 +1,0 @@
-// --- OM ---
-gate adder1 rx -1  control_e ax 1 end_gate
-gate adder2 rx -1  control_e ax 2 end_gate
-gate adder3 rx -1  control_e ax 3 end_gate
-
-igate adder1 rx -1  control_e ax 5 end_gate
-igate adder2 rx -1  control_e ax 6 end_gate
-igate adder3 rx -1  control   ax 7 end_gate

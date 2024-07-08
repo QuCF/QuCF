@@ -1,0 +1,41 @@
+
+// --- Right sideband ---
+with ocontrol ax[0] do
+	gate H ae[2] end_gate
+		gate QSVT Da  ae[1]  Usin_D  2 ae[0] rx -1  control ae[2] end_gate
+
+		with ocontrol ae[2] do
+			gate incrementor rx -1  end_gate
+			gate QSVT Da  ae[1]  Usin_D  2 ae[0] rx -1 end_gate
+			gate decrementor rx -1  end_gate
+		end_with
+	gate H ae[2] end_gate
+end_with
+
+// --- Left sideband ---
+with control ax[0] do
+	gate H ae[2] end_gate
+		gate QSVT Da  ae[1]  Usin_D  2 ae[0] rx -1  control ae[2] end_gate
+
+		with ocontrol ae[2] do
+			gate decrementor rx -1  end_gate
+			gate QSVT Da  ae[1]  Usin_D  2 ae[0] rx -1 end_gate
+			gate incrementor rx -1  end_gate
+		end_with
+	gate H ae[2] end_gate
+	gate Rz ae[2] <pi2> end_gate
+end_with
+
+// --- Shift the indices in "rx" by 1 for the LEFT sideband ---
+gate decrementor rx -1 control ax[0] end_gate
+
+// --- Set zeroes at several indices ---
+gate X acom[0] control_e rx <ib0_R> end_gate
+gate X acom[0] control_e rx <ib2_R> end_gate
+
+// --- Return the indices in "rx" back to the original values for the LEFT sideband ---
+igate decrementor rx -1 control ax[0] end_gate 
+
+// --- Correcting boundaries ---
+gate Rc ae[2] <az_corr_Ra> <ay_corr_Ra> ocontrol ax[0] ocontrol rx -1 end_gate
+gate Rc ae[2] <az_corr_La> <ay_corr_La>  control ax[0]  control rx -1 end_gate
