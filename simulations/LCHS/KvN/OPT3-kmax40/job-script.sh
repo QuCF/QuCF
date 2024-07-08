@@ -8,10 +8,10 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=novikau1@llnl.gov
 #SBATCH --account=mp2_g
-##SBATCH --qos=shared
-#SBATCH --qos=regular
+#SBATCH --qos=shared
+##SBATCH --qos=regular
 ##SBATCH --mem=64G
-#SBATCH -t 10:00:00
+#SBATCH -t 02:00:00
 #SBATCH -J t01
 #
 ## To run
