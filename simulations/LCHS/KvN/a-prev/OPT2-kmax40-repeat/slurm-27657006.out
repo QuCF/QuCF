@@ -1,0 +1,247 @@
+
+
+********************************************************************************
+********************************************************************************
+Project name: kvn
+Path to input files: .//
+Current path: /global/u1/n/novikau1/QuCF/QuCF/simulations/LCHS/KvN/OPT2-kmax40-repeat
+Creating the output .hdf5 file:
+	 .//kvn_OUTPUT.hdf5
+
+----------------------------------------------
+Start reading the input file: .//kvn.oracle
+Reading constants...
+Reading options...
+
+--- Initial OPTIONS ---
+-> compute only output states, where all ancillae are in the zero state.
+-> do not write the .circuit files.
+-> do not write the .tex file.
+-> Include stop gates.
+---
+
+----> Reading structure of the circuit U_be_weights
+reading...
+3.292e-03 s
+--------------------------------------------
+----> Reading structure of the circuit Ow
+reading...
+
+Read angles from the file: kmax40_eps4.hdf5
+--- QSVT gate with the name: weights ---
+   QSVT type:  LCHS-weights;
+   rescaling factor:  0.99;
+   QSVT error: 6.21061e-05;
+   Polynomial parity: 0;
+   Polynomial parameter: 40.968;
+   number of angles: 339;
+
+Constructing QSVT circuit...
+Creating the QSVT circuit... 2.884e-03 s
+2.973e-02 s
+--------------------------------------------
+----> Reading structure of the circuit PREP
+reading...
+1.833e-02 s
+--------------------------------------------
+----> Reading structure of the circuit RA
+reading...
+3.526e-02 s
+--------------------------------------------
+----> Reading structure of the circuit Usin_D
+reading...
+3.490e-03 s
+--------------------------------------------
+----> Reading structure of the circuit Usin_R
+reading...
+3.126e-03 s
+--------------------------------------------
+----> Reading structure of the circuit Usin_L
+reading...
+3.281e-03 s
+--------------------------------------------
+----> Reading structure of the circuit U_BE_a
+reading...
+reading...
+1.651e-03 s
+--------------------------------------------
+reading...
+
+Read angles from the file: ../BE-2/qsvt/angles_Ra_nx7_sin_eps2.hdf5
+--- QSVT gate with the name: Ra ---
+   QSVT type:  Ra;
+   rescaling factor:  0.7;
+   QSVT error: 0.00361186;
+   Polynomial parity: 1;
+   Polynomial parameter: 0;
+   number of angles: 4;
+
+Constructing QSVT circuit...
+Creating the QSVT circuit... 1.662e-03 s
+
+Read angles from the file: ../BE-2/qsvt/angles_Ra_nx7_sin_eps2.hdf5
+--- QSVT gate with the name: Ra ---
+   QSVT type:  Ra;
+   rescaling factor:  0.7;
+   QSVT error: 0.00361186;
+   Polynomial parity: 1;
+   Polynomial parameter: 0;
+   number of angles: 4;
+
+Constructing QSVT circuit...
+Creating the QSVT circuit... 1.916e-03 s
+6.241e-02 s
+--------------------------------------------
+reading...
+1.885e-03 s
+--------------------------------------------
+reading...
+2.182e-03 s
+--------------------------------------------
+1.049e-01 s
+--------------------------------------------
+----> Reading structure of the circuit U_BE_k
+reading...
+reading...
+1.785e-03 s
+--------------------------------------------
+reading...
+
+Read angles from the file: ../BE-2/qsvt/angles_D_nx7_sin_eps15.hdf5
+--- QSVT gate with the name: D ---
+   QSVT type:  D;
+   rescaling factor:  0.9;
+   QSVT error: 4.44089e-16;
+   Polynomial parity: 1;
+   Polynomial parameter: 0;
+   number of angles: 4;
+
+Constructing QSVT circuit...
+Creating the QSVT circuit... 1.544e-03 s
+
+Read angles from the file: ../BE-2/qsvt/angles_Rk_nx7_sin_eps2.hdf5
+--- QSVT gate with the name: Rk ---
+   QSVT type:  Rk;
+   rescaling factor:  0.9;
+   QSVT error: 0.00357537;
+   Polynomial parity: 1;
+   Polynomial parameter: 0;
+   number of angles: 4;
+
+Constructing QSVT circuit...
+Creating the QSVT circuit... 1.530e-03 s
+
+Read angles from the file: ../BE-2/qsvt/angles_Rk_nx7_sin_eps2.hdf5
+--- QSVT gate with the name: Rk ---
+   QSVT type:  Rk;
+   rescaling factor:  0.9;
+   QSVT error: 0.00357537;
+   Polynomial parity: 1;
+   Polynomial parameter: 0;
+   number of angles: 4;
+
+Constructing QSVT circuit...
+Creating the QSVT circuit... 2.348e-03 s
+9.219e-02 s
+--------------------------------------------
+reading...
+1.676e-03 s
+--------------------------------------------
+reading...
+1.550e-03 s
+--------------------------------------------
+1.291e-01 s
+--------------------------------------------
+----> Reading structure of the circuit U_BE_kmax
+reading...
+4.118e-03 s
+--------------------------------------------
+----> Reading structure of the circuit U_QSP_k
+reading...
+
+Read angles from the file: qsp/QSP_t6180m1_eps12.hdf5
+--- QSVT gate with the name: qsp_k ---
+   QSVT type:  QSP-ham;
+   rescaling factor:  1;
+   QSVT error: 1e-12;
+   Polynomial parity: -1;
+   Polynomial parameter: 0.618;
+   number of angles: 23;
+   single time interval: 0.618;
+   number of time intervals: 1;
+
+Constructing QSVT circuit...
+Creating the QSP circuit... 2.619e-01 s
+3.033e-01 s
+--------------------------------------------
+----> Reading structure of the circuit U_t_step
+reading...
+
+Read angles from the file: qsp/QSP_t2370m1_eps12.hdf5
+--- QSVT gate with the name: qsp_a ---
+   QSVT type:  QSP-ham;
+   rescaling factor:  1;
+   QSVT error: 1e-12;
+   Polynomial parity: -1;
+   Polynomial parameter: 0.2371;
+   number of angles: 19;
+   single time interval: 0.2371;
+   number of time intervals: 1;
+
+Constructing QSVT circuit...
+Creating the QSP circuit... 5.524e-02 s
+
+Read angles from the file: qsp/QSP_t3924p1_eps12.hdf5
+--- QSVT gate with the name: qsp_kmax ---
+   QSVT type:  QSP-ham;
+   rescaling factor:  1;
+   QSVT error: 1e-12;
+   Polynomial parity: -1;
+   Polynomial parameter: 39.25;
+   number of angles: 151;
+   single time interval: 39.25;
+   number of time intervals: 1;
+
+Constructing QSVT circuit...
+Creating the QSP circuit... 2.071e+00 s
+
+Read angles from the file: qsp/QSP_t2370m1_eps12.hdf5
+--- QSVT gate with the name: qsp_a ---
+   QSVT type:  QSP-ham;
+   rescaling factor:  1;
+   QSVT error: 1e-12;
+   Polynomial parity: -1;
+   Polynomial parameter: 0.2371;
+   number of angles: 19;
+   single time interval: 0.2371;
+   number of time intervals: 1;
+
+Constructing QSVT circuit...
+Creating the QSP circuit... 5.566e-02 s
+3.909e+01 s
+--------------------------------------------
+----> Reading structure of the circuit U
+reading...
+Creating the gate Repeat... 9.089e-02 s
+Creating the gate Repeat... 2.003e+02 s
+Creating the gate Repeat... 9.458e-02 s
+2.006e+02 s
+--------------------------------------------
+Finish reading the .oracle file
+----------------------------------------------
+Oracle prepared.
+
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+--- Analysis of the circuit [U] ---
+nq: 24
+na: 17
+N-gates: 35212933
+Saving QSVT parameters...
+..........................................................................
+...Initial state 0...
+   1.000e+00   0.000e+00j   |0>|0>|0>|0000000>|00>|00000>|0000000>
+
+Calculating the circuit... duration: 1.963e+03 s
+*** The oracletool has been destructed. ***

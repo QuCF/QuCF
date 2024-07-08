@@ -1,0 +1,61 @@
+// $qucf UD ./ 
+
+CONSTANTS
+	// For each other nx, the parameters below should be modified.
+	nx  7
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   all  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+	flag_matrix 1
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	U_BE_kmax  2 ax 2 1 rx <nx> 0
+	U_BE_a     2 ax 2 1 rx <nx> 0
+END_CIRCUITS_DECLARATION
+
+
+// MAIN_CIRCUIT   U_BE_kmax    
+MAIN_CIRCUIT   U_BE_a 
+	INPUT_STATE  rx  0
+END_MAIN_CIRCUIT
+
+
+
+
+CIRCUIT_STRUCTURE U_BE_kmax
+	// --- OF forward ---
+	file add_oracles/BE_k_OF_forward
+
+	// --- OM ---
+	file add_oracles/BE_k_OM
+
+	// --- OF backward ---
+	file add_oracles/BE_k_OF_backward
+END_CIRCUIT_STRUCTURE
+
+
+
+CIRCUIT_STRUCTURE U_BE_a
+	// --- OF forward ---
+	file add_oracles/BE_a_OF_forward
+
+	// --- OM ---
+	file add_oracles/BE_a_OM
+
+	// --- OF backward ---
+	file add_oracles/BE_a_OF_backward
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
