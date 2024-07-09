@@ -130,7 +130,7 @@ CIRCUIT_STRUCTURE   U
 	gate H rx -1 end_gate
 
 	// --- QSP ---
-	// gate QSVT qsp_k   a_qsp -1  U_BE_k 2 abe -1 rx -1 end_gate
+	gate QSVT qsp_k   a_qsp -1  U_BE_k 2 abe -1 rx -1 end_gate
 	// gate QSVT qsp_a     a_qsp -1  U_BE_a    2 abe -1 rx -1 end_gate
-	gate QSVT qsp_kmax  a_qsp -1  U_BE_kmax 2 abe -1 rx -1 end_gate
+	// gate QSVT qsp_kmax  a_qsp -1  U_BE_kmax 2 abe -1 rx -1 end_gate
 END_CIRCUIT_STRUCTURE
