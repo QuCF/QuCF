@@ -158,10 +158,10 @@ CIRCUIT_STRUCTURE U_BE_k
 	// --- OF backward ---
 	file ../BE-3/UD/add_oracles/BE_k_OF_backward
 
-	// --- correct the sign ---
-	gate X ae[2] end_gate
-	gate Z ae[2] end_gate
-	gate X ae[2] end_gate
+	// // --- correct the sign ---
+	// gate X ae[2] end_gate
+	// gate Z ae[2] end_gate
+	// gate X ae[2] end_gate
 END_CIRCUIT_STRUCTURE
 
 
@@ -170,10 +170,10 @@ END_CIRCUIT_STRUCTURE
 CIRCUIT_STRUCTURE U_BE_kmax
 	circuit U_BE_k -1 end_circuit
 
-	// // --- correct the sign ---
-	// gate X ae[2] end_gate
-	// gate Z ae[2] end_gate
-	// gate X ae[2] end_gate
+	// --- correct the sign ---
+	gate X ae[2] end_gate
+	gate Z ae[2] end_gate
+	gate X ae[2] end_gate
 END_CIRCUIT_STRUCTURE
 
 

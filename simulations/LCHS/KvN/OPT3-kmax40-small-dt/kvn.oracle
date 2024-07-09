@@ -40,7 +40,7 @@ CONSTANTS
 	N_AA_w        2
 
 	// --- Time steps ---
-	Nt 100   // 100 -> t = 0.1;
+	Nt 100   // 10 -> t = 0.1; 100 -> t = 1.0
 END_CONSTANTS
 
 
@@ -135,6 +135,11 @@ CIRCUIT_STRUCTURE U_BE_a
 
 	// --- OF backward ---
 	file ../BE-3/UD/add_oracles/BE_a_OF_backward
+
+	// --- correct the QSP global sign ---
+	gate X ae[2] end_gate
+	gate Z ae[2] end_gate
+	gate X ae[2] end_gate
 END_CIRCUIT_STRUCTURE
 
 
@@ -161,9 +166,9 @@ CIRCUIT_STRUCTURE U_BE_kmax
 	circuit U_BE_k -1 end_circuit
 
 	// --- correct the sign ---
-	gate X ae[1] end_gate
-	gate Z ae[1] end_gate
-	gate X ae[1] end_gate
+	gate X ae[2] end_gate
+	gate Z ae[2] end_gate
+	gate X ae[2] end_gate
 END_CIRCUIT_STRUCTURE
 
 
