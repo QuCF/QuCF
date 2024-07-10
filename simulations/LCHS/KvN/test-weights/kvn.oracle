@@ -45,32 +45,32 @@ END_CONSTANTS
 
 
 OPTIONS
-    sel_compute_output zero-ancillae
-	sel_print_output   none  // none, all, zero-ancillae
+    sel_compute_output all
+	sel_print_output   all  // none, all, zero-ancillae
 	flag_circuit 0 
 	flag_tex     0
 	tex_CL      6 
 	flag_matrix 0
 	flag_stop_gates    0 
-	flag_repeat_insert 0
+	flag_repeat_insert 1
 END_OPTIONS
 
 
 CIRCUITS_DECLARATION
-	// --- BE oracles ---
-	Usin_D 2 asin 1 1 rx <nx> 0
-	U_BE_a     4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
-	U_BE_k     4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
-	U_BE_kmax  4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
+	// // --- BE oracles ---
+	// Usin_D 2 asin 1 1 rx <nx> 0
+	// U_BE_a     4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
+	// U_BE_k     4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
+	// U_BE_kmax  4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
 
 	// --- for computing LCHS weights ---
 	U_be_weights 2                       a_sin_k 1 1 rk <nk> 0
-	Ow           3          a_qsvt_w 1 1 a_sin_k 1 1 rk <nk> 0 
-	PREP         4 a_AA 1 1 a_qsvt_w 1 1 a_sin_k 1 1 rk <nk> 0
-	RA           7 a_AA 1 1 a_qsvt_w 1 1 a_sin_k 1 1 rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0 
-	// --- for evolution in small time intervals ---
-	U_QSP_k      3                                             a_qsp 2 1 abe 6 1 rx <nx> 0
-	U_t_step     4                                   rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0
+	// Ow           3          a_qsvt_w 1 1 a_sin_k 1 1 rk <nk> 0 
+	// PREP         4 a_AA 1 1 a_qsvt_w 1 1 a_sin_k 1 1 rk <nk> 0
+	// RA           7 a_AA 1 1 a_qsvt_w 1 1 a_sin_k 1 1 rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0 
+	// // --- for evolution in small time intervals ---
+	// U_QSP_k      3                                             a_qsp 2 1 abe 6 1 rx <nx> 0
+	// U_t_step     4                                   rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0
 	// --- the final circuit ---
 	U            7 a_AA 1 1 a_qsvt_w 1 1 a_sin_k 1 1 rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0 
 END_CIRCUITS_DECLARATION
@@ -205,7 +205,7 @@ END_CIRCUIT_STRUCTURE
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
 	// initialization:
-	gate H rx -1 end_gate
+	// gate H rx -1 end_gate
 
 	// weights:
 	gate H rk -1 end_gate
@@ -215,12 +215,12 @@ CIRCUIT_STRUCTURE   U
 	// gate repeat RA 7 rx -1 abe -1 a_qsp -1 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  <N_AA_w> end_gate
 
 	// Selector:
-	gate repeat U_t_step 4 rx -1 rk -1 a_qsp -1 abe -1   <Nt> end_gate
+	// gate repeat U_t_step 4 rk -1 a_qsp -1 abe -1 rx -1  <Nt> end_gate
 
 	// inverse weights:
 	// igate repeat RA 7 rx -1 abe -1 a_qsp -1 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  <N_AA_w> end_gate
 	// icircuit   PREP 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1           end_circuit
 
-    igate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin_k 1 rk -1 end_gate
-	igate H rk -1 end_gate
+    // igate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin_k 1 rk -1 end_gate
+	// igate H rk -1 end_gate
 END_CIRCUIT_STRUCTURE
