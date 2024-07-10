@@ -1,0 +1,3 @@
+	// --- OM ---
+	gate incrementor rx -1                control ax -1 end_gate
+	gate decrementor rx -1 ocontrol ax[0] control ax[1] end_gate

@@ -1,0 +1,66 @@
+// --- Main diagonal ---
+with ocontrol ax -1 do
+	gate QSVT  D  ae[2]  Usin_D  2 ae[0] rx -1 end_gate
+end_with
+
+// --- Right and left sideband diagonals ---
+with control ax[1] do
+
+	// --- Right sideband ---
+	with control ax[0] do
+		gate H ae[2] end_gate
+			gate QSVT D  ae[1]  Usin_D  2 ae[0] rx -1  control ae[2] end_gate
+
+			with ocontrol ae[2] do
+				gate incrementor rx -1  end_gate
+				gate QSVT D  ae[1]  Usin_D  2 ae[0] rx -1 end_gate
+				gate decrementor rx -1  end_gate
+			end_with
+		gate H ae[2] end_gate
+	end_with
+
+	// --- Left sideband ---
+	with ocontrol ax[0] do
+		gate H ae[2] end_gate
+			gate QSVT D  ae[1]  Usin_D  2 ae[0] rx -1  control ae[2] end_gate
+
+			with ocontrol ae[2] do
+				gate decrementor rx -1  end_gate
+				gate QSVT D  ae[1]  Usin_D  2 ae[0] rx -1 end_gate
+				gate incrementor rx -1  end_gate
+			end_with
+		gate H ae[2] end_gate
+
+		// --- Shift the indices in "rx" by 1 for the LEFT diagonal ---
+		gate decrementor rx -1 ocontrol ax[0] end_gate
+	end_with
+
+	// --- Set strict zeroes ---
+	gate X acom[0] control_e rx <ib0_R> end_gate
+	gate X acom[0] control_e rx <ib1_R> end_gate
+	gate X acom[0] control_e rx <ib2_R> end_gate
+end_with
+
+// --- Correct global signs ---
+gate Rz ae[2] <mpi> ocontrol ax -1 end_gate
+gate Rz ae[2] <pi> control ax[1] end_gate
+
+// --- First Comparator ---
+gate X               rx <int_rx_half_m> control rx[-1]          end_gate
+gate ComparatorFixed rx <int_rx_half_m> <ib0>  2 rx[-1] acom[0] end_gate
+gate X               rx <int_rx_half_m> control rx[-1]          end_gate
+
+// --- Modifications of the local signs ---
+gate Rz ae[2] <pi2> ocontrol acom[0] end_gate
+
+// --- Second Comparator (to zero the ancilla 'acom') ---
+gate X               rx <int_rx_half_m> control rx[-1]          end_gate
+gate ComparatorFixed rx <int_rx_half_m> <ib0>  2 rx[-1] acom[0] end_gate
+gate X               rx <int_rx_half_m> control rx[-1]          end_gate
+
+// --- Return the indices in "rx" back to the original values for the LEFT sideband ---
+igate decrementor rx -1 control_e ax 2 end_gate 
+
+// --- Correcting boundaries ---
+gate Rc ae[2] <az_corr_Rk> <ay_corr_Rk> control   ax -1 ocontrol rx -1 end_gate
+gate Rc ae[2] <az_corr_Lk> <ay_corr_Lk> control_e ax 2   control rx -1 end_gate

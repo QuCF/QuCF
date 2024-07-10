@@ -1,0 +1,5 @@
+	// --- OF_FORWARD ---
+	gate H ax 1 end_gate
+	gate H ax 1 ocontrol rx -1 end_gate
+	gate H ax 1  control rx -1 end_gate
+	gate X ax 1  control rx -1 end_gate
