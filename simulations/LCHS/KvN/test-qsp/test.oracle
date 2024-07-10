@@ -30,6 +30,9 @@ CONSTANTS
 
 	ay_corr_Lk 	9.891745982870e+01
 	az_corr_Lk 	1.005309649149e+02
+
+
+	nk 	7
 END_CONSTANTS
 
 
@@ -53,8 +56,21 @@ CIRCUITS_DECLARATION
 	U_BE_kmax  4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
 
 	// --- 
-	U           3 a_qsp 2 1 abe 6 1 rx <nx> 0 
+	U_QSP_k   3           a_qsp 2 1 abe 6 1 rx <nx> 0
+	U         4 rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0 
 END_CIRCUITS_DECLARATION
+
+
+// CIRCUITS_DECLARATION
+// 	// --- BE oracles ---
+// 	Usin_D 2 asin 1 1 rx <nx> 0
+// 	U_BE_a     4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
+// 	U_BE_k     4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
+// 	U_BE_kmax  4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
+
+// 	// --- 
+// 	U           3 a_qsp 2 1 abe 6 1 rx <nx> 0 
+// END_CIRCUITS_DECLARATION
 
 
 MAIN_CIRCUIT   U    
@@ -121,16 +137,31 @@ END_CIRCUIT_STRUCTURE
 
 
 
+// // -----------------------------------------------------------------------
+// // --- Final circuit ---
+// CIRCUIT_STRUCTURE   U
+// 	// initialization:
+// 	gate H rx -1 end_gate
 
+// 	// --- QSP ---
+// 	gate QSVT qsp_k   a_qsp -1  U_BE_k 2 abe -1 rx -1 end_gate
+// 	// gate QSVT qsp_a     a_qsp -1  U_BE_a    2 abe -1 rx -1 end_gate
+// 	// gate QSVT qsp_kmax  a_qsp -1  U_BE_kmax 2 abe -1 rx -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+// -----------------------------------------------------------------------
+// --- QSP realization of the k-dependent part ---
+CIRCUIT_STRUCTURE U_QSP_k
+	gate QSVT qsp_k_2   a_qsp -1  U_BE_k 2 abe -1 rx -1 end_gate
+END_CIRCUIT_STRUCTURE
 
 // -----------------------------------------------------------------------
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
-	// initialization:
 	gate H rx -1 end_gate
-
-	// --- QSP ---
-	gate QSVT qsp_k   a_qsp -1  U_BE_k 2 abe -1 rx -1 end_gate
-	// gate QSVT qsp_a     a_qsp -1  U_BE_a    2 abe -1 rx -1 end_gate
-	// gate QSVT qsp_kmax  a_qsp -1  U_BE_kmax 2 abe -1 rx -1 end_gate
+	gate SelectorPower  rk    -1  U_QSP_k   3 a_qsp -1 abe -1 rx -1 end_gate
 END_CIRCUIT_STRUCTURE
