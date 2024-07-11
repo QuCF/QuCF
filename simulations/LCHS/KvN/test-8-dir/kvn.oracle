@@ -200,7 +200,7 @@ CIRCUIT_STRUCTURE   U
 	gate H rx -1 end_gate
 
 	// weights:
-	gate X rk[0] end_gate
+	gate H rk -1 end_gate
 	gate DirDec a_qsvt_w 1 rk -1 LCHS_weights_sqrt 1 40.967741935484 end_gate
 
 	// Selector:
@@ -210,7 +210,7 @@ CIRCUIT_STRUCTURE   U
 
 	// inverse weights:
 	igate DirDec a_qsvt_w 1 rk -1 LCHS_weights_sqrt 1 40.967741935484 end_gate
-	gate X rk[0] end_gate
+	gate H rk -1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
