@@ -37,7 +37,7 @@ CONSTANTS
 	alpha_k1 	1.007874015748e+00
 
 	// --- For the amplification ---
-	N_AA_w        2
+	N_AA_w        3
 
 	// --- Time steps ---
 	Nt 3   // 10 -> t = 0.03; 100 -> t = 1.0
@@ -157,11 +157,6 @@ CIRCUIT_STRUCTURE U_BE_k
 
 	// --- OF backward ---
 	file ../BE-3/UD/add_oracles/BE_k_OF_backward
-
-	// // --- correct the sign ---
-	// gate X ae[2] end_gate
-	// gate Z ae[2] end_gate
-	// gate X ae[2] end_gate
 END_CIRCUIT_STRUCTURE
 
 
@@ -208,19 +203,13 @@ CIRCUIT_STRUCTURE   U
 	gate H rx -1 end_gate
 
 	// weights:
-	gate H rk -1 end_gate
-    gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin_k 1 rk -1 end_gate
-
-	// circuit   PREP 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1           end_circuit
-	// gate repeat RA 7 rx -1 abe -1 a_qsp -1 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  <N_AA_w> end_gate
+	circuit   PREP 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1           end_circuit
+	gate repeat RA 7 rx -1 abe -1 a_qsp -1 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  <N_AA_w> end_gate
 
 	// Selector:
 	gate repeat U_t_step 4 rx -1 rk -1 a_qsp -1 abe -1   <Nt> end_gate
 
 	// inverse weights:
-	// igate repeat RA 7 rx -1 abe -1 a_qsp -1 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  <N_AA_w> end_gate
-	// icircuit   PREP 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1           end_circuit
-
-    igate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin_k 1 rk -1 end_gate
-	igate H rk -1 end_gate
+	igate repeat RA 7 rx -1 abe -1 a_qsp -1 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1  <N_AA_w> end_gate
+	icircuit   PREP 4 rk -1 a_sin_k 1 a_qsvt_w 1 a_AA 1           end_circuit
 END_CIRCUIT_STRUCTURE
