@@ -3324,28 +3324,60 @@ YQCP QCircuit::selector_power(
     YCVI cs_unit, YCVI cs_zero,
     YCB flag_inv
 ){
-    std::shared_ptr<QCircuit> oc_temp;
-    uint32_t ns, Ns;
-    auto all_qubits = YMATH::get_range(0, nq_);
+    YMIX::YTimer timer;
+    timer.StartPrint("Creating the SelectorPower gate... ");
 
+    uint32_t ns, is_res;
     ns = rs.size();
-    Ns = 1 << ns;
-    auto oc_selector = make_shared<QCircuit>("S", env_, path_to_output_, nq_);
-
     for(uint32_t is = 0; is < ns; is++)
-        for(uint32_t i_repeat = 0; i_repeat < (1<<is); i_repeat++)
-            oc_selector->copy_gates_from(oc_U, ids_U_target, YSB(nullptr), YVIv{rs[is]});
-
-    // --- Transfer the gates to the main circuit ---
-    copy_gates_from(
-        oc_selector,
-        all_qubits,
-        YSB(nullptr), 
-        cs_unit, cs_zero,
-        flag_inv        
-    ); 
+    {
+        if(flag_inv)
+            is_res = ns - is - 1;
+        else
+            is_res = is;
+        auto loc_cs_unit = YVIv(cs_unit);
+        loc_cs_unit.push_back(rs[is_res]);
+        for(uint32_t i_repeat = 0; i_repeat < (1<<is_res); i_repeat++)
+            copy_gates_from(oc_U, ids_U_target, YSB(nullptr), loc_cs_unit, cs_zero, flag_inv);
+    }
+    timer.StopPrint();
     return get_the_circuit();
 }
+
+
+
+// YQCP QCircuit::selector_power(
+//     YCVI rs, 
+//     const std::shared_ptr<const QCircuit> oc_U, YCVI ids_U_target,
+//     YCVI cs_unit, YCVI cs_zero,
+//     YCB flag_inv
+// ){
+//     YMIX::YTimer timer;
+//     timer.StartPrint("Creating the SelectorPower gate... ");
+//     std::shared_ptr<QCircuit> oc_temp;
+//     uint32_t ns, Ns;
+//     auto all_qubits = YMATH::get_range(0, nq_);
+
+//     ns = rs.size();
+//     Ns = 1 << ns;
+//     auto oc_selector = make_shared<QCircuit>("S", env_, path_to_output_, nq_);
+
+//     for(uint32_t is = 0; is < ns; is++)
+//         for(uint32_t i_repeat = 0; i_repeat < (1<<is); i_repeat++)
+//             oc_selector->copy_gates_from(oc_U, ids_U_target, YSB(nullptr), YVIv{rs[is]});
+
+//     // --- Transfer the gates to the main circuit ---
+//     copy_gates_from(
+//         oc_selector,
+//         all_qubits,
+//         YSB(nullptr), 
+//         cs_unit, cs_zero,
+//         flag_inv        
+//     ); 
+//     timer.StopPrint();
+//     return get_the_circuit();
+// }
+
 
 
 YQCP QCircuit::LCHS_QSP(

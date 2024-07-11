@@ -1,5 +1,3 @@
-// $qucf kvn ./ 
-
 CONSTANTS
 	nx   7
 	nxm   6
@@ -34,12 +32,12 @@ CONSTANTS
 	az_corr_Lk 	1.005309649149e+02
 
 	//--- Angles for the weight-oracle ---
-	nk 	7
+	nk 	1
 	alpha_k0 	-1.000000000000e+00
 	alpha_k1 	1.007874015748e+00
 
 	// --- For the amplification ---
-	N_AA_w  3
+	N_AA_w        3
 
 	// --- Time steps ---
 	Nt 3   // 10 -> t = 0.03; 100 -> t = 1.0
@@ -47,13 +45,14 @@ END_CONSTANTS
 
 
 OPTIONS
-    sel_compute_output zero-ancillae
-	sel_print_output   none  // none, all, zero-ancillae
+    sel_compute_output all
+	sel_print_output   all  // none, all, zero-ancillae
 	flag_circuit 0 
 	flag_tex     0
 	tex_CL      6 
 	flag_matrix 0
 	flag_stop_gates    0 
+	flag_repeat_insert 0
 END_OPTIONS
 
 
@@ -64,15 +63,10 @@ CIRCUITS_DECLARATION
 	U_BE_k     4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
 	U_BE_kmax  4 ae 3 1 acom 1 1 ax 2 1 rx <nx> 0
 
-	// --- for computing LCHS weights ---
-	Ow           2          a_w 1 1 rk <nk> 0 
-	PREP         3 a_AA 1 1 a_w 1 1 rk <nk> 0
-	RA           3 a_AA 1 1 a_w 1 1 rk <nk> 0
 	// --- for evolution in small time intervals ---
 	U_QSP_k      3                            a_qsp 2 1 abe 6 1 rx <nx> 0
-	U_t_step     4                  rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0
 	// --- the final circuit ---
-	U            6 a_AA 1 1 a_w 2 1 rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0  
+	U            5 ac 1 1 rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0  
 END_CIRCUITS_DECLARATION
 
 
@@ -80,33 +74,6 @@ MAIN_CIRCUIT   U
 	INPUT_STATE  rx 0
 END_MAIN_CIRCUIT
 
-
-// -----------------------------------------------------------------------
-// --- For LCHS weights ---
-CIRCUIT_STRUCTURE  Ow
-	gate H rk -1 end_gate
-	gate DirDec a_w 1 rk -1 LCHS_weights_sqrt 1 <k_max> end_gate
-END_CIRCUIT_STRUCTURE
-
-
-CIRCUIT_STRUCTURE   PREP
-	circuit Ow 2 rk -1 a_w 1 end_circuit
-	gate X a_AA 1 ocontrol a_w 1 end_gate
-END_CIRCUIT_STRUCTURE
-
-
-CIRCUIT_STRUCTURE RA
-	// sign change of the good state (state |1>)
-	gate  Z a_AA 1 end_gate     
-	//
-	icircuit PREP 3 rk -1 a_w 1 a_AA 1 end_circuit
-	// sign change of the initial state (state |0>|0>|0>):
-	gate X a_AA 1 ocontrol 2 rk -1 a_w 1 end_gate
-	gate Z a_AA 1 ocontrol 2 rk -1 a_w 1 end_gate
-	gate X a_AA 1 ocontrol 2 rk -1 a_w 1 end_gate
-	// 
-	circuit PREP 3 rk -1 a_w 1 a_AA 1 end_circuit
-END_CIRCUIT_STRUCTURE
 
 
 // -----------------------------------------------------------------------
@@ -174,37 +141,15 @@ CIRCUIT_STRUCTURE U_QSP_k
 END_CIRCUIT_STRUCTURE
 
 
-// -----------------------------------------------------------------------
-// --- One time step ---
-CIRCUIT_STRUCTURE U_t_step
-	// Aa:
-	gate QSVT qsp_a     a_qsp -1  U_BE_a    2          abe -1 rx -1 end_gate
-        
-	// (- kmax*Ah):         
-	gate QSVT qsp_kmax  a_qsp -1  U_BE_kmax 2          abe -1 rx -1 end_gate
-
-	// i_k * dk*Ah:
-	gate SelectorPower  rk    -1  U_QSP_k   3 a_qsp -1 abe -1 rx -1 end_gate
-
-	// Aa:
-	gate QSVT qsp_a     a_qsp -1  U_BE_a    2          abe -1 rx -1 end_gate
-END_CIRCUIT_STRUCTURE
 
 
-// -----------------------------------------------------------------------
-// --- Final circuit ---
+
 CIRCUIT_STRUCTURE   U
-	// initialization:
-	gate H rx -1 end_gate
+	gate H ac 1 end_gate
 
-	// weights:
-	circuit     PREP 3 rk -1 a_w 1 a_AA 1           end_circuit
-	gate repeat RA   3 rk -1 a_w 1 a_AA 1  <N_AA_w> end_gate
 
-	// Selector:
-	gate repeat U_t_step 4 rk -1 a_qsp -1 abe -1 rx -1   <Nt> end_gate
-
-	// inverse weights:
-	igate repeat RA   3 rk -1 a_w 2 a_AA 1  <N_AA_w> end_gate
-	icircuit     PREP 3 rk -1 a_w 2 a_AA 1           end_circuit
+	gate H rk -1 ocontrol ac 1 end_gate
+	gate SelectorPower  rk    -1  U_QSP_k   3 a_qsp -1 abe -1 rx -1 ocontrol ac 1 end_gate
+	igate SelectorPower  rk    -1  U_QSP_k   3 a_qsp -1 abe -1 rx -1 ocontrol ac 1 end_gate
+	gate H rk -1 ocontrol ac 1 end_gate
 END_CIRCUIT_STRUCTURE
