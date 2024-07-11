@@ -107,4 +107,5 @@ CIRCUIT_STRUCTURE U
 	circuit PREP 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 end_circuit
 	gate repeat RA 4 rk -1 a_sin 1 a_qsvt_w 1 a_AA 1 <N_AA> end_gate
 	gate X a_AA 1 end_gate // to save data in the zero state of the ancilla a_AA
+				// should not be used in the finite LCHS circuit
 END_CIRCUIT_STRUCTURE

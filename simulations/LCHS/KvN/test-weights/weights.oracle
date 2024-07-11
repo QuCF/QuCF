@@ -1,0 +1,80 @@
+// $qucf kvn ./ 
+
+CONSTANTS
+	//--- Angles for the weight-oracle ---
+	nk 	   7
+	k_max  40.967741935484
+
+	// --- For the amplification ---
+	N_AA_w       3
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   zero-ancillae  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL      6 
+	flag_matrix 0
+	flag_stop_gates    0 
+	flag_repeat_insert 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	// --- for computing LCHS weights ---
+	Ow           2          a_w 1 1 rk <nk> 0 
+	PREP         3 a_AA 1 1 a_w 1 1 rk <nk> 0
+	RA           3 a_AA 1 1 a_w 1 1 rk <nk> 0
+
+	// --- the final circuit ---
+	U            3 a_AA 1 1 a_w 2 1 rk <nk> 0
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U    
+	INPUT_STATE  rk 0
+END_MAIN_CIRCUIT
+
+
+// -----------------------------------------------------------------------
+// --- For LCHS weights ---
+CIRCUIT_STRUCTURE  Ow
+	gate H rk -1 end_gate
+	gate DirDec a_w 1 rk -1 LCHS_weights_sqrt 1 <k_max> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREP
+	circuit Ow 2 rk -1 a_w 1 end_circuit
+	gate X a_AA 1 ocontrol a_w 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RA
+	// sign change of the good state (state |1>)
+	gate  Z a_AA 1 end_gate     
+	//
+	icircuit PREP 3 rk -1 a_w 1 a_AA 1 end_circuit
+	// sign change of the initial state (state |0>|0>|0>):
+	gate X a_AA 1 ocontrol 2 rk -1 a_w 1 end_gate
+	gate Z a_AA 1 ocontrol 2 rk -1 a_w 1 end_gate
+	gate X a_AA 1 ocontrol 2 rk -1 a_w 1 end_gate
+	// 
+	circuit PREP 3 rk -1 a_w 1 a_AA 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	// // --- version without AA ---
+	// circuit Ow 2 rk -1 a_w 1 end_circuit
+
+	// --- version with AA ---
+	circuit     PREP 3 rk -1 a_w 1 a_AA 1           end_circuit
+	gate repeat RA   3 rk -1 a_w 1 a_AA 1  <N_AA_w> end_gate
+	gate X a_AA 1 end_gate // to save data in the zero state of the ancilla a_AA
+				// should not be used in the finite LCHS circuit
+END_CIRCUIT_STRUCTURE
