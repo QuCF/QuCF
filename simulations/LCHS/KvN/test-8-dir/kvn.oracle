@@ -72,7 +72,7 @@ CIRCUITS_DECLARATION
 	U_QSP_k      3                        a_qsp 2 1 abe 6 1 rx <nx> 0
 	U_t_step     4              rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0
 	// --- the final circuit ---
-	U            5 a_qsvt_w 1 1 rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0 
+	U            5 a_qsvt_w 2 1 rk <nk> 1 a_qsp 2 1 abe 6 1 rx <nx> 0 
 END_CIRCUITS_DECLARATION
 
 
@@ -209,7 +209,7 @@ CIRCUIT_STRUCTURE   U
 	// gate QSVT qsp_k   a_qsp -1  U_BE_k 2 abe -1 rx -1 control rk[0] ocontrol a_qsvt_w[0] end_gate
 
 	// inverse weights:
-	igate DirDec a_qsvt_w 1 rk -1 LCHS_weights_sqrt 1 40.967741935484 end_gate
+	igate DirDec a_qsvt_w 2 rk -1 LCHS_weights_sqrt 1 40.967741935484 end_gate
 	gate H rk -1 end_gate
 END_CIRCUIT_STRUCTURE
 
