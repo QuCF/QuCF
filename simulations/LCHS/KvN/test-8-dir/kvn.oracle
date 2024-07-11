@@ -87,7 +87,7 @@ END_MAIN_CIRCUIT
 
 // CIRCUIT_STRUCTURE  Ow
 // 	gate H rk -1 end_gate
-//     gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin_k 1 rk -1 end_gate
+//  gate QSVT  weights  a_qsvt_w 1  U_be_weights 2 a_sin_k 1 rk -1 end_gate
 // END_CIRCUIT_STRUCTURE
 
 
@@ -179,14 +179,14 @@ END_CIRCUIT_STRUCTURE
 // -----------------------------------------------------------------------
 // --- One time step ---
 CIRCUIT_STRUCTURE U_t_step
-	// Aa:
-	gate QSVT qsp_a     a_qsp -1  U_BE_a    2          abe -1 rx -1 end_gate
+	// // Aa:
+	// gate QSVT qsp_a     a_qsp -1  U_BE_a    2          abe -1 rx -1 end_gate
         
 	// // (- kmax*Ah):         
 	// gate QSVT qsp_kmax  a_qsp -1  U_BE_kmax 2          abe -1 rx -1 end_gate
 
-	// // i_k * dk*Ah:
-	// gate SelectorPower  rk    -1  U_QSP_k   3 a_qsp -1 abe -1 rx -1 end_gate
+	// i_k * dk*Ah:
+	gate SelectorPower  rk    -1  U_QSP_k   3 a_qsp -1 abe -1 rx -1 end_gate
 
 	// // Aa:
 	// gate QSVT qsp_a     a_qsp -1  U_BE_a    2          abe -1 rx -1 end_gate
