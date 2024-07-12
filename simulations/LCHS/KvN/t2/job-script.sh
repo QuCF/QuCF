@@ -10,8 +10,8 @@
 #SBATCH --account=mp2_g
 
 ##SBATCH --qos=debug
-#SBATCH --qos=shared
-##SBATCH --qos=regular
+##SBATCH --qos=shared
+#SBATCH --qos=regular
 
 ##SBATCH --mem=64G
 
