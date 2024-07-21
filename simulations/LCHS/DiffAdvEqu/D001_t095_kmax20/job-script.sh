@@ -9,13 +9,13 @@
 #SBATCH --mail-user=novikau1@llnl.gov
 #SBATCH --account=mp2_g
 
-#SBATCH --qos=debug
-##SBATCH --qos=shared
+##SBATCH --qos=debug
+#SBATCH --qos=shared
 ##SBATCH --qos=regular
 
 ##SBATCH --mem=64G
 
-#SBATCH -t 00:30:00
+#SBATCH -t 01:00:00
 #SBATCH -J t1k2
 #
 ## To run
