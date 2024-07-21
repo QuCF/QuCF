@@ -20,4 +20,4 @@
 #
 ## To run
 export SLURM_CPU_BIND="cores"
-srun /global/homes/n/novikau1/QuCF/QuCF/build_qucf/QuCF kvn ./
+srun /global/homes/n/novikau1/QuCF/QuCF/build_qucf/QuCF dc ./
