@@ -1,0 +1,17 @@
+
+
+********************************************************************************
+********************************************************************************
+Project name: kvn
+Path to input files: .//
+Current path: /global/u1/n/novikau1/QuCF/QuCF/simulations/LCHS/DiffAdvEqu/D001_t05_kmax20
+Creating the output .hdf5 file:
+	 .//kvn_OUTPUT.hdf5
+
+----------------------------------------------
+Start reading the input file: .//kvn.oracle
+
+Error while reading the file[.//kvn.oracle]:
+Error: the file [.//kvn.oracle] does not exist.
+srun: error: nid008581: task 0: Exited with exit code 255
+srun: Terminating StepId=28358980.0
