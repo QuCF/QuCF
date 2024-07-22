@@ -2,7 +2,7 @@
 
 CONSTANTS
 	nx	 7
-	kappa	 1e5
+	kappa	 5e5
 END_CONSTANTS
 
 

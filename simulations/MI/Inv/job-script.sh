@@ -9,14 +9,14 @@
 #SBATCH --mail-user=novikau1@llnl.gov
 #SBATCH --account=mp2_g
 
-#SBATCH --qos=debug
-##SBATCH --qos=shared
+##SBATCH --qos=debug
+#SBATCH --qos=shared
 ##SBATCH --qos=regular
 
 ##SBATCH --mem=64G
 
-#SBATCH -t 00:30:00
-#SBATCH -J pk15
+#SBATCH -t 02:00:00
+#SBATCH -J k5e5
 #
 ## To run
 export SLURM_CPU_BIND="cores"
