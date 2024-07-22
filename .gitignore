@@ -28,6 +28,11 @@ tests/*/*/*_OUTPUT.hdf5
 *.cmake
 *.tex
 
+simulations/MI/Inv/qsvt/est_mi_k5e5_*
+simulations/MI/Inv/qsvt/est_mi_k1e6_*
+simulations/MI/Inv/qsvt/est_mi_k5e6_*
+simulations/MI/Inv/qsvt/est_mi_k1e7_*
+
 
 
 
