@@ -1860,6 +1860,26 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
         }
         DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
     }
+    else if(YMIX::compare_strings(sel_prof, "inverse"))
+    {
+        YVQv phis_y(Nc);
+        int Nch = 1 << (n_ctrl - 1);
+        double kappa = pars[0];
+        double x0 = 1./kappa;
+        double dx = (1. - x0) / (Nch - 1);
+        double x1;
+        for(int ii = 0; ii < Nc; ii++)
+        {
+            if(ii < Nch)
+                x1 = -1.0 + dx * ii;
+            else
+                x1 = x0 + dx * (ii - Nch);
+            v1 = 1. - exp(-pow(5.*kappa*x1, 2.));
+            v1 /= (x1 * kappa);
+            phis_y[ii] = 2. * acos(v1);
+        }
+        DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
+    }
     else
     {
         YMIX::print_log(
