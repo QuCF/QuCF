@@ -2,7 +2,7 @@
 
 CONSTANTS
 	nx	 7
-	kappa	 1000
+	kappa	 5e4
 END_CONSTANTS
 
 
@@ -11,7 +11,7 @@ OPTIONS
 	sel_print_output   none  // none, all, zero-ancillae
 	flag_circuit 0 
 	flag_tex     0
-	flag_matrix  1
+	flag_matrix  0
 	tex_CL  6 
 END_OPTIONS
 
@@ -22,7 +22,7 @@ CIRCUITS_DECLARATION
 END_CIRCUITS_DECLARATION
 
 
-MAIN_CIRCUIT   U_BE      
+MAIN_CIRCUIT   U      
 	INPUT_STATE  0
 END_MAIN_CIRCUIT
 
