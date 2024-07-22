@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH -C gpu&hbm80g
-##SBATCH -C gpu
+##SBATCH -C gpu&hbm80g
+#SBATCH -C gpu
 #SBATCH -n 1
 #SBATCH -c 32
 #SBATCH --gpus-per-task=1
@@ -16,7 +16,7 @@
 ##SBATCH --mem=64G
 
 #SBATCH -t 00:30:00
-#SBATCH -J k1e5
+#SBATCH -J pk15
 #
 ## To run
 export SLURM_CPU_BIND="cores"
