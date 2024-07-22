@@ -1,0 +1,60 @@
+// $qucf MI ./ 
+
+CONSTANTS
+	nx	 7
+	kappa	 5.0e4
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	flag_matrix  0
+	tex_CL  6 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	U_BE     2  		   a_be 1 1 rs <nx> 0  
+	U        3  a_qsvt 1 1 a_be 1 1 rs <nx> 0 
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U      
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+// --- Block-Encoding oracle ---
+CIRCUIT_STRUCTURE U_BE
+	gate DirDec a_be 1 rs -1 inverse 1 <kappa> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	gate H rs -1 end_gate
+	gate QSVT qsvt_mi a_qsvt 1 U_BE 2 a_be -1 rs -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
