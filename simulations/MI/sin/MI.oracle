@@ -1,6 +1,12 @@
 // $qucf MI ./ 
 
 CONSTANTS
+	// --- nx = 7, condition number = 80.9 ---
+	nx 	7
+	alpha_k0 	-1.570796326795e+00
+	alpha_k1 	1.583164801809e+00
+
+
 	// // --- nx = 10, condition number = 860.8 ---
 	// nx 	10
 	// alpha_k0 	-1.000000000000e+00
@@ -21,10 +27,10 @@ CONSTANTS
 	// alpha_k0 	-1.000000000000e+00
 	// alpha_k1 	1.000122085215e+00
 
-	// --- nx = 14, condition number =  13785.8 ---
-	nx 	14
-	alpha_k0 	-1.000000000000e+00
-	alpha_k1 	1.000061038882e+00
+	// // --- nx = 14, condition number =  13785.8 ---
+	// nx 	14
+	// alpha_k0 	-1.000000000000e+00
+	// alpha_k1 	1.000061038882e+00
 END_CONSTANTS
 
 
