@@ -1,36 +1,60 @@
 // $qucf MI ./ 
 
 CONSTANTS
-	// --- nx = 7, condition number = 80.9 ---
+	// FULL x --- nx = 7, condition number = 80.9; sin(x) = [-1, 1]---
 	nx 	7
 	alpha_k0 	-1.570796326795e+00
 	alpha_k1 	1.583164801809e+00
 
+	// // --- nx = 7, condition number = 88.0; sin(x) = [-0.99, 0.99] ---
+	// nx 	7
+    // alpha_k0 	-1.429256853470e+00
+    // alpha_k1 	1.440510844443e+00
 
-	// // --- nx = 10, condition number = 860.8 ---
+	// // --- nx = 8, condition number = 176.6; sin(x) = [-0.99, 0.99] ---
+	// nx 	8
+	// alpha_k0 	-1.429256853470e+00
+	// alpha_k1 	1.434861782308e+00
+
+	// // --- nx = 9, condition number = 354.0; sin(x) = [-0.99, 0.99] ---
+	// nx 	9
+	// alpha_k0 	-1.429256853470e+00
+	// alpha_k1 	1.432053833614e+00
+
+	// // --- nx = 10, condition number = 708.6; sin(x) = [-0.99, 0.99] ---
 	// nx 	10
-	// alpha_k0 	-1.000000000000e+00
-	// alpha_k1 	1.000977517107e+00
+   	// alpha_k0 	-1.429256853470e+00
+   	// alpha_k1 	1.430653976494e+00
 
-	// // --- nx = 11, condition number = 1722.5 ---
+	// // --- nx = 11, condition number = 1417.9; sin(x) = [-0.99, 0.99] ---
 	// nx 	11
-	// alpha_k0 	-1.000000000000e+00
-	// alpha_k1 	1.000488519785e+00
+	// alpha_k0 	-1.429256853470e+00
+	// alpha_k1 	1.429955073721e+00
 
-	// // --- nx = 12, condition number = 3445.8 ---
+	// // --- nx = 12, condition number = 2836.5; sin(x) = [-0.99, 0.99] ---
 	// nx 	12
-    // alpha_k0 	-1.000000000000e+00
-    // alpha_k1 	1.000244200244e+00
+    // alpha_k0 	-1.429256853470e+00
+    // alpha_k1 	1.429605878343e+00
 
-	// // --- nx = 13, condition number = 6892.5 ---
+	// // FULL x --- nx = 12, condition number = 2836.5; sin(x) = [-1.0, 1.0] ---
+	// nx 	12
+	// alpha_k0 	-1.570796326795e+00
+	// alpha_k1 	1.571179915641e+00
+
+	// // --- nx = 13, condition number = 5673.6; sin(x) = [-0.99, 0.99] ---
 	// nx 	13
-	// alpha_k0 	-1.000000000000e+00
-	// alpha_k1 	1.000122085215e+00
+    // alpha_k0 	-1.429256853470e+00
+    // alpha_k1 	1.429431344601e+00
 
-	// // --- nx = 14, condition number =  13785.8 ---
+	// // --- nx = 14, condition number = 11348.0; sin(x) = [-0.99, 0.99] ---
 	// nx 	14
-	// alpha_k0 	-1.000000000000e+00
-	// alpha_k1 	1.000061038882e+00
+	// alpha_k0 	-1.429256853470e+00
+	// alpha_k1 	1.429344093711e+00
+
+	// // --- nx = 15, condition number = 22696.6; sin(x) = [-0.99, 0.99] ---
+	// nx 	15
+    // alpha_k0 	-1.429256853470e+00
+    // alpha_k1 	1.429300472259e+00
 END_CONSTANTS
 
 

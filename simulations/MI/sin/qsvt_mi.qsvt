@@ -1,4 +1,12 @@
-filename_angles    ../QSVT-est-angles/est_mi_k5e2_ref8_Nc20.hdf5 
+filename_angles    ../QSVT-est-angles/est_mi_k1.0e2_ref8_Nc20.hdf5     // nx = 7
+// filename_angles    ../QSVT-est-angles/est_mi_k2.0e2_ref8_Nc20.hdf5     // nx = 8
+// filename_angles    ../QSVT-est-angles/est_mi_k5e2_ref8_Nc20.hdf5     // nx = 9
+// filename_angles    ../QSVT-est-angles/est_mi_k1e3_ref8_Nc20.hdf5     // nx = 10
+// filename_angles    ../QSVT-est-angles/est_mi_k1.5e3_ref8_Nc20.hdf5   // nx = 11
+// filename_angles    ../QSVT-est-angles/est_mi_k3e3_ref8_Nc20.hdf5     // nx = 12
+// filename_angles    ../QSVT-est-angles/est_mi_k6.0e3_ref8_Nc20.hdf5   // nx = 13
+// filename_angles    ../QSVT-est-angles/est_mi_k1.2e4_ref8_Nc20.hdf5   // nx = 14
+// filename_angles    ../QSVT-est-angles/est_mi_k2.3e4_ref8_Nc20.hdf5   // nx = 15
 
 
 
