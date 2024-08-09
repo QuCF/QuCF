@@ -28,10 +28,16 @@ tests/*/*/*_OUTPUT.hdf5
 *.cmake
 *.tex
 
-simulations/MI/QSVT-est-angles/est_mi_k5e5_*
-simulations/MI/QSVT-est-angles/est_mi_k1e6_*
-simulations/MI/QSVT-est-angles/est_mi_k5e6_*
-simulations/MI/QSVT-est-angles/est_mi_k1e7_*
+simulations/MI/QSVT-est-angles/est_mi_k*e5_*
+simulations/MI/QSVT-est-angles/est_mi_k*e6_*
+simulations/MI/QSVT-est-angles/est_mi_k*e7_*
+
+simulations/MI/QSVT-est-angles/est_mi_k9*e4_*
+
+# simulations/MI/QSVT-est-angles/est_mi_k5e5_*
+# simulations/MI/QSVT-est-angles/est_mi_k1e6_*
+# simulations/MI/QSVT-est-angles/est_mi_k5e6_*
+# simulations/MI/QSVT-est-angles/est_mi_k1e7_*
 
 
 
