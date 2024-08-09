@@ -2,7 +2,7 @@
 
 CONSTANTS
 	nx	 7
-	kappa	 1e3
+	kappa	 2e4
 	xmax     1.00  
 	norm_coef  0.99 // to reduce the spectral norm of the BE matrix
 END_CONSTANTS
