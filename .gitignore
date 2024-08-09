@@ -28,6 +28,8 @@ tests/*/*/*_OUTPUT.hdf5
 *.cmake
 *.tex
 
+/simulations/MI/EM/BE-matrix/EM_n10_OUTPUT.hdf5
+
 simulations/MI/QSVT-est-angles/est_mi_k*e5_*
 simulations/MI/QSVT-est-angles/est_mi_k*e6_*
 simulations/MI/QSVT-est-angles/est_mi_k*e7_*
