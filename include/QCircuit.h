@@ -60,7 +60,6 @@ class QCircuit{
 
     inline std::string get_name(){ return name_; }
     inline unsigned get_n_qubits() const { return nq_; }
-    inline int get_n_gates(){ return gates_.size(); }
     std::map<std::string, YVIv> get_regs(){ return regs_; }
     YVSv get_reg_names() const { return regnames_; }
     unsigned get_nq_in_reg(YCS reg_name) const{ return regs_.at(reg_name).size(); }
@@ -73,7 +72,7 @@ class QCircuit{
     /**
      * @brief Generate the circuit taking into account stop gates.
      */
-    void generate(std::string& stop_name, int& id_current);
+    void generate(std::string& stop_name, uint64_t& id_current);
 
     void activate_gadget(YCI id_counter, YCI N_mult)
     {
@@ -902,7 +901,7 @@ class QCircuit{
         YVI n_qubits
     );
 
-    inline int get_N_gates(){ return gates_.size(); }
+    inline uint64_t get_N_gates(){ return gates_.size(); }
 
 private:
     qreal get_value_from_word(YCS word);
@@ -970,7 +969,8 @@ private:
     std::vector<YSG> gates_; // gates in the circuit;
 
     /** @brief Index of the starting gate to generate the circuit.*/
-    int id_start_ = 0;
+    uint64_t id_start_ = 0;
+    
 
     std::vector<unsigned> standart_output_format_; // standart output format
 

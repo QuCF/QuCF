@@ -604,7 +604,7 @@ void QuCF__::read_subcircuit(YISS istr, YPQC oc, YCB flag_inv)
         YMIX::print_log( warn_line);
         flag_skip = true;
     }
-    if(ocs_[subcircuit_name]->get_n_gates() == 0)
+    if(ocs_[subcircuit_name]->get_N_gates() == 0)
     {
         string warn_line;
         warn_line = "\n\n-------------------------------------------------------------------------------\n";
@@ -977,7 +977,7 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
     // --- Print output states ---
     if(!YMIX::compare_strings(sel_compute_output_, "none") or flag_output_qsp_ or flag_output_gadget_)
     {
-        int id_current_gate = 0;
+        uint64_t id_current_gate = 0;
         string stop_point_name;
         YMIX::StateVectorOut outF, outZ, outZ_chosen, outZ_qsp, outZ_gadget;
 
@@ -1001,7 +1001,8 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
 
         timer_comp.Start();
         YMIX::print_log( "Calculating the circuit... ", 0, false, false);
-        while(id_current_gate < u_work->get_n_gates())
+        // printf("SIZE_MAX = %zu\n", SIZE_MAX);
+        while(id_current_gate < u_work->get_N_gates())
         {
             // generate the circuit:
             // timer_comp.Start();

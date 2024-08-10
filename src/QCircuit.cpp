@@ -299,7 +299,7 @@ void QCircuit::generate()
 }
 
 
-void QCircuit::generate(string& stop_name, int& id_current)
+void QCircuit::generate(string& stop_name, uint64_t& id_current)
 {
     if(!flag_circuit_allocated_)
         throw string("The circuit [" + name_ + "] is not allocated in memory.");
