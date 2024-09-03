@@ -280,19 +280,25 @@ void QuCF__::read_circuit_declaration(YISS istr)
             YVIv ancs;
             for(unsigned i = 0; i < n_regs; i++)
             {
+                string str_value = to_string(i) + "-th register";
+                if(i == 1)
+                    str_value = to_string(i) + "-st register";
+                if(i == 2)
+                    str_value = to_string(i) + "-nd register";
+
                 // register name
-                current_field = "the name of the " + to_string(i) + "-th register";
+                current_field = "the name of the " + str_value;
                 istr >> saved_reg_names[i];
 
                 // number of qubits in the register
-                current_field = "the number of qubits in the " + to_string(i) + "-th register";
+                current_field = "the number of qubits in the " + str_value;
                 istr >> word;
                 saved_nqs_in_regs[i] = get_value_from_word(word);
 
                 nq_circ += saved_nqs_in_regs[i];
 
                 // ancilla flag
-                current_field = "the ancilla flag of the " + to_string(i) + "-th register";
+                current_field = "the ancilla flag of the " + str_value;
                 istr >> word;
                 anc_flags[i] = int(get_value_from_word(word));
             }
@@ -327,7 +333,7 @@ void QuCF__::read_circuit_declaration(YISS istr)
     }
     catch(YCS e)
     {
-        throw "Error when one reads "s + current_field + " in the circuit "s + circ_name + ": "s + e;
+        throw "Circuit Declaration: Error when one reads "s + current_field + " in the circuit "s + circ_name + ": "s + e;
     }
 
     // information about the declared circuits

@@ -1834,6 +1834,22 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
         }
         DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
     }
+    if(YMIX::compare_strings(sel_prof, "LCHS_weights_sin_sqrt"))
+    {
+        YVQv phis_y(Nc);
+        double theta_1, k;
+        double d_theta = M_PI/(Nc - 1);
+        double kmax = pars[0];
+        for(int ii = 0; ii < Nc; ii++)
+        {
+            theta_1 = -M_PI/2. + ii * d_theta;
+            k  = kmax * sin(theta_1);
+            v1 = kmax * cos(theta_1) / (1 + k*k);
+            v1 = sqrt(v1 * d_theta / M_PI);
+            phis_y[ii] = 2. * acos(v1);
+        }
+        DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
+    }
     else if(YMIX::compare_strings(sel_prof, "LCHS_weights_full"))
     {
         YVQv phis_y(Nc);
