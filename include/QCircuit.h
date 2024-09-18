@@ -848,6 +848,23 @@ class QCircuit{
     );
 
 
+    /**
+     * Compute a complex profile by using multiple heavy controlled rotations Ry and Rz.
+     * @param phis_y is the vector with rotation angles for the gate Ry;
+     * @param phis_z is the vector with rotation angles for the gate Rz;
+     * @param ids_ctrl are the qubits controlling the rotations.
+     * @param id_targ is the qubit storing the resulting profile.
+    */
+    YQCP DirDec_C(
+        YCVQ phis_y,
+        YCVQ phis_z,
+        YCVI ids_ctrl, 
+        YCI id_targ,
+        YCVI cs_unit, YCVI cs_zero,
+        YCB flag_inv
+    );
+
+
 
     /**
      * @brief Add a Stop gate to a quantum state at this point.

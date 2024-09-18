@@ -1781,6 +1781,8 @@ void QCircuit::read_structure_LCHS_QSP(YISS istr, std::map<std::string, YSQ>& oc
 
 void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
 {
+    using namespace std::complex_literals;
+
     YVIv ids_ctrl, cs_unit, cs_zero;
     int id_targ;
     string sel_prof, word;
@@ -1834,7 +1836,7 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
         }
         DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
     }
-    if(YMIX::compare_strings(sel_prof, "LCHS_weights_sin_sqrt"))
+    else if(YMIX::compare_strings(sel_prof, "LCHS_weights_sin_sqrt"))
     {
         YVQv phis_y(Nc);
         double theta_1, k;
@@ -1849,6 +1851,30 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
             phis_y[ii] = 2. * acos(v1);
         }
         DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
+    }
+    else if(YMIX::compare_strings(sel_prof, "LCHS_weights_sin_OPT_sqrt"))
+    {
+        YVQv phis_y(Nc);
+        YVQv phis_z(Nc);
+        double theta_1, k;
+        double d_theta = M_PI/(Nc - 1);
+        double kmax = pars[0];
+        double beta = pars[1];
+        complex<double> c1, c2;
+        double coef_beta = 2. * M_PI * exp(-pow(2,beta));
+        for(int ii = 0; ii < Nc; ii++)
+        {
+            theta_1 = -M_PI/2. + ii * d_theta;
+            k  = kmax * sin(theta_1);
+            c1 = kmax * cos(theta_1) * d_theta;
+            c2 = coef_beta * exp(pow(1.+1i*k, beta)) * (1. - 1i * k); 
+            c1 = sqrt(c1 / c2);
+            // c1 = c1 / c2;
+            // cout << "ii, w: " << ii << c1 << endl;
+            phis_y[ii] = 2. * acos(abs(c1));
+            phis_z[ii] = -2. * arg(c1);
+        }
+        DirDec_C(phis_y, phis_z, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
     }
     else if(YMIX::compare_strings(sel_prof, "LCHS_weights_full"))
     {
@@ -3538,6 +3564,49 @@ YQCP QCircuit::DirDec_Y(
     }
     return get_the_circuit();
 }
+
+
+
+YQCP QCircuit::DirDec_C(
+        YCVQ phis_y_in,
+        YCVQ phis_z_in,
+        YCVI ids_ctrl_in, 
+        YCI id_targ,
+        YCVI cs_unit, YCVI cs_zero,
+        YCB flag_inv
+){
+    YVIv ids_ctrl = vector<int>(ids_ctrl_in);
+    YVQv phis_y   = vector<qreal>(phis_y_in);
+    YVQv phis_z   = vector<qreal>(phis_z_in);
+    int nc = ids_ctrl.size();
+    int Nc = 1 << nc;
+    if(flag_inv)
+    {
+        std::reverse(phis_y.begin(), phis_y.end());
+        std::reverse(phis_z.begin(), phis_z.end());
+    }
+        
+    std::sort(ids_ctrl.begin(), ids_ctrl.end());
+    for(int i_int = 0; i_int < Nc; i_int++)
+    {
+        YVshv bs(nc);
+        YMATH::intToBinary(i_int, bs);
+
+        YVIv ids_unit = vector<int>(cs_unit);
+        YVIv ids_zero = vector<int>(cs_zero);
+        for(int ib = 0; ib < nc; ib++)
+        {
+            if(bs[ib] == 0)
+                ids_zero.push_back(ids_ctrl[nc - ib - 1]);
+            else
+                ids_unit.push_back(ids_ctrl[nc - ib - 1]);
+        }
+        rc(id_targ, phis_z[i_int], phis_y[i_int], ids_unit, ids_zero, flag_inv);
+    }
+    return get_the_circuit();
+}
+
+
 
 
 

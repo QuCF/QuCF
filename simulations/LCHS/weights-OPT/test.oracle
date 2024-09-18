@@ -1,0 +1,80 @@
+// $qucf test ./ 
+
+CONSTANTS
+	//--- k-grid ---
+	k_max	 100.0 
+	nk 	     9
+	beta     0.7
+
+	// --- For the amplification ---
+	// N_AA   3   // for kmax 10, nk 5
+	// N_AA   15  // for kmax 10, nk 9
+	N_AA   15  // for kmax 100, nk 9
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+	flag_matrix 0
+	flag_stop_gates 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	Ow        2           a_w 1 1  rk <nk> 0 
+	PREP      3  a_AA 1 1 a_w 1 1  rk <nk> 0 
+	RA        3  a_AA 1 1 a_w 1 1  rk <nk> 0 
+    // ---
+	U         3  a_AA 1 1 a_w 1 1  rk <nk> 0
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U  
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+// --- Oracle Ow ---
+CIRCUIT_STRUCTURE  Ow
+	gate H rk -1 end_gate
+	gate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <k_max> <beta> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREP
+	circuit Ow 2 rk -1 a_w 1 end_circuit
+	gate X a_AA 1 ocontrol a_w 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RA
+	// sign change of the good state (state |1>)
+	gate  Z a_AA 1 end_gate     
+	//
+	icircuit PREP 3 rk -1 a_w 1 a_AA 1 end_circuit
+	// sign change of the initial state (state |0>|0>|0>):
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate Z a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	// 
+	circuit PREP 3 rk -1 a_w 1 a_AA 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	// --- without AA ---
+	// circuit Ow 2 rk -1 a_w[0] end_circuit
+
+	// icircuit Ow 2 rk -1 a_w[0] end_circuit
+
+	// // --- with AA ---
+	circuit    PREP 3 rk -1 a_w[0] a_AA 1 end_circuit
+	gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
+	gate X a_AA 1 ocontrol a_w 1 end_gate
+END_CIRCUIT_STRUCTURE
