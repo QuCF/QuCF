@@ -27,14 +27,14 @@ CONSTANTS
 	alpha_init_1 	5.079365079365e-01
 
 	// --- For AA ---
-	// N_AA   3   // for kmax 10, nk 5
-	N_AA   7   // for kmax 10, nk 7
-	// N_AA   15  // for kmax 10, nk 9
-	// N_AA   10   // for kmax 20, nk 8
-	// N_AA   15   // for kmax 40, nk 9
-	// N_AA   21   // for kmax 80, nk 10
-	// N_AA   15  // for kmax 100, nk 9
-	// N_AA   30   // for kmax 160, nk 11
+	// N_AA_w   3   // for kmax 10, nk 5
+	N_AA_w   7   // for kmax 10, nk 7
+	// N_AA_w   15  // for kmax 10, nk 9
+	// N_AA_w   10   // for kmax 20, nk 8
+	// N_AA_w   15   // for kmax 40, nk 9
+	// N_AA_w   21   // for kmax 80, nk 10
+	// N_AA_w   15  // for kmax 100, nk 9
+	// N_AA_w   30   // for kmax 160, nk 11
 
 	N_AA_init     2 // for AA of the initialization circuit
 END_CONSTANTS
