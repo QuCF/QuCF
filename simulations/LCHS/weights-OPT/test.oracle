@@ -2,14 +2,20 @@
 
 CONSTANTS
 	//--- k-grid ---
-	k_max	 100.0 
-	nk 	     9
+	k_max	 160.0 
+	nk 	     11
 	beta     0.7
 
 	// --- For the amplification ---
 	// N_AA   3   // for kmax 10, nk 5
+	// N_AA   7   // for kmax 10, nk 7
 	// N_AA   15  // for kmax 10, nk 9
-	N_AA   15  // for kmax 100, nk 9
+	// N_AA   10   // for kmax 20, nk 8
+	// N_AA   15   // for kmax 40, nk 9
+	// N_AA   21   // for kmax 80, nk 10
+	// N_AA   15  // for kmax 100, nk 9
+	N_AA   30   // for kmax 160, nk 11
+
 END_CONSTANTS
 
 
@@ -68,12 +74,10 @@ END_CIRCUIT_STRUCTURE
 
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
-	// --- without AA ---
+	// // --- without AA ---
 	// circuit Ow 2 rk -1 a_w[0] end_circuit
 
-	// icircuit Ow 2 rk -1 a_w[0] end_circuit
-
-	// // --- with AA ---
+	// --- with AA ---
 	circuit    PREP 3 rk -1 a_w[0] a_AA 1 end_circuit
 	gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
 	gate X a_AA 1 ocontrol a_w 1 end_gate
