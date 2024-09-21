@@ -2,26 +2,26 @@
 
 CONSTANTS
 	//--- k-grid ---
-	k_max	 160.0 
-	nk 	     11
+	k_max	 10.0 
+	nk 	     5
 	beta     0.7
 
 	// --- For the amplification ---
-	// N_AA   3   // for kmax 10, nk 5
+	N_AA   3   // for kmax 10, nk 5
 	// N_AA   7   // for kmax 10, nk 7
 	// N_AA   15  // for kmax 10, nk 9
 	// N_AA   10   // for kmax 20, nk 8
 	// N_AA   15   // for kmax 40, nk 9
 	// N_AA   21   // for kmax 80, nk 10
 	// N_AA   15  // for kmax 100, nk 9
-	N_AA   30   // for kmax 160, nk 11
+	// N_AA   30   // for kmax 160, nk 11
 
 END_CONSTANTS
 
 
 OPTIONS
-    sel_compute_output zero-ancillae
-	sel_print_output   none  // none, all, zero-ancillae
+    sel_compute_output all
+	sel_print_output   all  // none, all, zero-ancillae
 	flag_circuit 0 
 	flag_tex     0
 	tex_CL  6 
@@ -74,11 +74,21 @@ END_CIRCUIT_STRUCTURE
 
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
-	// // --- without AA ---
+	// --- without AA ---
 	// circuit Ow 2 rk -1 a_w[0] end_circuit
 
-	// --- with AA ---
-	circuit    PREP 3 rk -1 a_w[0] a_AA 1 end_circuit
-	gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
-	gate X a_AA 1 ocontrol a_w 1 end_gate
+	// // --- with AA ---
+	// circuit    PREP 3 rk -1 a_w[0] a_AA 1 end_circuit
+	// gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
+	// gate X a_AA 1 ocontrol a_w 1 end_gate
+
+	// igate  repeat RA 3 rk -1 a_w[1] a_AA 1 <N_AA> end_gate
+	// icircuit    PREP 3 rk -1 a_w[1] a_AA 1 end_circuit
+	// gate X a_AA 1 ocontrol a_w 1 end_gate
+
+
+	gate H rk -1 end_gate
+	gate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <k_max> <beta> end_gate
+	igate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <k_max> <beta> end_gate
+	igate H rk -1 end_gate
 END_CIRCUIT_STRUCTURE

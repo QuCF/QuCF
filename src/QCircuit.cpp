@@ -3536,13 +3536,18 @@ YQCP QCircuit::DirDec_Y(
     YVQv phis_y   = vector<qreal>(phis_y_in);
     int nc = ids_ctrl.size();
     int Nc = 1 << nc;
+
     if(flag_inv)
         std::reverse(phis_y.begin(), phis_y.end());
     std::sort(ids_ctrl.begin(), ids_ctrl.end());
     for(int i_int = 0; i_int < Nc; i_int++)
     {
         YVshv bs(nc);
-        YMATH::intToBinary(i_int, bs);
+
+        int i_int_new = i_int;
+        if(flag_inv)
+            i_int_new = Nc - i_int - 1;
+        YMATH::intToBinary(i_int_new, bs);
         // cout << i_int << endl;
         // YMIX::print(bs);
 
@@ -3559,12 +3564,10 @@ YQCP QCircuit::DirDec_Y(
         // YMIX::print(ids_unit);
         // cout << endl;
 
-
         ry(id_targ, phis_y[i_int], ids_unit, ids_zero, flag_inv);
     }
     return get_the_circuit();
 }
-
 
 
 YQCP QCircuit::DirDec_C(
@@ -3590,7 +3593,11 @@ YQCP QCircuit::DirDec_C(
     for(int i_int = 0; i_int < Nc; i_int++)
     {
         YVshv bs(nc);
-        YMATH::intToBinary(i_int, bs);
+        
+        int i_int_new = i_int;
+        if(flag_inv)
+            i_int_new = Nc - i_int - 1;
+        YMATH::intToBinary(i_int_new, bs);
 
         YVIv ids_unit = vector<int>(cs_unit);
         YVIv ids_zero = vector<int>(cs_zero);
