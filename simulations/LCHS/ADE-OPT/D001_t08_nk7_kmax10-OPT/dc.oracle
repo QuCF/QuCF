@@ -4,16 +4,16 @@ CONSTANTS
 	// --- Spatial resolution ---
 	nx 6
 
-	// --- BE: AH ---
+	// --- BE: AH (for A) ---
 	ay_AH_l  3.109224543467e+00
-	az_AH_l  3.141592653590e+00
+	az_AH_l  -3.141592653590e+00
 	ay_AH_r  3.109224543467e+00
-	az_AH_r  -3.141592653590e+00
+	az_AH_r  3.141592653590e+00
 
-	// --- BE: Bm ---
-	ay_Bm_l  2.301461380816e+00
-	ay_Bm_c  5.049264366970e+00
-	ay_Bm_r  2.730891891077e+00
+	// --- BE: Bm (for A) ---
+	ay_Bm_l  3.981723926364e+00
+	ay_Bm_c  1.233920940209e+00
+	ay_Bm_r  3.552293416103e+00
 
 	//--- LCHS Fourier grid ---
 	kmax 	10.000
@@ -27,8 +27,10 @@ CONSTANTS
 	alpha_init_1 	5.079365079365e-01
 
 	// --- For AA ---
+	N_AA_w   2   // REAL weights: for kmax 10, nk 7
+
 	// N_AA_w   3   // for kmax 10, nk 5
-	N_AA_w   7   // for kmax 10, nk 7
+	// N_AA_w   7   // for kmax 10, nk 7
 	// N_AA_w   15  // for kmax 10, nk 9
 	// N_AA_w   10   // for kmax 20, nk 8
 	// N_AA_w   15   // for kmax 40, nk 9
@@ -116,8 +118,8 @@ END_CIRCUIT_STRUCTURE
 // --- ORACLE FOR WEIGHTS ---
 CIRCUIT_STRUCTURE  Ow
 	gate H rk -1 end_gate
-	gate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
-	// gate DirDec a_w 1 rk -1 LCHS_weights_sin_sqrt 1 <kmax> end_gate
+	// gate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
+	gate DirDec a_w 1 rk -1 LCHS_weights_sin_sqrt 1 <kmax> end_gate
 END_CIRCUIT_STRUCTURE
 
 
@@ -143,32 +145,32 @@ END_CIRCUIT_STRUCTURE
 
 
 
-CIRCUIT_STRUCTURE  OwI
-	gate H rk -1 end_gate
-	igate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
-END_CIRCUIT_STRUCTURE
+// CIRCUIT_STRUCTURE  OwI
+// 	gate H rk -1 end_gate
+// 	igate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
+// END_CIRCUIT_STRUCTURE
 
 
-// --- Preparation oracle for amplitude amplification of the LCHS weights ---
-CIRCUIT_STRUCTURE   PREPI
-	circuit OwI 2 rk -1 a_w 1 end_circuit
-	gate X a_AA 1 ocontrol a_w 1 end_gate
-END_CIRCUIT_STRUCTURE
+// // --- Preparation oracle for amplitude amplification of the LCHS weights ---
+// CIRCUIT_STRUCTURE   PREPI
+// 	circuit OwI 2 rk -1 a_w 1 end_circuit
+// 	gate X a_AA 1 ocontrol a_w 1 end_gate
+// END_CIRCUIT_STRUCTURE
 
 
-// --- AA oracle of the LCHS weights ---
-CIRCUIT_STRUCTURE RAI
-	// sign change of the good state (state |1>)
-	gate  Z a_AA 1 end_gate     
-	//
-	icircuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
-	// sign change of the initial state:
-	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
-	gate Z a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
-	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
-	// 
-	circuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
-END_CIRCUIT_STRUCTURE
+// // --- AA oracle of the LCHS weights ---
+// CIRCUIT_STRUCTURE RAI
+// 	// sign change of the good state (state |1>)
+// 	gate  Z a_AA 1 end_gate     
+// 	//
+// 	icircuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+// 	// sign change of the initial state:
+// 	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+// 	gate Z a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+// 	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+// 	// 
+// 	circuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+// END_CIRCUIT_STRUCTURE
 
 
 
@@ -243,8 +245,11 @@ CIRCUIT_STRUCTURE   U
 		gate QSVT qsp_selector   a_qsp -1  U_BE 3 a_be_tot -1 rk -1 rx -1 end_gate
 
 		// inverse weights:
-		igate repeat RAI 3 rk -1 a_w[1] a_AA 1 <N_AA_w> end_gate
-		icircuit   PREPI 3 rk -1 a_w[1] a_AA 1 end_circuit
+		igate repeat RA 3 rk -1 a_w[1] a_AA 1 <N_AA_w> end_gate
+		icircuit   PREP 3 rk -1 a_w[1] a_AA 1 end_circuit
+
+		// igate repeat RAI 3 rk -1 a_w[1] a_AA 1 <N_AA_w> end_gate
+		// icircuit   PREPI 3 rk -1 a_w[1] a_AA 1 end_circuit
 	end_with
 END_CIRCUIT_STRUCTURE
 
