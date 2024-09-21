@@ -20,8 +20,8 @@ END_CONSTANTS
 
 
 OPTIONS
-    sel_compute_output all
-	sel_print_output   all  // none, all, zero-ancillae
+    sel_compute_output zero-ancillae
+	sel_print_output   zero-ancillae  // none, all, zero-ancillae
 	flag_circuit 0 
 	flag_tex     0
 	tex_CL  6 
@@ -34,8 +34,12 @@ CIRCUITS_DECLARATION
 	Ow        2           a_w 1 1  rk <nk> 0 
 	PREP      3  a_AA 1 1 a_w 1 1  rk <nk> 0 
 	RA        3  a_AA 1 1 a_w 1 1  rk <nk> 0 
+
+	OwI        2           a_w 1 1  rk <nk> 0 
+	PREPI      3  a_AA 1 1 a_w 1 1  rk <nk> 0 
+	RAI        3  a_AA 1 1 a_w 1 1  rk <nk> 0 
     // ---
-	U         3  a_AA 1 1 a_w 1 1  rk <nk> 0
+	U         3  a_AA 1 1 a_w 2 1  rk <nk> 0
 END_CIRCUITS_DECLARATION
 
 
@@ -72,6 +76,41 @@ END_CIRCUIT_STRUCTURE
 
 
 
+
+
+
+CIRCUIT_STRUCTURE  OwI
+	gate H rk -1 end_gate
+	igate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <k_max> <beta> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREPI
+	circuit OwI 2 rk -1 a_w 1 end_circuit
+	gate X a_AA 1 ocontrol a_w 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RAI
+	// sign change of the good state (state |1>)
+	gate  Z a_AA 1 end_gate     
+	//
+	icircuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+	// sign change of the initial state (state |0>|0>|0>):
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate Z a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	// 
+	circuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
 	// --- without AA ---
@@ -82,13 +121,12 @@ CIRCUIT_STRUCTURE   U
 	// gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
 	// gate X a_AA 1 ocontrol a_w 1 end_gate
 
-	// igate  repeat RA 3 rk -1 a_w[1] a_AA 1 <N_AA> end_gate
-	// icircuit    PREP 3 rk -1 a_w[1] a_AA 1 end_circuit
+
+
+	circuit    PREP 3 rk -1 a_w[0] a_AA 1 end_circuit
+	gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
 	// gate X a_AA 1 ocontrol a_w 1 end_gate
 
-
-	gate H rk -1 end_gate
-	gate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <k_max> <beta> end_gate
-	igate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <k_max> <beta> end_gate
-	igate H rk -1 end_gate
+	igate  repeat RAI 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
+	icircuit    PREPI 3 rk -1 a_w[0] a_AA 1 end_circuit
 END_CIRCUIT_STRUCTURE

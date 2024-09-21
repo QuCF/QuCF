@@ -1,0 +1,19 @@
+for NN in 1 2 3 4 5 6 7 8
+do
+    cp ./qsp_selector_INIT.qsvt ./"qsp_selector.qsvt"
+    sed -i "s/n_repeat 1/n_repeat $NN/g"  ./"qsp_selector.qsvt"
+    $qucf test ./
+    mv ./test_OUTPUT.hdf5 ./test_"$NN"_OUTPUT.hdf5
+done
+rm qsp_selector.qsvt
+
+
+
+# for NN in 2 3 4
+# do
+#     # cp ./N_5.oracle ./"N_$NN.oracle"
+#     sed -i "s/Nt 	5/Nt 	$NN/g"  ./"N_$NN.oracle"
+#     # $qucf N_$NN ./
+# done
+
+
