@@ -114,7 +114,7 @@ END_CIRCUIT_STRUCTURE
 CIRCUIT_STRUCTURE  Ow
 	gate H rk -1 end_gate
 	// gate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
-	gate DirDec a_w 1 rk -1 LCHS_weights_sin_sqrt 1 <k_max> end_gate
+	gate DirDec a_w 1 rk -1 LCHS_weights_sin_sqrt 1 <kmax> end_gate
 END_CIRCUIT_STRUCTURE
 
 
