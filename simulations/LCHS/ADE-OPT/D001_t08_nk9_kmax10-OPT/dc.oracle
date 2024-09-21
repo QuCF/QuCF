@@ -17,10 +17,10 @@ CONSTANTS
 
 	//--- LCHS Fourier grid ---
 	kmax 	10.000
-	nk 	7
+	nk 		9
 	beta 	0.700
 	alpha_k0_pih 	-1.570796326795e+00
-	alpha_k1_pih 	1.583164801809e+00
+	alpha_k1_pih 	1.573870292209e+00
 
 	//--- Initialization ---
 	alpha_init_0 	-5.000000000000e-01
@@ -28,8 +28,8 @@ CONSTANTS
 
 	// --- For AA ---
 	// N_AA_w   3   // for kmax 10, nk 5
-	N_AA_w   7   // for kmax 10, nk 7
-	// N_AA_w   15  // for kmax 10, nk 9
+	// N_AA_w   7   // for kmax 10, nk 7
+	N_AA_w   15  // for kmax 10, nk 9
 	// N_AA_w   10   // for kmax 20, nk 8
 	// N_AA_w   15   // for kmax 40, nk 9
 	// N_AA_w   21   // for kmax 80, nk 10
