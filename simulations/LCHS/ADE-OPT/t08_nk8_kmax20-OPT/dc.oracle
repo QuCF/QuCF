@@ -5,22 +5,22 @@ CONSTANTS
 	nx 6
 
 	// --- BE: AH ---
-	ay_AH_l  3.109224543467e+00
+	ay_AH_l  3.125396397693e+00
 	az_AH_l  3.141592653590e+00
-	ay_AH_r  3.109224543467e+00
+	ay_AH_r  3.125396397693e+00
 	az_AH_r  -3.141592653590e+00
 
 	// --- BE: Bm ---
-	ay_Bm_l  2.301461380816e+00
-	ay_Bm_c  5.049264366970e+00
-	ay_Bm_r  2.730891891077e+00
+	ay_Bm_l  2.300758627500e+00
+	ay_Bm_c  5.051484053933e+00
+	ay_Bm_r  2.730564197066e+00
 
 	//--- LCHS Fourier grid ---
-	kmax 	10.000
-	nk 		9
+	kmax 	20.000
+	nk 		8
 	beta 	0.700
 	alpha_k0_pih 	-1.570796326795e+00
-	alpha_k1_pih 	1.573870292209e+00
+	alpha_k1_pih 	1.576956312390e+00
 
 	//--- Initialization ---
 	alpha_init_0 	-5.000000000000e-01
@@ -29,8 +29,8 @@ CONSTANTS
 	// --- For AA ---
 	// N_AA_w   3   // for kmax 10, nk 5
 	// N_AA_w   7   // for kmax 10, nk 7
-	N_AA_w   15  // for kmax 10, nk 9
-	// N_AA_w   10   // for kmax 20, nk 8
+	// N_AA_w   15  // for kmax 10, nk 9
+	N_AA_w   10   // for kmax 20, nk 8
 	// N_AA_w   15   // for kmax 40, nk 9
 	// N_AA_w   21   // for kmax 80, nk 10
 	// N_AA_w   15  // for kmax 100, nk 9
@@ -62,17 +62,20 @@ CIRCUITS_DECLARATION
 	Ow        2                                                   a_w 1 1                                             rk <nk> 0 
 	PREP      3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0 
 	RA        3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0
+
+	OwI       2                                                   a_w 1 1                                             rk <nk> 0 
+	PREPI     3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0 
+	RAI       3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0
 	// --- for block-encoding LCHS matrices ---
 	U_BE_H    3                                                                                         ae 1 1 ax 2 1           rx <nx> 0 
 	U_BE_m    3                                                                                         ae 1 1 ax 2 1           rx <nx> 0
 	U_BE      5                                                                     a_lcu 1 1 a_sin 1 1    a_be 3 1   rk <nk> 0 rx <nx> 0
 	// --- final circuit ---
 	U         7             a_init_tot 3 1               a_AA 1 1 a_w 2 1 a_qsp 2 1             a_be_tot 5 1          rk <nk> 1 rx <nx> 0
-	// U          2 a_sin 1 1 rk <nk> 0
 END_CIRCUITS_DECLARATION
 
 
-MAIN_CIRCUIT   U  
+MAIN_CIRCUIT   U   
 	INPUT_STATE  rx 0
 END_MAIN_CIRCUIT
 
@@ -110,22 +113,22 @@ CIRCUIT_STRUCTURE RA_init
 END_CIRCUIT_STRUCTURE
 
 
-// --- Oracle Ow ---
+
+
+// -----------------------------------------------------------------------
+// --- ORACLE FOR WEIGHTS ---
 CIRCUIT_STRUCTURE  Ow
 	gate H rk -1 end_gate
 	gate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
-	// gate DirDec a_w 1 rk -1 LCHS_weights_sin_sqrt 1 <kmax> end_gate
 END_CIRCUIT_STRUCTURE
 
 
-// --- Preparation oracle for amplitude amplification of the LCHS weights ---
 CIRCUIT_STRUCTURE   PREP
 	circuit Ow 2 rk -1 a_w 1 end_circuit
 	gate X a_AA 1 ocontrol a_w 1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
-// --- AA oracle of the LCHS weights ---
 CIRCUIT_STRUCTURE RA
 	// sign change of the good state (state |1>)
 	gate  Z a_AA 1 end_gate     
@@ -138,6 +141,36 @@ CIRCUIT_STRUCTURE RA
 	// 
 	circuit PREP 3 rk -1 a_w 1 a_AA 1 end_circuit
 END_CIRCUIT_STRUCTURE
+
+
+
+
+CIRCUIT_STRUCTURE  OwI
+	gate H rk -1 end_gate
+	igate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREPI
+	circuit OwI 2 rk -1 a_w 1 end_circuit
+	gate X a_AA 1 ocontrol a_w 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RAI
+	// sign change of the good state (state |1>)
+	gate  Z a_AA 1 end_gate     
+	//
+	icircuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+	// sign change of the initial state:
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate Z a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	// 
+	circuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
 
 
 // -----------------------------------------------------------------------
@@ -210,18 +243,11 @@ CIRCUIT_STRUCTURE   U
 		gate QSVT qsp_selector   a_qsp -1  U_BE 3 a_be_tot -1 rk -1 rx -1 end_gate
 
 		// inverse weights:
-		igate repeat RA 3 rk -1 a_w[1] a_AA 1 <N_AA_w> end_gate
-		icircuit   PREP 3 rk -1 a_w[1] a_AA 1 end_circuit
+		igate repeat RAI 3 rk -1 a_w[1] a_AA 1 <N_AA_w> end_gate
+		icircuit   PREPI 3 rk -1 a_w[1] a_AA 1 end_circuit
 	end_with
 END_CIRCUIT_STRUCTURE
 
-
-
-// // --- Final circuit ---
-// CIRCUIT_STRUCTURE   U
-// 	gate H rk -1 end_gate
-// 	gate SIN a_sin 1 <alpha_k0_pih> <alpha_k1_pih> rk -1 end_gate
-// END_CIRCUIT_STRUCTURE
 
 
 

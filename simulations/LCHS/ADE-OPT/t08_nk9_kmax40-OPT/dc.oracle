@@ -11,13 +11,13 @@ CONSTANTS
 	az_AH_r  -3.141592653590e+00
 
 	// --- BE: Bm ---
-	ay_Bm_l  2.300582662613e+00
-	ay_Bm_c  5.052040339633e+00
-	ay_Bm_r  2.730482150908e+00
+	ay_Bm_l  3.982602644566e+00
+	ay_Bm_c  1.231144967547e+00
+	ay_Bm_r  3.552703156271e+00
 
 	//--- LCHS Fourier grid ---
 	kmax 	40.000
-	nk 	9
+	nk 		9
 	beta 	0.700
 	alpha_k0_pih 	-1.570796326795e+00
 	alpha_k1_pih 	1.573870292209e+00
@@ -62,6 +62,10 @@ CIRCUITS_DECLARATION
 	Ow        2                                                   a_w 1 1                                             rk <nk> 0 
 	PREP      3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0 
 	RA        3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0
+
+	OwI       2                                                   a_w 1 1                                             rk <nk> 0 
+	PREPI     3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0 
+	RAI       3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0
 	// --- for block-encoding LCHS matrices ---
 	U_BE_H    3                                                                                         ae 1 1 ax 2 1           rx <nx> 0 
 	U_BE_m    3                                                                                         ae 1 1 ax 2 1           rx <nx> 0
@@ -109,21 +113,22 @@ CIRCUIT_STRUCTURE RA_init
 END_CIRCUIT_STRUCTURE
 
 
-// --- Oracle Ow ---
+
+
+// -----------------------------------------------------------------------
+// --- ORACLE FOR WEIGHTS ---
 CIRCUIT_STRUCTURE  Ow
 	gate H rk -1 end_gate
 	gate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
 END_CIRCUIT_STRUCTURE
 
 
-// --- Preparation oracle for amplitude amplification of the LCHS weights ---
 CIRCUIT_STRUCTURE   PREP
 	circuit Ow 2 rk -1 a_w 1 end_circuit
 	gate X a_AA 1 ocontrol a_w 1 end_gate
 END_CIRCUIT_STRUCTURE
 
 
-// --- AA oracle of the LCHS weights ---
 CIRCUIT_STRUCTURE RA
 	// sign change of the good state (state |1>)
 	gate  Z a_AA 1 end_gate     
@@ -138,8 +143,38 @@ CIRCUIT_STRUCTURE RA
 END_CIRCUIT_STRUCTURE
 
 
+
+
+CIRCUIT_STRUCTURE  OwI
+	gate H rk -1 end_gate
+	igate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREPI
+	circuit OwI 2 rk -1 a_w 1 end_circuit
+	gate X a_AA 1 ocontrol a_w 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RAI
+	// sign change of the good state (state |1>)
+	gate  Z a_AA 1 end_gate     
+	//
+	icircuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+	// sign change of the initial state:
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate Z a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	// 
+	circuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
 // -----------------------------------------------------------------------
-// --- BE oracle: A_a ---
+// --- BE oracle: A_H ---
 CIRCUIT_STRUCTURE U_BE_H
 	// --- OF_FORWARD ---
 	gate H ax 1 end_gate
@@ -156,7 +191,7 @@ END_CIRCUIT_STRUCTURE
 
 
 // -----------------------------------------------------------------------
-// --- BE oracle: B_kmax = - k_max_ * Ah_ ---
+// --- BE oracle: B_kmax = - k_max_ * AL_ ---
 CIRCUIT_STRUCTURE U_BE_m
 	// --- OF_FORWARD ---
 	gate H ax 1 end_gate
@@ -208,13 +243,10 @@ CIRCUIT_STRUCTURE   U
 		gate QSVT qsp_selector   a_qsp -1  U_BE 3 a_be_tot -1 rk -1 rx -1 end_gate
 
 		// inverse weights:
-		igate repeat RA 3 rk -1 a_w[1] a_AA 1 <N_AA_w> end_gate
-		icircuit   PREP 3 rk -1 a_w[1] a_AA 1 end_circuit
+		igate repeat RAI 3 rk -1 a_w[1] a_AA 1 <N_AA_w> end_gate
+		icircuit   PREPI 3 rk -1 a_w[1] a_AA 1 end_circuit
 	end_with
 END_CIRCUIT_STRUCTURE
-
-
-
 
 
 
