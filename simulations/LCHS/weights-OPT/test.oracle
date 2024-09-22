@@ -2,15 +2,15 @@
 
 CONSTANTS
 	//--- k-grid ---
-	k_max	 10.0 
-	nk 	     5
+	k_max	 20.0 
+	nk 	     8
 	beta     0.7
 
 	// --- For the amplification ---
-	N_AA   3   // for kmax 10, nk 5
+	// N_AA   3   // for kmax 10, nk 5
 	// N_AA   7   // for kmax 10, nk 7
 	// N_AA   15  // for kmax 10, nk 9
-	// N_AA   10   // for kmax 20, nk 8
+	N_AA   10   // for kmax 20, nk 8
 	// N_AA   15   // for kmax 40, nk 9
 	// N_AA   21   // for kmax 80, nk 10
 	// N_AA   15  // for kmax 100, nk 9
@@ -21,7 +21,7 @@ END_CONSTANTS
 
 OPTIONS
     sel_compute_output zero-ancillae
-	sel_print_output   zero-ancillae  // none, all, zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
 	flag_circuit 0 
 	flag_tex     0
 	tex_CL  6 
@@ -116,17 +116,17 @@ CIRCUIT_STRUCTURE   U
 	// --- without AA ---
 	// circuit Ow 2 rk -1 a_w[0] end_circuit
 
-	// // --- with AA ---
-	// circuit    PREP 3 rk -1 a_w[0] a_AA 1 end_circuit
-	// gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
-	// gate X a_AA 1 ocontrol a_w 1 end_gate
-
-
-
+	// --- with AA ---
 	circuit    PREP 3 rk -1 a_w[0] a_AA 1 end_circuit
 	gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
-	// gate X a_AA 1 ocontrol a_w 1 end_gate
+	gate X a_AA 1 ocontrol a_w 1 end_gate
 
-	igate  repeat RAI 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
-	icircuit    PREPI 3 rk -1 a_w[0] a_AA 1 end_circuit
+
+
+	// circuit    PREP 3 rk -1 a_w[0] a_AA 1 end_circuit
+	// gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
+	// // gate X a_AA 1 ocontrol a_w 1 end_gate
+
+	// igate  repeat RAI 3 rk -1 a_w[0] a_AA 1 <N_AA> end_gate
+	// icircuit    PREPI 3 rk -1 a_w[0] a_AA 1 end_circuit
 END_CIRCUIT_STRUCTURE

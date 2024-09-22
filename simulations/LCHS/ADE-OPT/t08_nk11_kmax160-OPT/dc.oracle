@@ -5,22 +5,22 @@ CONSTANTS
 	nx 6
 
 	// --- BE: AH ---
-	ay_AH_l  3.133492998377e+00
+	ay_AH_l  3.139567620425e+00
 	az_AH_l  3.141592653590e+00
-	ay_AH_r  3.133492998377e+00
+	ay_AH_r  3.139567620425e+00
 	az_AH_r  -3.141592653590e+00
 
 	// --- BE: Bm ---
-	ay_Bm_l  3.982602644566e+00
-	ay_Bm_c  1.231144967547e+00
-	ay_Bm_r  3.552703156271e+00
+	ay_Bm_l  3.982657656322e+00
+	ay_Bm_c  1.230971016012e+00
+	ay_Bm_r  3.552728805775e+00
 
 	//--- LCHS Fourier grid ---
-	kmax 	40.000
-	nk 		9
+	kmax 	160.000
+	nk 		11
 	beta 	0.700
 	alpha_k0_pih 	-1.570796326795e+00
-	alpha_k1_pih 	1.573870292209e+00
+	alpha_k1_pih 	1.571563691879e+00
 
 	//--- Initialization ---
 	alpha_init_0 	-5.000000000000e-01
@@ -31,10 +31,10 @@ CONSTANTS
 	// N_AA_w   7   // for kmax 10, nk 7
 	// N_AA_w   15  // for kmax 10, nk 9
 	// N_AA_w   10   // for kmax 20, nk 8
-	N_AA_w   15   // for kmax 40, nk 9
+	// N_AA_w   15   // for kmax 40, nk 9
 	// N_AA_w   21   // for kmax 80, nk 10
 	// N_AA_w   15  // for kmax 100, nk 9
-	// N_AA_w   30   // for kmax 160, nk 11
+	N_AA_w   30   // for kmax 160, nk 11
 
 	N_AA_init     2 // for AA of the initialization circuit
 END_CONSTANTS

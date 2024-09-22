@@ -195,7 +195,7 @@ END_CIRCUIT_STRUCTURE
 
 
 // -----------------------------------------------------------------------
-// --- BE oracle: B_kmax = - k_max_ * AL_ ---
+// --- BE oracle: B_kmax = k_max_ * AL_ ---
 CIRCUIT_STRUCTURE U_BE_m
 	// --- OF_FORWARD ---
 	gate H ax 1 end_gate

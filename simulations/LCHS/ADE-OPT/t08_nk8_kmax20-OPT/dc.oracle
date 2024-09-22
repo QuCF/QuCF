@@ -11,9 +11,9 @@ CONSTANTS
 	az_AH_r  -3.141592653590e+00
 
 	// --- BE: Bm ---
-	ay_Bm_l  2.300758627500e+00
-	ay_Bm_c  5.051484053933e+00
-	ay_Bm_r  2.730564197066e+00
+	ay_Bm_l  3.982426679679e+00
+	ay_Bm_c  1.231701253247e+00
+	ay_Bm_r  3.552621110114e+00
 
 	//--- LCHS Fourier grid ---
 	kmax 	20.000
@@ -72,6 +72,7 @@ CIRCUITS_DECLARATION
 	U_BE      5                                                                     a_lcu 1 1 a_sin 1 1    a_be 3 1   rk <nk> 0 rx <nx> 0
 	// --- final circuit ---
 	U         7             a_init_tot 3 1               a_AA 1 1 a_w 2 1 a_qsp 2 1             a_be_tot 5 1          rk <nk> 1 rx <nx> 0
+	// U          2 a_sin 1 1 rk <nk> 0
 END_CIRCUITS_DECLARATION
 
 
@@ -191,7 +192,7 @@ END_CIRCUIT_STRUCTURE
 
 
 // -----------------------------------------------------------------------
-// --- BE oracle: B_kmax = - k_max_ * AL_ ---
+// --- BE oracle: B_kmax = k_max_ * AL_ ---
 CIRCUIT_STRUCTURE U_BE_m
 	// --- OF_FORWARD ---
 	gate H ax 1 end_gate
@@ -255,7 +256,11 @@ END_CIRCUIT_STRUCTURE
 
 
 
-
+// // --- Final circuit ---
+// CIRCUIT_STRUCTURE   U
+// 	gate H rk -1 end_gate
+// 	gate SIN a_sin 1 <alpha_k0_pih> <alpha_k1_pih> rk -1 end_gate
+// END_CIRCUIT_STRUCTURE
 
 
 
