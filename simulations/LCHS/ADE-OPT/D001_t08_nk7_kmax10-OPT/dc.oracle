@@ -4,13 +4,13 @@ CONSTANTS
 	// --- Spatial resolution ---
 	nx 6
 
-	// --- BE: AH (for A) ---
+	// --- BE: AH ---
 	ay_AH_l  3.109224543467e+00
-	az_AH_l  -3.141592653590e+00
+	az_AH_l  3.141592653590e+00
 	ay_AH_r  3.109224543467e+00
-	az_AH_r  3.141592653590e+00
+	az_AH_r  -3.141592653590e+00
 
-	// --- BE: Bm (for A) ---
+	// --- BE: Bm ---
 	ay_Bm_l  3.981723926364e+00
 	ay_Bm_c  1.233920940209e+00
 	ay_Bm_r  3.552293416103e+00
@@ -78,7 +78,7 @@ CIRCUITS_DECLARATION
 END_CIRCUITS_DECLARATION
 
 
-MAIN_CIRCUIT   U  
+MAIN_CIRCUIT   U   
 	INPUT_STATE  rx 0
 END_MAIN_CIRCUIT
 
