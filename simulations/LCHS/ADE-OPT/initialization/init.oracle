@@ -1,0 +1,95 @@
+// $qucf dc ./ 
+
+CONSTANTS
+	// --- Spatial resolution ---
+	nx 6
+
+	// --- for initialization ---
+	xc_init 0.5
+	wd_init 0.05
+
+	// --- For AA ---
+	N_AA_init     2 // for AA of the initialization circuit
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL      6 
+	flag_matrix 0     // set to 1 to check BE, set to 0 for actual computations
+	flag_stop_gates    0
+	flag_repeat_insert 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	// ---
+	INIT_GAUSS 2               a_init 1 1  rx <nx> 0
+	PREP_init  3 a_AA_init 1 1 a_init 1 1  rx <nx> 0
+	RA_init    3 a_AA_init 1 1 a_init 1 1  rx <nx> 0
+	// --- 
+	U          2        a_init_tot 2 1     rx <nx> 0
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U   
+	INPUT_STATE  rx 0
+END_MAIN_CIRCUIT
+
+
+// -----------------------------------------------------------------------
+// --- Initialization ---
+CIRCUIT_STRUCTURE INIT_GAUSS
+	gate H rx -1 end_gate
+	gate DirDec a_init 1 rx -1 gauss 2 <xc_init> <wd_init> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREP_init
+	circuit INIT_GAUSS 2 rx -1 a_init -1  end_circuit
+	gate X a_AA_init 1 ocontrol 1 a_init -1  end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RA_init
+	// sign change of the good state (state |1>)
+	gate  Z a_AA_init 1 end_gate     
+	//
+	icircuit PREP_init 3 rx -1 a_init -1 a_AA_init 1 end_circuit
+	// sign change of the initial state (state |0>|0>|0>):
+	gate X a_AA_init 1 ocontrol 2 rx -1 a_init -1  end_gate
+	gate Z a_AA_init 1 ocontrol 2 rx -1 a_init -1  end_gate
+	gate X a_AA_init 1 ocontrol 2 rx -1 a_init -1  end_gate
+	// 
+	circuit PREP_init 3 rx -1 a_init -1 a_AA_init 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	// // --- Initialization without AA ---
+	// circuit INIT_GAUSS 2 rx -1 a_init_tot[0] end_circuit
+
+	// --- Initialization with AA ---
+	circuit PREP_init   2 rx -1 a_init_tot -1 end_circuit
+	gate repeat RA_init 2 rx -1 a_init_tot -1 <N_AA_init> end_gate
+	// gate Z a_init_tot[-1] end_gate  // to adjust the sign
+	gate X a_init_tot[-1] end_gate  // to entangle the result with the zero state of the ancilla
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+
+

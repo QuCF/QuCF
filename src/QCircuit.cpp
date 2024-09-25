@@ -1824,6 +1824,9 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
     int Nc = 1 << n_ctrl;
     if(YMIX::compare_strings(sel_prof, "LCHS_weights_sqrt"))
     {
+        if(N_pars < 1)
+            throw std::string("ERROR: DirDec LCHS_weights_sqrt: N_pars should be = 1");
+
         YVQv phis_y(Nc);
         double k;
         double dk = 2./(Nc - 1);
@@ -1838,6 +1841,9 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
     }
     else if(YMIX::compare_strings(sel_prof, "LCHS_weights_sin_sqrt"))
     {
+        if(N_pars < 1)
+            throw std::string("ERROR: DirDec LCHS_weights_sin_sqrt: N_pars should be = 1");
+
         YVQv phis_y(Nc);
         double theta_1, k;
         double d_theta = M_PI/(Nc - 1);
@@ -1854,6 +1860,9 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
     }
     else if(YMIX::compare_strings(sel_prof, "LCHS_weights_sin_OPT_sqrt"))
     {
+        if(N_pars < 2)
+            throw std::string("ERROR: DirDec LCHS_weights_sin_OPT_sqrt: N_pars should be = 2");
+
         YVQv phis_y(Nc);
         YVQv phis_z(Nc);
         double theta_1, k;
@@ -1878,6 +1887,9 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
     }
     else if(YMIX::compare_strings(sel_prof, "LCHS_weights_full"))
     {
+        if(N_pars < 1)
+            throw std::string("ERROR: DirDec LCHS_weights_full: N_pars should be = 1");
+
         YVQv phis_y(Nc);
         double k;
         double dk = 2./(Nc - 1);
@@ -1892,6 +1904,9 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
     }
     else if(YMIX::compare_strings(sel_prof, "linear"))
     {
+        if(N_pars < 2)
+            throw std::string("ERROR: DirDec linear: N_pars should be = 2");
+
         YVQv phis_y(Nc);
         double k;
         double dk = (pars[1] - pars[0])/(Nc - 1);
@@ -1902,10 +1917,30 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
         }
         DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
     }
+    else if(YMIX::compare_strings(sel_prof, "gauss"))
+    {
+        // gauss in the interval [0, 1];
+        if(N_pars < 2)
+            throw std::string("ERROR: DirDec gauss: N_pars should be = 2");
+
+        YVQv phis_y(Nc);
+        double xc = pars[0];
+        double wd = pars[1];
+        double x, f;
+        double dx = 1./(Nc - 1);
+        for(int ii = 0; ii < Nc; ii++)
+        {
+            x = 0 + ii * dx;
+            f = (x - xc) * (x - xc) / (2. * wd*wd);
+            f = exp(-f);
+            phis_y[ii] = 2. * acos(f);
+        }
+        DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
+    }
     else if(YMIX::compare_strings(sel_prof, "inverse"))
     {
         if(N_pars < 3)
-            throw std::string("ERROR: DirDec inverse: N_pars should be >= 3");
+            throw std::string("ERROR: DirDec inverse: N_pars should be = 3");
 
         YVQv phis_y(Nc);
         int Nch = 1 << (n_ctrl - 1);
