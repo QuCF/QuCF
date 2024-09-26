@@ -25,6 +25,7 @@ QuCF__::QuCF__(
     flag_output_gadget_ = false;
     flag_stop_gates_ = true;
     flag_repeat_insert_ = false;
+    flag_progress_bar_ = false;
     read_data();
 }
 
@@ -185,6 +186,12 @@ void QuCF__::read_options(YISS istr)
                 istr >> flag_repeat_insert_;
                 continue;
             }
+
+            if(YMIX::compare_strings(word, "flag_progress_bar"))
+            {
+                istr >> flag_progress_bar_;
+                continue;
+            }
         }
 
         // correct the printing options:
@@ -319,7 +326,8 @@ void QuCF__::read_circuit_declaration(YISS istr)
                 ocs_[circ_name] = make_shared<QCircuit>(
                     circ_name, env_, path_inputs_, nq_circ, 
                     constants_,
-                    flag_circuit_, flag_tex_, flag_layers_, flag_stop_gates_, flag_repeat_insert_
+                    flag_circuit_, flag_tex_, flag_layers_, 
+                    flag_stop_gates_, flag_repeat_insert_, flag_progress_bar_
                 );
             }
                 

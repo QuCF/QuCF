@@ -15,7 +15,8 @@ QCircuit::QCircuit(
     YCB flag_tex,
     YCB flag_layers,
     YCB flag_stop_gates,
-    YCB flag_repeat_insert
+    YCB flag_repeat_insert,
+    YCB flag_progress_bar
 ) :
 name_(name),
 env_(env),
@@ -24,7 +25,8 @@ flag_circuit_(flag_circuit),
 flag_tex_(flag_tex),
 flag_layers_(flag_layers),
 flag_stop_gates_(flag_stop_gates),
-flag_repeat_insert_(flag_repeat_insert)
+flag_repeat_insert_(flag_repeat_insert),
+flag_progress_bar_(flag_progress_bar)
 {
     timer_.Start();
     nq_ = 0;
@@ -86,6 +88,7 @@ QCircuit::QCircuit(YCCQ oc, YCS cname)
         flag_layers_  = false;
         flag_stop_gates_ = true;
         flag_repeat_insert_ = false;
+        flag_progress_bar_ = false;
     }
     else
     {
@@ -95,6 +98,7 @@ QCircuit::QCircuit(YCCQ oc, YCS cname)
         flag_layers_     = oc->flag_layers_;
         flag_stop_gates_ = oc->flag_stop_gates_;
         flag_repeat_insert_ = oc->flag_repeat_insert_;
+        flag_progress_bar_ = oc->flag_progress_bar_;
     }
         
     env_ = oc->env_;
@@ -313,35 +317,52 @@ void QCircuit::generate(string& stop_name, uint64_t& id_current)
     int perc_int = 0;
     int Ng = gates_.size();
     int counter_g = -1;
+    int counter_ratio = 1;
     int step_prog = 2;
     if(id_start_ == 0 & !flag_stop_gates_)
-        cout << "\nProgress: " << std::flush;
+        cout << "\nProgress:\n" << std::flush;
     for(auto it = start; it != gates_.end(); ++it) 
     {
         if(!flag_stop_gates_)
         {
             counter_g++;
             perc_float = (counter_g*1.)/(Ng-1) * 100.;
-            perc_int = perc_float;
-            if((perc_int - perc_prev) >= step_prog)
-            {
-                for(int ii = 0; ii < 12; ii++)
-                    cout << "\b";
-                cout << "| " << std::setw(10) << perc_float << "%" << std::flush;
-                perc_prev = perc_int;
+
+            if(flag_progress_bar_)
+            { 
+                perc_int = perc_float;
+                if((perc_int - perc_prev) >= step_prog)
+                {
+                    for(int ii = 0; ii < 12; ii++)
+                        cout << "\b";
+                    cout << "| " << std::setw(10) << perc_float << "%" << std::flush;
+                    perc_prev = perc_int;
+                }
+                else
+                {
+                    if(counter_g%1000 == 0)
+                    {
+                        if(counter_g > 0)
+                            for(int ii = 0; ii < 12; ii++)
+                                cout << "\b";
+                        cout << std::setw(11) << perc_float << "%" << std::flush;
+                    }
+                }
+                if(perc_int == 100)
+                    cout << endl;
             }
             else
-            {
-                if(counter_g%1000 == 0)
+            {   
+                if(perc_float >= counter_ratio * 5.)
                 {
-                    if(counter_g > 0)
-                        for(int ii = 0; ii < 12; ii++)
-                            cout << "\b";
-                    cout << std::setw(11) << perc_float << "%" << std::flush;
+                    printf("%6.1f...", perc_float);
+                    if(counter_ratio%10 == 0)
+                        cout << std::endl;
+                    else
+                        cout << std::flush;
+                    counter_ratio++;
                 }
             }
-            if(perc_int == 100)
-                cout << endl;
         }
 
         if(YMIX::compare_strings((*it)->get_type(), "stop"))

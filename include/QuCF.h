@@ -108,6 +108,11 @@ private:
     bool flag_stop_gates_;
 
     /**
+     * True: show a progress bar if flag_stop_gates_ = False
+     */
+    bool flag_progress_bar_;
+
+    /**
      * True: in the repeat gate, simply insert gates.
     */
     bool flag_repeat_insert_;

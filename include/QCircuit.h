@@ -32,7 +32,8 @@ class QCircuit{
         YCB flag_tex = false,
         YCB flag_layers = false,
         YCB flag_stop_gates = true,
-        YCB flag_repeat_insert = false
+        YCB flag_repeat_insert = false,
+        YCB flag_progress_bar = false
     );
 
     /**
@@ -1033,6 +1034,7 @@ private:
 
     bool flag_stop_gates_;
     bool flag_repeat_insert_;
+    bool flag_progress_bar_;
 
 };
 
