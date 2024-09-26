@@ -16,7 +16,7 @@
 ##SBATCH --mem=64G
 
 #SBATCH -t 10:30:00
-#SBATCH -J k40_n9
+#SBATCH -J k40_n10
 #
 ## To run
 export SLURM_CPU_BIND="cores"
