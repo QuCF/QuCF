@@ -15,7 +15,7 @@
 
 ##SBATCH --mem=64G
 
-#SBATCH -t 10:00:00
+#SBATCH -t 05:00:00
 #SBATCH -J k80_n10
 #
 ## To run
