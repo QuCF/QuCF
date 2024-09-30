@@ -1,0 +1,263 @@
+// $qucf dc ./ 
+
+CONSTANTS
+	// --- Spatial resolution ---
+	nx 6
+
+	// --- BE: AH ---
+	ay_AH_l  3.125396397693e+00
+	az_AH_l  3.141592653590e+00
+	ay_AH_r  3.125396397693e+00
+	az_AH_r  -3.141592653590e+00
+
+	// --- BE: Bm ---
+	ay_Bm_l  3.982426679679e+00
+	ay_Bm_c  1.231701253247e+00
+	ay_Bm_r  3.552621110114e+00
+
+	//--- LCHS Fourier grid ---
+	kmax 	20.000
+	nk 		12
+	beta 	0.700
+	alpha_k0_pih 	-1.570796326795e+00
+	alpha_k1_pih 	1.571179915641e+00
+
+	//--- Initialization ---
+	xc_init 	5.000e-01
+	wd_init 	5.000e-02
+
+	// --- For AA ---
+	// N_AA_w   7    // nk 7
+	// N_AA_w   10   // nk 8
+	// N_AA_w   15   // nk 9
+	// N_AA_w   21   // nk 10
+	// N_AA_w   30   // nk 11
+	N_AA_w   43   // nk 12
+
+	// - other kmax -
+	// N_AA_w   3   // for kmax 10, nk 5
+	// N_AA_w   7   // for kmax 10, nk 7
+	// N_AA_w   15  // for kmax 10, nk 9
+	// N_AA_w   10  // for kmax 20, nk 8
+	// N_AA_w   15  // for kmax 100, nk 9
+	// N_AA_w   30  // for kmax 160, nk 11
+
+	// - for initialization -
+	N_AA_init     2  // wc = 0.5, wd = 0.05
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL      6 
+	flag_matrix 0     // set to 1 to check BE, set to 0 for actual computations
+	flag_stop_gates    0
+	flag_repeat_insert 0
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	// ---
+	INIT_GAUSS 2               a_init 1 1  rx <nx> 0
+	PREP_init  3 a_AA_init 1 1 a_init 1 1  rx <nx> 0
+	RA_init    3 a_AA_init 1 1 a_init 1 1  rx <nx> 0
+	// --- 
+	Ow        2                                                   a_w 1 1                                             rk <nk> 0 
+	PREP      3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0 
+	RA        3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0
+	OwI       2                                                   a_w 1 1                                             rk <nk> 0 
+	PREPI     3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0 
+	RAI       3                                          a_AA 1 1 a_w 1 1                                             rk <nk> 0
+	// --- for block-encoding LCHS matrices ---
+	U_BE_H    3                                                                                         ae 1 1 ax 2 1           rx <nx> 0 
+	U_BE_m    3                                                                                         ae 1 1 ax 2 1           rx <nx> 0
+	U_BE      5                                                                     a_lcu 1 1 a_sin 1 1    a_be 3 1   rk <nk> 0 rx <nx> 0
+	// --- final circuit ---
+	U         7             a_init_tot 2 1               a_AA 1 1 a_w 2 1 a_qsp 2 1             a_be_tot 5 1          rk <nk> 1 rx <nx> 0
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U   
+	INPUT_STATE  rx 0
+END_MAIN_CIRCUIT
+
+
+// -----------------------------------------------------------------------
+// --- Initialization ---
+CIRCUIT_STRUCTURE INIT_GAUSS
+	gate H rx -1 end_gate
+	gate DirDec a_init 1 rx -1 gauss 2 <xc_init> <wd_init> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREP_init
+	circuit INIT_GAUSS 2 rx -1 a_init -1  end_circuit
+	gate X a_AA_init 1 ocontrol 1 a_init -1  end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RA_init
+	// sign change of the good state (state |1>)
+	gate  Z a_AA_init 1 end_gate     
+	//
+	icircuit PREP_init 3 rx -1 a_init -1 a_AA_init 1 end_circuit
+	// sign change of the initial state
+	gate X a_AA_init 1 ocontrol 2 rx -1 a_init -1  end_gate
+	gate Z a_AA_init 1 ocontrol 2 rx -1 a_init -1  end_gate
+	gate X a_AA_init 1 ocontrol 2 rx -1 a_init -1  end_gate
+	// 
+	circuit PREP_init 3 rx -1 a_init -1 a_AA_init 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+// -----------------------------------------------------------------------
+// --- ORACLE FOR WEIGHTS ---
+CIRCUIT_STRUCTURE  Ow
+	gate H rk -1 end_gate
+	gate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREP
+	circuit Ow 2 rk -1 a_w 1 end_circuit
+	gate X a_AA 1 ocontrol a_w 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RA
+	// sign change of the good state (state |1>)
+	gate  Z a_AA 1 end_gate     
+	//
+	icircuit PREP 3 rk -1 a_w 1 a_AA 1 end_circuit
+	// sign change of the initial state (state |0>|0>|0>):
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate Z a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	// 
+	circuit PREP 3 rk -1 a_w 1 a_AA 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+CIRCUIT_STRUCTURE  OwI
+	gate H rk -1 end_gate
+	igate DirDec a_w 1 rk -1 LCHS_weights_sin_OPT_sqrt 2 <kmax> <beta> end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREPI
+	circuit OwI 2 rk -1 a_w 1 end_circuit
+	gate X a_AA 1 ocontrol a_w 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RAI
+	// sign change of the good state (state |1>)
+	gate  Z a_AA 1 end_gate     
+	//
+	icircuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+	// sign change of the initial state:
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate Z a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	gate X a_AA 1 ocontrol 2 rk -1 a_w -1 end_gate
+	// 
+	circuit PREPI 3 rk -1 a_w 1 a_AA 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+// -----------------------------------------------------------------------
+// --- BE oracle: A_H ---
+CIRCUIT_STRUCTURE U_BE_H
+	// --- OF_FORWARD ---
+	gate H ax 1 end_gate
+	// --- OH ---
+	gate Rc ae 1 <az_AH_l> <ay_AH_l>  control ax 1 end_gate
+	gate Rc ae 1 <az_AH_r> <ay_AH_r> ocontrol ax 1 end_gate 
+
+	// --- OM ---
+	gate incrementor rx -1 ocontrol ax 1 end_gate
+	gate decrementor rx -1  control ax 1 end_gate
+	// --- OF_BACKWARD ---
+	gate H ax 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// -----------------------------------------------------------------------
+// --- BE oracle: B_kmax = k_max_ * AL_ ---
+CIRCUIT_STRUCTURE U_BE_m
+	// --- OF_FORWARD ---
+	gate H ax 1 end_gate
+	gate H ax[1] ocontrol ax 1 end_gate
+
+	// --- OH ---
+	gate Ry ae 1 <ay_Bm_l>  control ax[1] end_gate
+	gate Ry ae 1 <ay_Bm_c> ocontrol ax 3  end_gate
+	gate Ry ae 1 <ay_Bm_r>  control ax[0] end_gate
+	
+	// --- OM ---
+	gate incrementor rx -1 control ax[0] end_gate
+	gate decrementor rx -1 control ax[1] end_gate
+	// --- OF_BACKWARD ---
+	gate H ax[1] ocontrol ax 1 end_gate
+	gate H ax 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- k-dependen BE oracle ---
+CIRCUIT_STRUCTURE U_BE
+	gate H a_lcu[0] end_gate
+
+	circuit U_BE_H 2 rx -1 a_be -1 ocontrol a_lcu[0] end_circuit
+
+	circuit U_BE_m 2 rx -1 a_be -1                       control a_lcu[0] end_circuit
+	gate SIN a_sin 1 <alpha_k0_pih> <alpha_k1_pih> rk -1 control a_lcu[0] end_gate
+
+	gate H a_lcu[0] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	// --- Initialization with AA ---
+	circuit PREP_init   2 rx -1 a_init_tot -1 end_circuit
+	gate repeat RA_init 2 rx -1 a_init_tot -1 <N_AA_init> end_gate
+	// gate Z a_init_tot[-1] end_gate  // to adjust the sign (necessary for QSVT)
+	gate X a_init_tot[-1] end_gate  // to entangle the result with the zero state of the ancilla
+	
+	// --- LCHS ---
+	with ocontrol 1 a_init_tot -1 do
+		// create a sum:
+		circuit    PREP 3 rk -1 a_w[0] a_AA 1 end_circuit
+		gate  repeat RA 3 rk -1 a_w[0] a_AA 1 <N_AA_w> end_gate
+
+		// Selector:
+		gate QSVT qsp_selector   a_qsp -1  U_BE 3 a_be_tot -1 rk -1 rx -1 end_gate
+
+		// inverse weights:
+		igate repeat RAI 3 rk -1 a_w[1] a_AA 1 <N_AA_w> end_gate
+		icircuit   PREPI 3 rk -1 a_w[1] a_AA 1 end_circuit
+	end_with
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+
+

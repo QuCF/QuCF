@@ -2,11 +2,19 @@
 
 CONSTANTS
 	//--- k-grid ---
-	k_max	 80.0 
+	k_max	 20.0 
 	nk 	     12
 	beta     0.7
 
 	// --- For the amplification ---
+
+	// - kmax = 20 -
+	// N_AA   7    // for kmax 20, nk 7
+	// N_AA   10   // for kmax 20, nk 8
+	// N_AA   15   // for kmax 20, nk 9
+	// N_AA   21   // for kmax 20, nk 10
+	// N_AA   30   // for kmax 20, nk 11
+	N_AA   43   // for kmax 20, nk 12
 
 	// - kmax = 40 -
 	// N_AA   7   // for kmax 40, nk 7
@@ -22,7 +30,7 @@ CONSTANTS
 	// N_AA   15   // for kmax 80, nk 9
 	// N_AA   21   // for kmax 80, nk 10
 	// N_AA   30   // for kmax 80, nk 11
-	N_AA   43   // for kmax 80, nk 12
+	// N_AA   43   // for kmax 80, nk 12
 
 	// - other kmax -
 	// N_AA   3   // for kmax 10, nk 5
