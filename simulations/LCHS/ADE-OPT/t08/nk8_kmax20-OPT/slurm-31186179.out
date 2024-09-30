@@ -1,0 +1,125 @@
+
+
+********************************************************************************
+********************************************************************************
+Project name: dc
+Path to input files: .//
+Current path: /global/u1/n/novikau1/QuCF/QuCF/simulations/LCHS/ADE-OPT/t08/nk8_kmax20-OPT
+Creating the output .hdf5 file:
+	 .//dc_OUTPUT.hdf5
+
+----------------------------------------------
+Start reading the input file: .//dc.oracle
+Reading constants...
+Reading options...
+
+--- Initial OPTIONS ---
+-> compute only output states, where all ancillae are in the zero state.
+-> do not write the .circuit files.
+-> do not write the .tex file.
+-> Do not include stop gates.
+---
+
+----> Reading structure of the circuit INIT_GAUSS
+reading...
+DirDec: compute the profile: gauss
+DirDec: N_pars = 2
+DirDec: par0 = 0.500000
+DirDec: par1 = 0.050000
+9.952e-03 s
+--------------------------------------------
+----> Reading structure of the circuit PREP_init
+reading...
+1.959e-03 s
+--------------------------------------------
+----> Reading structure of the circuit RA_init
+reading...
+2.367e-03 s
+--------------------------------------------
+----> Reading structure of the circuit Ow
+reading...
+DirDec: compute the profile: LCHS_weights_sin_OPT_sqrt
+DirDec: N_pars = 2
+DirDec: par0 = 20.000000
+DirDec: par1 = 0.700000
+1.017e-02 s
+--------------------------------------------
+----> Reading structure of the circuit PREP
+reading...
+3.228e-03 s
+--------------------------------------------
+----> Reading structure of the circuit RA
+reading...
+4.664e-03 s
+--------------------------------------------
+----> Reading structure of the circuit OwI
+reading...
+DirDec: compute the profile: LCHS_weights_sin_OPT_sqrt
+DirDec: N_pars = 2
+DirDec: par0 = 20.000000
+DirDec: par1 = 0.700000
+9.396e-03 s
+--------------------------------------------
+----> Reading structure of the circuit PREPI
+reading...
+2.956e-03 s
+--------------------------------------------
+----> Reading structure of the circuit RAI
+reading...
+4.607e-03 s
+--------------------------------------------
+----> Reading structure of the circuit U_BE_H
+reading...
+2.088e-03 s
+--------------------------------------------
+----> Reading structure of the circuit U_BE_m
+reading...
+2.122e-03 s
+--------------------------------------------
+----> Reading structure of the circuit U_BE
+reading...
+3.918e-03 s
+--------------------------------------------
+----> Reading structure of the circuit U
+reading...
+Creating the gate Repeat... 2.870e-03 s
+Creating the gate Repeat... 3.085e-02 s
+
+Read angles from the file: QSP_t2489p3_eps16.hdf5
+--- QSVT gate with the name: qsp_selector ---
+   QSVT type:  QSP-ham;
+   rescaling factor:  1;
+   QSVT error: 1e-16;
+   Polynomial parity: -1;
+   Polynomial parameter: 2489;
+   number of angles: 5323;
+   single time interval: 2489;
+   number of time intervals: 5;
+
+Constructing QSVT circuit...
+Creating the QSP circuit (OPT2)... 4.084e-01 s
+Creating the gate Repeat... 3.116e-02 s
+5.392e-01 s
+--------------------------------------------
+Finish reading the .oracle file
+----------------------------------------------
+Oracle prepared.
+
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+--- Analysis of the circuit [U] ---
+nq: 26
+na: 20
+N-gates: 2752429
+Saving QSVT parameters...
+..........................................................................
+...Initial state 0...
+   1.000e+00   0.000e+00j   |00>|0>|00>|00>|00000>|00000000>|000000>
+
+Calculating the circuit... 
+Progress:
+   5.0...  10.0...  15.0...  20.0...  25.0...  30.0...  35.0...  40.0...  45.0...  50.0...
+  55.0...  60.0...  65.0...  70.0...  75.0...  80.0...  85.0...  90.0...  95.0... 100.0...
+duration: 5.877e+02 s
+*** The oracletool has been destructed. ***
