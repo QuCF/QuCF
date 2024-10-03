@@ -15,7 +15,7 @@
 
 ##SBATCH --mem=64G
 
-#SBATCH -t 12:00:00
+#SBATCH -t 08:00:00
 #SBATCH -J k40_t16
 #
 ## To run
