@@ -8,6 +8,7 @@ build_*/QuCF*
 build_*/qsvt
 build_*/qc_circuit
 build_*/compute_angles
+build_*/approx_polyn
 *archive*
 
 tests/*/*_OUTPUT.hdf5
