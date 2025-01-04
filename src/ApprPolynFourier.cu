@@ -70,7 +70,8 @@ void save_coefs(
     double* coefs_imag,
     const uint32_t& Nx_half, 
     const double* x, const double* pol, const double* orig_func,
-    const std::string& work_path
+    const std::string& work_path,
+    const std::string& filename_out
 );
 
 __global__ 
@@ -84,6 +85,18 @@ void calc_coefs_even(
 
 bool compare_strings(const string& line1, const string& line2);
 void get_current_date_time(string& line_date_time);
+
+
+
+void remove_hdf5_ext(std::string& str) 
+{
+    const std::string extension = ".hdf5";
+    if (
+        str.size() >= extension.size() && 
+        str.rfind(extension) == (str.size() - extension.size())
+    )
+        str = str.substr(0, str.size() - extension.size());
+}
 
 
 /**
@@ -106,6 +119,7 @@ int main(int argc, char *argv[])
     FUNC_DATA_ function_h;
     uint32_t id_arg;
     string work_path = "./";
+    string filename_out = "";
 
     cout << "--- Fourier approach ---" << endl;
 
@@ -139,6 +153,12 @@ int main(int argc, char *argv[])
             id_arg += 1;
             work_path = string (argv[id_arg]);
         }
+        if(compare_strings(argv[id_arg], "-filename_out"))
+        {
+            id_arg += 1;
+            filename_out = string (argv[id_arg]);
+            remove_hdf5_ext(filename_out);
+        }
         ++id_arg;
     }
 
@@ -162,19 +182,25 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    string current_path = filesystem::current_path();
+
     cout << "Function to approximate: " << avail_functions_[function_h.id].sel << "\n";
     cout << "Its parity: \t" << function_h.parity << "\n";
     cout << "Parameter: \t" << param << "\n";
     cout << "Rescaling parameter: \t" << function_h.coef_norm << "\n";
     cout << "Nd: \t" << Nd << "\n";
     cout << "N of avail. GPU devices: " << nDevices << endl;
+    cout << "work directory: " << current_path << "/" << work_path << endl;
+
+    if(!filename_out.empty())
+        cout << "output filename: " << filename_out << endl;
 
     // assume that all devices have the same properties:
     cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, 0);
     double coef_mem = 0.9;
     uint32_t N_coefs_avail = coef_mem * prop.totalGlobalMem / (2*sizeof(double));
-    cout << "Avail. GPU mem for coefs. (MB): " << 
+    cout << "\nAvail. GPU mem for coefs. (MB): " << 
         coef_mem * prop.totalGlobalMem / (1024 * 1024.) << "\n";
 
     for(int id_device = 0; id_device < nDevices; id_device++)
@@ -204,7 +230,8 @@ int main(int argc, char *argv[])
         coefs_real, coefs_imag, 
         Nx_half, x, 
         pol, orig_fun,
-        work_path
+        work_path,
+        filename_out
     );
     return 0;
 }
@@ -567,15 +594,21 @@ void save_coefs(
     double* coefs_imag,
     const uint32_t& Nx_half, 
     const double* x, const double* pol, const double* orig_func,
-    const std::string& work_path
+    const std::string& work_path,
+    const std::string& filename_out
 ){
     std::stringstream sstr;
-    // if(pars_func.sel == "inversion")
-    //     sstr << "./coef_xodd_" << int(param) << "_" << round(-log10(err_res)) << ".hdf5";
-    // if(pars_func.parity == 0)
-    //     sstr << "./coef_xeven_" << to_string(param) << "_" << round(-log10(err_res)) << ".hdf5";
 
-    sstr << work_path << "/" << pars_func.sel << "_" << to_string(param) << "_" << round(-log10(err_res)) << ".hdf5";
+    // // --- filename based on eps ---
+    // sstr << work_path << "/" << pars_func.sel << "_" << to_string(param) << "_" << round(-log10(err_res)) << ".hdf5";
+
+    // --- filename based on N_coefs ---
+    sstr << work_path << "/";
+    if(filename_out.empty())
+        sstr << pars_func.sel << "_param_" << 
+            std::setprecision(3) << param << "_Nc_" << N_coefs << ".hdf5";
+    else
+        sstr << filename_out << ".hdf5";
 
     string filename_hdf5 = sstr.str(); 
     H5::H5File* f_ = new H5::H5File(filename_hdf5, H5F_ACC_TRUNC);

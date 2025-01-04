@@ -1,0 +1,64 @@
+// $qucf MI ./ 
+
+CONSTANTS
+	// --- nx = 7, condition number = 88.0; sin(x) = [-0.99, 0.99] ---
+	nx 	7
+    alpha_k0 	-1.429256853470e+00
+    alpha_k1 	1.440510844443e+00
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     0
+	tex_CL  6 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	U_BE     2  		   a_be 1 1 rs <nx> 0  
+	U        3  a_qsvt 1 1 a_be 1 1 rs <nx> 0 
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0
+END_MAIN_CIRCUIT
+
+
+// --- Block-Encoding oracle ---
+CIRCUIT_STRUCTURE U_BE
+	gate SIN a_be 1 <alpha_k0> <alpha_k1> rs -1 end_gate
+	gate X a_be 1 end_gate
+	gate Z a_be 1 end_gate
+	gate X a_be 1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	gate H rs -1 end_gate
+	gate QSVT qsvt_mi a_qsvt 1 U_BE 2 a_be -1 rs -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

@@ -1,4 +1,5 @@
 .vscode
+.cspell/*
 
 CMakeFiles
 build_*/CMakeCache.txt
