@@ -1,0 +1,100 @@
+// ----------------------------------------------------------------
+// To emulate the circuit, run:  
+//       $qucf circuit ./
+// from the current directory.
+// ----------------------------------------------------------------
+// REMARK: It is assumed that the least-significant qubit is positioned 
+// at the bottom of a quantum circuit.
+
+CONSTANTS
+	nx  4    // a constant 
+	phi 2.06 // a constant 
+END_CONSTANTS
+
+
+OPTIONS
+	sel_compute_output all  // compute all states (where ancillae are zero and nonzero);
+	sel_print_output   all  // print all computed states to the consol;
+	flag_tex     1          // store the structure of the resulting circuit into a .tex file
+END_OPTIONS
+
+
+// The rightmost register is the least-significant register (at the bottom of a circuit)
+CIRCUITS_DECLARATION
+    // a circuit A with two registers, reg_x (with nx qubits) and reg_y (with 3 qubits): 
+	//    reg_x is an ancilla register; 
+	A   2 reg_x <nx> 1 reg_y 3 0
+
+    // a circuit B with a single register reg_z (with 3 qubits).   
+	B   1 reg_z 3 0                
+END_CIRCUITS_DECLARATION
+
+
+// The circuit whose output quantum states will be calculated.
+MAIN_CIRCUIT   A        
+    INPUT_STATE  0                  // zero input state;
+	INPUT_STATE  2 reg_x 1 reg_y 0  // input state where reg_x = |1> = |0001> (nx = 4), reg_y = |0> = |000>
+	INPUT_STATE  2 reg_x 6 reg_y 2  // reg_x = |6> = |0110>, reg_y = |2> = |010>
+END_MAIN_CIRCUIT
+
+
+// description of the circuit B;
+CIRCUIT_STRUCTURE B  
+	gate X  reg_z[0] end_gate
+	gate Y  reg_z[1] end_gate
+	gate Rz reg_z[2] <phi> end_gate
+	gate Z  reg_z[2] end_gate
+
+
+	// gate X  reg_z 2 end_gate
+	// gate X  reg_z 1      control reg_z 2 end_gate
+	// gate H  reg_z 4      control reg_z 2 end_gate
+	// gate Rx reg_z 1 3.14 control reg_z 4 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// description of the circuit A;
+CIRCUIT_STRUCTURE A  
+	// Test 1: gate X at the least-significant qubit of the register reg_y
+	gate X reg_y 1 end_gate
+
+	// // Test 2: one gate H at each qubit of the register reg_y
+	// gate H reg_y -1 end_gate
+
+	// // Test 3: gate Ry(phi) at the most-significant qubit of the register reg_y
+	//		    controlled by the nonzero state of the least significant qubit of the register reg_x 
+	//			and the zero states of third and fourth qubits of reg_x and the first qubit of reg_y
+	// gate Ry reg_y[-1] <phi> control reg_x 1 ocontrol 2 reg_x[2 3] reg_y[0] end_gate
+
+	// // Test 4: place the circuit B as a subcircuit of A into the register reg_x
+	// circuit B  reg_x[0 2 3] control reg_x 2 ocontrol reg_y[-2] end_circuit
+
+	// // Test 5: place the circuit B as a subcircuit of A into two registers
+	// circuit B  2 reg_y[0 1] reg_x[0] end_circuit
+	// gate H  reg_x[-1] control 2 reg_x[0 1 2] reg_y -1 end_gate
+	// circuit B  2 reg_x[0 1] reg_y[0] end_circuit
+	// gate H  reg_x[-1] control 2 reg_x[0 1 2] reg_y -1 end_gate
+	// circuit B -1 end_circuit
+
+	// // Test 6: place a Hermitian adjoint circuit B into the circuit A
+	// icircuit B reg_y -1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
