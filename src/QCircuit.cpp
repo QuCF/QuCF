@@ -1257,7 +1257,7 @@ void QCircuit::read_structure_gate_subtractor_qft(YISS istr, YCS path_in, YCB fl
     // --- read the end of the gate structure ---
     read_end_gate(istr, ids_unit, ids_zero);
 
-    // --- adder ---
+    // --- subtractor ---
     subtractor_qft(qs_v1, qs_v2, q_sign, ids_unit, ids_zero, flag_inv);
 }
 
@@ -2329,9 +2329,12 @@ YQCP QCircuit::subtractor_qft(
     YCVI cs_unit, YCVI cs_zero, 
     YCB flag_inv, YCB flag_box
 ){
-    x(qs_v1, cs_unit, cs_zero);
-    adder_qft(qs_v1, qs_v2, id_sign, cs_unit, cs_zero, flag_inv, flag_box);
-    x(qs_v1, cs_unit, cs_zero);
+
+    adder_qft(qs_v1, qs_v2, id_sign, cs_unit, cs_zero, !flag_inv, flag_box);
+
+    // x(qs_v1, cs_unit, cs_zero);
+    // adder_qft(qs_v1, qs_v2, id_sign, cs_unit, cs_zero, flag_inv, flag_box);
+    // x(qs_v1, cs_unit, cs_zero);
     return get_the_circuit();
 }
 

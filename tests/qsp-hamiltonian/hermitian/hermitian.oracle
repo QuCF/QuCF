@@ -1,32 +1,10 @@
 
-// see scripts-py/jupyter-notebooks/tests/test-hamiltonian.ipynb
 // $qucf hermitian ./ 
 CONSTANTS
 	//--- The angle for the initialization circuit ---
 	ay_init  1.772154247585e+00
 
-	// //--- The angles for the BE oracle ---
-	// ay_H00  2.941257811267e+00
-	// ay_H01  1.287002217587e+00
-	// az_H01  3.141592653590e+00
-	// ay_H10  1.287002217587e+00
-	// az_H10  -3.141592653590e+00
-	// ay_H11  2.318558961455e+00
-
-	// ay_H00  1.570796326795e+00
-	// ay_H01  1.570796326795e+00
-	// az_H01  3.141592653590e+00
-	// ay_H10  1.570796326795e+00
-	// az_H10  -3.141592653590e+00
-	// ay_H11  1.570796326795e+00
-
-	// ay_H00  1.910633236249e+00
-	// ay_H01  1.230959417341e+00
-	// az_H01  1.570796326795e+00
-	// ay_H10  1.230959417341e+00
-	// az_H10  -1.570796326795e+00
-	// ay_H11  1.910633236249e+00
-
+	//--- The angles for the BE oracle ---
 	ay_H00  2.214297435588e+00
 	ay_H01  9.272952180016e-01
 	ay_H10  9.272952180016e-01
@@ -49,14 +27,11 @@ CIRCUITS_DECLARATION
 	INIT     1  		                          rs 1 0
 	U_BE     2  		                 a_be 2 1 rs 1 0  
 	U        5  c 1 1 a_qsp 1 1 a_qu 1 1 a_be 2 1 rs 1 0 
-	// U        7  c 1 1 a_qsp 1 1 a_qu 1 1 yy 1 1 a_be 2 1 rs 1 0  xx 1 0
 END_CIRCUITS_DECLARATION
 
 
 MAIN_CIRCUIT   U       
 	INPUT_STATE  0
-	// INPUT_STATE  rs 1
-	// INPUT_STATE  rs[0]
 END_MAIN_CIRCUIT
 
 
@@ -66,24 +41,7 @@ CIRCUIT_STRUCTURE INIT
 END_CIRCUIT_STRUCTURE
 
 
-// // --- Block-Encoding oracle ---
-// CIRCUIT_STRUCTURE U_BE
-// 	// OF
-// 	gate H  a_be[0] end_gate
-// 	// OH
-// 	gate Ry a_be[1] <ay_H00> ocontrol 2 a_be[0] rs 1 end_gate
-// 	gate Rc a_be[1] <az_H01> <ay_H01> ocontrol rs 1  control a_be[0] end_gate
-// 	gate Rc a_be[1] <az_H10> <ay_H10>  control rs 1 ocontrol a_be[0] end_gate
-// 	gate Ry a_be[1] <ay_H11> control 2 a_be[0] rs 1 end_gate
-// 	// OM
-// 	gate SWAP a_be[0] rs[0] end_gate
-// 	// OF adjoint
-// 	gate H a_be[0] end_gate
-// END_CIRCUIT_STRUCTURE
-
-
-
-// --- Block-Encoding oracle ---
+// --- Block-encoding oracle ---
 CIRCUIT_STRUCTURE U_BE
 	// OF
 	gate H  a_be[0] end_gate
@@ -99,20 +57,10 @@ CIRCUIT_STRUCTURE U_BE
 END_CIRCUIT_STRUCTURE
 
 
-// // --- Block-Encoding oracle ---
-// CIRCUIT_STRUCTURE U_BE
-// 	gate Ry a_be[1] <ay_H00> ocontrol rs 1 end_gate
-// 	gate Ry a_be[1] <ay_H11> control  rs 1 end_gate
-// END_CIRCUIT_STRUCTURE
-
-
 // --- Final circuit ---
 CIRCUIT_STRUCTURE   U
-	// circuit U_BE   2 a_be -1 rs -1  end_circuit // just for testing
-
 	circuit INIT 1 rs 1 end_circuit
 	gate QSVT hamiltonian 2 a_qsp 1 a_qu 1  U_BE 2 a_be 3 rs 1 end_gate
-	// igate QSVT hamiltonian 2 a_qsp 1 a_qu 1  U_BE 2 a_be 3 rs 1 end_gate
 END_CIRCUIT_STRUCTURE
 
 

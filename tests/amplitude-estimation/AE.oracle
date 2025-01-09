@@ -1,4 +1,4 @@
-// ../../../framework/build_oracle/oracletool GaussAE ./ 
+// $qucf AE ./ 
 
 CONSTANTS
 	nx 		6       // describes half of the spatial domain;

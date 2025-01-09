@@ -1,0 +1,38 @@
+CONSTANTS
+	nx  3
+	int_add1 4
+	int_add2 2
+END_CONSTANTS
+
+
+OPTIONS
+	sel_compute_output all  // none, all, zero-ancillae
+	sel_print_output   all // none, all, zero-ancillae
+	flag_circuit 0
+	flag_tex     1
+	tex_CL  16 
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION
+	// U   3 s 1 1 v2 4 1 v1 4 0
+	U   3 v3 4 1 v2 4 1 v1 4 0
+END_CIRCUITS_DECLARATION
+
+
+
+MAIN_CIRCUIT   U       
+	INPUT_STATE  2 v1 4 v2 3  
+	// INPUT_STATE  2 v1 3 v2 4
+	INPUT_STATE  2 v1 2 v2 15 
+END_MAIN_CIRCUIT
+
+CIRCUIT_STRUCTURE U
+	// // gate subtractor_qft  v1 -1 v2 -1 s 1  end_gate
+	// // gate adder_qft  v1 -1 v2 -1 s 1  end_gate
+
+	// gate SubtractorFixed v1 -1  4  s 1 end_gate
+	// gate SubtractorFixed v1 -1  1  s 1 end_gate
+
+	gate Adder v1 -1  v2 -1 v3 -1 end_gate
+END_CIRCUIT_STRUCTURE

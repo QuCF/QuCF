@@ -44,19 +44,13 @@ CIRCUIT_STRUCTURE B
 	gate Y  reg_z[1] end_gate
 	gate Rz reg_z[2] <phi> end_gate
 	gate Z  reg_z[2] end_gate
-
-
-	// gate X  reg_z 2 end_gate
-	// gate X  reg_z 1      control reg_z 2 end_gate
-	// gate H  reg_z 4      control reg_z 2 end_gate
-	// gate Rx reg_z 1 3.14 control reg_z 4 end_gate
 END_CIRCUIT_STRUCTURE
 
 
 // description of the circuit A;
 CIRCUIT_STRUCTURE A  
-	// Test 1: gate X at the least-significant qubit of the register reg_y
-	gate X reg_y 1 end_gate
+	// // Test 1: gate X at the least-significant qubit of the register reg_y
+	// gate X reg_y 1 end_gate
 
 	// // Test 2: one gate H at each qubit of the register reg_y
 	// gate H reg_y -1 end_gate
@@ -69,12 +63,17 @@ CIRCUIT_STRUCTURE A
 	// // Test 4: place the circuit B as a subcircuit of A into the register reg_x
 	// circuit B  reg_x[0 2 3] control reg_x 2 ocontrol reg_y[-2] end_circuit
 
-	// // Test 5: place the circuit B as a subcircuit of A into two registers
-	// circuit B  2 reg_y[0 1] reg_x[0] end_circuit
-	// gate H  reg_x[-1] control 2 reg_x[0 1 2] reg_y -1 end_gate
-	// circuit B  2 reg_x[0 1] reg_y[0] end_circuit
-	// gate H  reg_x[-1] control 2 reg_x[0 1 2] reg_y -1 end_gate
-	// circuit B -1 end_circuit
+	// Test 5: place the circuit B as a subcircuit of A into two registers
+	circuit B  2 reg_y[0 1] reg_x[0] end_circuit
+	
+	gate H  reg_x[-1] control 2 reg_x[0 1 2] reg_y -1 end_gate
+	circuit B  2 reg_x[0 1] reg_y[0] end_circuit
+
+	gate H  reg_x[-1] control 2 reg_x[0 1 2] reg_y -1 end_gate
+	circuit B  2 reg_y[0] reg_x[0 2] end_circuit
+
+	gate H  reg_x[-1] control 2 reg_x[0 1 2] reg_y -1 end_gate
+	circuit B -1 end_circuit
 
 	// // Test 6: place a Hermitian adjoint circuit B into the circuit A
 	// icircuit B reg_y -1 end_circuit
