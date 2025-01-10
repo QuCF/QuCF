@@ -1076,6 +1076,14 @@ void QCircuit::read_reg_int_CORE(
                 integer_qu = get_value_from_word(word);
                 if(integer_qu < 0)
                     integer_qu = (1 << nq_reg) + integer_qu;
+                else if(integer_qu >= 1 << nq_reg)
+                {
+                    stringstream ss;
+                    ss << "\nthe integer " << integer_qu 
+                        << " > the max. possible value (" << (1 << nq_reg) - 1 << 
+                        ") for this register, i.e. " << endl;
+                    throw ss.str();
+                }
 
                 vector<short> binArray(nq_reg);
                 YMATH::intToBinary(integer_qu, binArray);
@@ -1106,7 +1114,6 @@ void QCircuit::read_reg_int_CORE(
                         array_qu_e.erase(
                             find(array_qu_e.begin(), array_qu_e.end(), reg_chosen[id_qu])
                         );
-
                     istr >> word;
                     pos2 = word.find("]",0);
                 }
