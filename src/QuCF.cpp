@@ -136,6 +136,36 @@ void QuCF__::read_options(YISS istr)
                     throw string(
                         "unknown option ["s + sel_print_output_ + "] for the selector sel_print_output."s
                     );
+
+                if(
+                    YMIX::compare_strings(sel_compute_output_, YVSv{"none", "all"}) &&
+                    YMIX::compare_strings(sel_print_output_, YVSv{"zero-ancillae"})   
+                )
+                {
+                    auto str_temp = YMIX::compare_strings(sel_compute_output_, "all") ? " separately": "";
+                    cout << "\n-------------------------------------------------------------------------------\n"
+                        << "WARNING: zero-ancillae states have not been computed" << str_temp << ":\n"  
+                        << "sel_print_output is switched to " << sel_compute_output_ 
+                        << "\n-------------------------------------------------------------------------------" << endl;
+                    sel_print_output_ = sel_compute_output_;
+                }
+
+                if(
+                    YMIX::compare_strings(sel_compute_output_, YVSv{"none", "zero-ancillae"}) &&
+                    YMIX::compare_strings(sel_print_output_, YVSv{"all"})   
+                )
+                {
+                    auto str_temp = 
+                        YMIX::compare_strings(sel_compute_output_, "zero-ancillae") ?
+                        "WARNING: not all states have been computed:\n":
+                        "WARNING: states have not been computed:\n";
+                    cout << "\n-------------------------------------------------------------------------------\n"
+                        << str_temp  
+                        << "sel_print_output is switched to " << sel_compute_output_ 
+                        << "\n-------------------------------------------------------------------------------" << endl;
+                    sel_print_output_ = sel_compute_output_;
+                }
+
                 continue;
             }
 
@@ -547,6 +577,10 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
         {
             oc->read_structure_gate_phase_estimation(istr, path_inputs_, ocs_, flag_inv);
         }
+        // if(YMIX::compare_strings(gate_name, "PE_BE"))
+        // {
+        //     oc->read_structure_gate_phase_estimation_BE(istr, path_inputs_, ocs_, flag_inv);
+        // }
         if(YMIX::compare_strings(gate_name, "QSVT"))
         {
             oc->read_structure_gate_qsvt(istr, ocs_, flag_inv, cd_);
@@ -1205,11 +1239,11 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
                 focus_qubits_.size()
             );
 
-            hfo_.add_group("probabilities");
-            hfo_.add_vector(focus_qubits_,  "qubits"s, "probabilities");
-            hfo_.add_vector(outProbs,  "probs", "probabilities");
+            hfo_.add_group("probabilities-"s + to_string(count_init_state));
+            hfo_.add_vector(focus_qubits_,  "qubits"s, "probabilities-"s + to_string(count_init_state));
+            hfo_.add_vector(outProbs,  "probs", "probabilities-"s + to_string(count_init_state));
         }
-        hfo_.close(); 
+        hfo_.close();
     }
 
     timer_comp.Stop();

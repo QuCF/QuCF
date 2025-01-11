@@ -270,6 +270,9 @@ class QCircuit{
     void read_structure_gate_phase_estimation(
         YISS istr, YCS path_in, std::map<std::string, YSQ>& ocs, YCB flag_inv
     );
+    void read_structure_gate_phase_estimation_BE(
+        YISS istr, YCS path_in, std::map<std::string, YSQ>& ocs, YCB flag_inv
+    );
     void read_structure_gate_qsvt(
         YISS istr, 
         std::map<std::string, YSQ>& ocs, 
@@ -698,6 +701,16 @@ class QCircuit{
      * @param flag_box if true, draw the operator as a box, not as a circuit;
      */ 
     YQCP phase_estimation(
+        YCVI ta, 
+        YCCQ& A, 
+        YCCQ& INIT,
+        YCVI ty, 
+        YCVI cs_unit = {}, YCVI cs_zero = {}, 
+        YCB flag_inv = false,
+        YCB flag_box = false
+    );
+    YQCP phase_estimation_BE(
+        YCVI aq,
         YCVI ta, 
         YCCQ& A, 
         YCCQ& INIT,

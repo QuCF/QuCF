@@ -1076,7 +1076,7 @@ void QCircuit::read_reg_int_CORE(
                 integer_qu = get_value_from_word(word);
                 if(integer_qu < 0)
                     integer_qu = (1 << nq_reg) + integer_qu;
-                else if(integer_qu >= 1 << nq_reg)
+                else if(integer_qu >= (1 << nq_reg))
                 {
                     stringstream ss;
                     ss << "\nthe integer " << integer_qu 
@@ -1538,8 +1538,6 @@ void QCircuit::read_structure_compression_gadget(
 }
 
 
-
-
 void QCircuit::read_structure_repeat(YISS istr, std::map<std::string, YSQ>& ocs, YCB flag_inv)
 {
     YVIv ids_U_target;
@@ -1574,10 +1572,6 @@ void QCircuit::read_structure_repeat(YISS istr, std::map<std::string, YSQ>& ocs,
     // --- Construct the compression gadget ---
     repeat(oc_U, ids_U_target, N_mult, ids_unit, ids_zero, flag_inv);
 }
-
-
-
-
 
 
 void QCircuit::read_structure_gate_phase_estimation(YISS istr, YCS path_in, std::map<std::string, YSQ>& ocs, YCB flag_inv)
@@ -1617,6 +1611,51 @@ void QCircuit::read_structure_gate_phase_estimation(YISS istr, YCS path_in, std:
     // --- add the phase estimation circuit ---
     phase_estimation(ids_ta, oc_A, oc_INIT, ids_ty, ids_unit, ids_zero, flag_inv);
 }
+
+
+
+void QCircuit::read_structure_gate_phase_estimation_BE(YISS istr, YCS path_in, std::map<std::string, YSQ>& ocs, YCB flag_inv)
+{
+    // YVIv ids_ta; // target qubits of the operator A, whose eigenphase we seek for;
+    // YVIv ids_ty;
+    // YVIv ids_q;  // quibitization ancilla
+    // YVIv ids_unit, ids_zero; 
+    // string name_A, name_INIT;
+
+    // // --- read the qubitization ancilla of A ---
+    // read_reg_int(istr, ids_q);
+
+    // // --- read target qubits of A ---
+    // read_reg_int(istr, ids_ta);
+
+    // // --- Read names of the operator A and INIT to find them among available circuits "ocs" ---
+    // try
+    // {
+    //     istr >> name_A >> name_INIT;
+    // }
+    // catch(YCS e)
+    // {
+    //     throw "PE_BE definition: wrong format of the circuit names of the operators A and INIT: " + e;
+    // }
+
+    // // --- Read target qubit where the phase is to be written to ---
+    // read_reg_int(istr, ids_ty);
+    
+    // // --- read the end of the gate structure ---
+    // read_end_gate(istr, ids_unit, ids_zero);
+
+    // // --- Find the appropriate circuits ---
+    // if(ocs.find(name_A) == ocs.end())
+    //     throw string("PE_BE definition: a circuit with the name ["s + name_A + "] is not found."s);
+    // if(ocs.find(name_INIT) == ocs.end())
+    //     throw string("PE_BE definition: a circuit with the name ["s + name_INIT + "] is not found."s);
+    // YSQ oc_A = ocs[name_A];
+    // YSQ oc_INIT = ocs[name_INIT];
+
+    // // --- add the phase estimation circuit ---
+    // phase_estimation_BE(ids_q, ids_ta, oc_A, oc_INIT, ids_ty, ids_unit, ids_zero, flag_inv);
+}
+
 
 
 void QCircuit::read_structure_gate_qsvt(
@@ -1709,17 +1748,8 @@ void QCircuit::read_structure_gate_qsvt(
             // cout << "a-qsp: " << ids_a_qsvt[1] << endl;
             // cout << "a-qu: "  << ids_a_qsvt[0] << endl;
             // cout << "be[0]: " << ids_be[0] << endl;
-            if(YMIX::compare_strings(data.type, "QSP-ham")){
-                // qsp_ham(
-                //     name_circuit,
-                //     data.angles_phis_arbitrary, 
-                //     data.n_repeat,
-                //     ids_a_qsvt[1], ids_a_qsvt[0], 
-                //     ids_be, 
-                //     oc_be, 
-                //     ids_unit, ids_zero, 
-                //     flag_inv
-                // );
+            if(YMIX::compare_strings(data.type, "QSP-ham"))
+            {
                 qsp_ham_opt2(
                     name_circuit,
                     data.angles_phis_arbitrary, 
@@ -1734,7 +1764,6 @@ void QCircuit::read_structure_gate_qsvt(
         }
     }
     
-
     // store the QSVT data:
     if(!flag_data_read)
         map_qsvt_data[name_circuit] = data;
@@ -2750,8 +2779,6 @@ YQCP QCircuit::repeat(
 
 
 
-
-
 YQCP QCircuit::phase_estimation(
     YCVI ta, 
     const std::shared_ptr<const QCircuit>& A, 
@@ -2847,6 +2874,133 @@ YQCP QCircuit::phase_estimation(
     );
     return get_the_circuit();
 }
+
+
+
+YQCP QCircuit::phase_estimation_BE(
+    YCVI aq,
+    YCVI ta, 
+    const std::shared_ptr<const QCircuit>& A, 
+    const std::shared_ptr<const QCircuit>& INIT,
+    YCVI ty, 
+    YCVI cs_unit, YCVI cs_zero,  
+    YCB flag_inv,
+    YCB flag_box
+){
+    // string pe_name_tex = "PE_BE";
+    // string err_line;
+    // err_line = "--- Error: setting the structure of the " + pe_name_tex + " gate ---\n";
+    
+    // auto ny      = ty.size();
+    // auto nq_A    = A->get_n_qubits();
+    // auto n_be_anc   = A->get_na();
+    // auto n_init_anc = INIT->get_na();
+    
+    // if(n_init_anc != n_be_anc)
+    // {
+    //     err_line += "The ancillae qubit in A and INIT must be identical.";
+    //     throw err_line;
+    // }
+    // if(ta.size() != nq_A)
+    // {
+    //     err_line += "The subcircuit " + A->get_name() + " has " + to_string(nq_A) + " qubits, while" + 
+    //         " one has indicated " + to_string(ta.size()) + " qubits to connect to.";
+    //     throw err_line;
+    // }
+    // if(ta.size() != INIT->get_n_qubits())
+    // {
+    //     err_line += "The subcircuit " + INIT->get_name() + " has " + to_string(INIT->get_n_qubits()) + " qubits, while" + 
+    //         " one has indicated " + to_string(ta.size()) + " qubits to connect to.";
+    //     throw err_line;
+    // }
+
+    // // --- separate BE ancillae and input qubits ---
+    // auto qs_be = YVIv(ta);
+    // YVIv be_input(qs_be.begin(),                 qs_be.begin() + nq_A - n_be_anc);
+    // YVIv be_anc(qs_be.begin() + nq_A - n_be_anc, qs_be.end()                    );
+
+    // // --- Create the qubitization operator ---
+    // auto oW = make_shared<QCircuit>("W", env_, path_to_output_, nq_A+1);
+
+    // oW->copy_gates_from(A, qs_be, YSB(nullptr), YVIv{},   YVIv{aq});
+    // oW->copy_gates_from(A, qs_be, YSB(nullptr), YVIv{aq}, YVIv{}, true);
+
+    // // reflector:
+    // oW->h(aq);
+    // oW->phase_zero(aq[0], M_PI, YVIv{}, be_anc);
+    // oW->phase_zero(aq[0], M_PI);
+    // oW->h(aq);
+
+    // // --- create sequences from several A operators ---
+    // list<shared_ptr<QCircuit>> sequs_A;
+    // for(int iy = 0; iy < ny; iy++)
+    // {
+    //     uint32_t N_rot = 1 << iy;
+    //     auto c_temp = make_shared<QCircuit>(
+    //         "A2^{"s+to_string(iy)+"}"s, env_, path_to_output_, nq_A
+    //     );
+    //     auto qa = c_temp->add_register("a", nq_A);
+    //     for(int i_rot = 0; i_rot < N_rot; i_rot++)
+    //         c_temp->copy_gates_from(A, qa);
+    //     sequs_A.push_back(c_temp);
+    // }
+
+    // // --- create an envelop circuit for the phase estimation operator ---
+    // int count_c = -1;
+    // auto oc_pe = make_shared<QCircuit>(
+    //     pe_name_tex, env_, path_to_output_, nq_A + ny
+    // );
+    // auto qy = oc_pe->add_register("y", ny);
+    // auto qa = oc_pe->add_register("a", nq_A);
+    // oc_pe->copy_gates_from(
+    //     INIT, qa, 
+    //     YMBo("INIT", qa)
+    //     // YSB(nullptr)
+    // );
+
+    // // --- The PE_BE circuit ---
+    // oc_pe->h(qy, YVIv {}, be_anc);
+    // for(auto& one_sequ: sequs_A)
+    // {
+    //     count_c++;
+    //     auto ids_t_sequ = YVIv(qa);
+    //     ids_t_sequ.push_back(qy[count_c]);
+    //     oc_pe->copy_gates_from(
+    //         one_sequ, 
+    //         ids_t_sequ,  
+    //         YMBo(one_sequ->get_name(), qa, YVIv{}, YVIv{}, one_sequ->get_name()),
+    //         // YSB(nullptr), // without embedding into a box;
+    //         {qy[count_c]}, YVIv {},
+    //         false
+    //     );
+    // }
+    // oc_pe->quantum_fourier(qy, YVIv{}, be_anc, true, true);
+
+    // // --- invert the circuit if necessary ---
+    // if(flag_inv)
+    // {
+    //     oc_pe->h_adjoint();
+    //     pe_name_tex += "^\\dagger";
+    // }
+
+    // // --- copy the PE env. circuit to the current circuit ---
+    // auto circ_qubits = YVIv({ta});
+    // circ_qubits.insert(circ_qubits.end(), ty.begin(), ty.end());
+
+    // auto box = YSB(nullptr);
+    // if(flag_box)
+    //     box = YMBo("PE", circ_qubits, YVIv{}, YVIv{}, pe_name_tex);
+    // copy_gates_from(
+    //     oc_pe,
+    //     circ_qubits,
+    //     box, 
+    //     cs_unit, cs_zero,
+    //     false      
+    // );
+    return get_the_circuit();
+}
+
+
 
 
 qreal QCircuit::get_value_from_word(YCS word)
