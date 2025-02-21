@@ -1,0 +1,70 @@
+// $qucf init_dirdec ./ 
+CONSTANTS
+	nx   8
+	nxD  16
+
+	kappa     1.0
+	mu        3.141592653589793
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_tex     0
+	tex_CL  10
+	// flag_matrix 1
+END_OPTIONS
+
+
+// ---------------------------------------------------------------
+CIRCUITS_DECLARATION  
+	U_init   4 ab 1 1 ae 1 1 rb <nx> 0 re <nx> 0
+	U        2 ax 2 1 r <nxD> 0 
+END_CIRCUITS_DECLARATION
+
+
+// ---------------------------------------------------------------
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0 
+END_MAIN_CIRCUIT
+
+
+
+
+
+// ---------------------------------------------------------------
+// --- Initialization ---
+CIRCUIT_STRUCTURE  U_init
+	gate H re -1 end_gate
+	gate DirDec ae[0] re -1 vonMises 2 <mu> <kappa>  end_gate
+
+	gate H rb -1 end_gate
+	gate DirDec ab[0] rb -1 vonMises 2 <mu> <kappa>  end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// ---------------------------------------------------------------
+CIRCUIT_STRUCTURE   U
+	// --- Initialization ---
+	circuit U_init -1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+// // ---------------------------------------------------------------
+// // --- For testing 1-D initial conditions ---
+// CIRCUIT_STRUCTURE   U
+// 	// --- Initialization ---
+// 	gate H re -1 end_gate
+// 	gate DirDec ae[0] re -1 vonMises 2 <mu> <kappa>  end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+

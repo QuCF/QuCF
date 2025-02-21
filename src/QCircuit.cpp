@@ -2020,6 +2020,32 @@ void QCircuit::read_structure_dirdec(YISS istr, YCB flag_inv)
         }
         DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
     }
+    else if(YMIX::compare_strings(sel_prof, "vonMises")) // without division by 2pi
+    {
+        // vonMises in the interval [0, 2*pi]:
+        // exp[kappa*cos(x - mu)] / (2*pi * I0(kappa) * f_max) where
+        // f_max = exp[kappa*cos(0)] / (2*pi * I0(kappa))
+        if(N_pars < 2)
+            throw std::string("ERROR: DirDec vonMises: N_pars should be = 2");
+
+        YVQv phis_y(Nc);
+        double mu    = pars[0];
+        double kappa = pars[1];
+        double x, f;
+        double dx = 2.*M_PI/(Nc - 1);
+        double I0 = std::cyl_bessel_i(0, kappa);
+        double coef_inv = 1./(2.*M_PI*I0);
+        double f_max = exp(kappa*cos(0.)) * coef_inv;
+        coef_inv = coef_inv / f_max;
+        for(int ii = 0; ii < Nc; ii++)
+        {
+            x = 0 + ii * dx;
+            f = kappa*cos(x - mu);
+            f = exp(f) * coef_inv;
+            phis_y[ii] = 2. * acos(f);
+        }
+        DirDec_Y(phis_y, ids_ctrl, id_targ, cs_unit, cs_zero, flag_inv);
+    }
     else
     {
         YMIX::print_log(

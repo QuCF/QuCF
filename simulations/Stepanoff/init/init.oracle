@@ -1,0 +1,176 @@
+// $qucf init ./ 
+CONSTANTS
+	nx   8
+	nxD  16
+
+	alpha_init_0 	0.000000000000e+00
+	alpha_init_1 	1.576956312390e+00
+
+	N_AA_init   2   // for kappa = 1, nx = 8
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output zero-ancillae
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_tex     0
+	tex_CL  10
+	flag_matrix 0
+END_OPTIONS
+
+
+
+
+// ------------------------------------------------------------------------------------
+// --- 2D ---
+// ------------------------------------------------------------------------------------
+
+
+// // ---------------------------------------------------------------
+// CIRCUITS_DECLARATION  
+// 	U_BE_init   2 a 1 1 r <nx> 0
+// 	U_init     4            ab 2 1 ae 2 1 rb <nx> 0 re <nx> 0
+// 	PREP_init  3 aAA    1 1 a_be 4 1 r <nxD> 0 
+// 	RA_init    3 aAA    1 1 a_be 4 1 r <nxD> 0
+// 	U          2 a_init 5 1 r <nxD> 0 
+// END_CIRCUITS_DECLARATION
+
+
+// // ---------------------------------------------------------------
+// MAIN_CIRCUIT   U       
+// 	INPUT_STATE  0 
+// END_MAIN_CIRCUIT
+
+
+// // ---------------------------------------------------------------
+// // --- Initialization ---
+// CIRCUIT_STRUCTURE   U_BE_init
+// 	gate sin a 1 <alpha_init_0> <alpha_init_1> r -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE  U_init  // for 2D
+// 	gate H re -1 end_gate
+// 	gate QSVT init ae[1]  U_BE_init 2 ae[0] re -1 end_gate 
+
+// 	gate H rb -1 end_gate
+// 	gate QSVT init ab[1]  U_BE_init 2 ab[0] rb -1 end_gate 
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE   PREP_init
+// 	circuit U_init 2 r -1 a_be -1  end_circuit
+// 	gate X aAA 1 ocontrol 1 a_be -1  end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE RA_init
+// 	// sign change of the good state (state |1>)
+// 	gate  Z aAA 1 end_gate     
+// 	//
+// 	icircuit PREP_init 3 r -1 a_be -1 aAA 1 end_circuit
+// 	// sign change of the initial state
+// 	gate X aAA 1 ocontrol 2 r -1 a_be -1  end_gate
+// 	gate Z aAA 1 ocontrol 2 r -1 a_be -1  end_gate
+// 	gate X aAA 1 ocontrol 2 r -1 a_be -1  end_gate
+// 	// 
+// 	circuit PREP_init 3 r -1 a_be -1 aAA 1 end_circuit
+// END_CIRCUIT_STRUCTURE
+
+
+
+// // ---------------------------------------------------------------
+// CIRCUIT_STRUCTURE   U
+// 	// --- Initialization (with AA) ---
+// 	circuit PREP_init   2 r -1 a_init -1 end_circuit
+// 	gate repeat RA_init 2 r -1 a_init -1 <N_AA_init> end_gate
+// 	// gate Z a_init[-1] end_gate  // to adjust the sign (necessary for QSVT)
+// 	gate X a_init[-1] end_gate  // to entangle the result with the zero state of the ancilla
+
+// 	// // --- Initialization (without AA) ---
+// 	// circuit U_init -1 end_circuit
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+// ------------------------------------------------------------------------------------
+// --- 1D ---
+// ------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------
+CIRCUITS_DECLARATION  
+	U_BE_init   2 a 1 1 r <nx> 0
+	U_init      2 ae 2 1 re <nx> 0
+	U_FFT       1 re <nx> 0
+	U           2 ax 2 1 r <nx> 0 
+END_CIRCUITS_DECLARATION
+
+
+// ---------------------------------------------------------------
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0 
+END_MAIN_CIRCUIT
+
+
+// ---------------------------------------------------------------
+// --- Initialization ---
+CIRCUIT_STRUCTURE   U_BE_init
+	gate sin a 1 <alpha_init_0> <alpha_init_1> r -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE  U_init  // for 1D
+	gate H re -1 end_gate
+	gate QSVT init ae[1]  U_BE_init 2 ae[0] re -1 end_gate 
+	gate X ae[1] end_gate
+	gate Z ae[1] end_gate
+	gate X ae[1] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   PREP_init
+	circuit U_init 2 r -1 a_be -1  end_circuit
+	gate X aAA 1 ocontrol 1 a_be -1  end_gate
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE RA_init
+	// sign change of the good state (state |1>)
+	gate  Z aAA 1 end_gate     
+	//
+	icircuit PREP_init 3 r -1 a_be -1 aAA 1 end_circuit
+	// sign change of the initial state
+	gate X aAA 1 ocontrol 2 r -1 a_be -1  end_gate
+	gate Z aAA 1 ocontrol 2 r -1 a_be -1  end_gate
+	gate X aAA 1 ocontrol 2 r -1 a_be -1  end_gate
+	// 
+	circuit PREP_init 3 r -1 a_be -1 aAA 1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+// --------------------------------------------------------------------------
+CIRCUIT_STRUCTURE U_FFT
+	gate Fourier re -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+// ---------------------------------------------------------------
+CIRCUIT_STRUCTURE   U
+	// // --- Initialization (with AA) ---
+	// circuit PREP_init   2 r -1 a_init -1 end_circuit
+	// gate repeat RA_init 2 r -1 a_init -1 <N_AA_init> end_gate
+	// // gate Z a_init[-1] end_gate  // to adjust the sign (necessary for QSVT)
+	// gate X a_init[-1] end_gate  // to entangle the result with the zero state of the ancilla
+
+	// --- Initialization (without AA) ---
+	circuit U_init -1 end_circuit
+
+	// --- Fourier ---
+	circuit U_FFT -1 end_circuit
+END_CIRCUIT_STRUCTURE

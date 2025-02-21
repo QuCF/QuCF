@@ -1,0 +1,224 @@
+gate Rz r[0] 3.255127457812e+00 end_gate
+
+gate Rz r[1] 6.510254915624e+00 end_gate
+
+gate Rz r[2] 1.302050983125e+01 end_gate
+
+gate Rz r[3] 2.604101966250e+01 end_gate
+
+gate X r[4] control r[5] end_gate
+gate Rz r[4] -3.080531486702e-01 end_gate
+gate X r[4] control r[5] end_gate
+
+gate X r[4] control r[5] end_gate
+gate X r[0] control r[4] end_gate
+gate Rz r[0] 2.053687657801e-02 end_gate
+gate X r[0] control r[4] end_gate
+gate X r[4] control r[5] end_gate
+
+gate X r[4] control r[5] end_gate
+gate X r[1] control r[4] end_gate
+gate Rz r[1] 4.107375315602e-02 end_gate
+gate X r[1] control r[4] end_gate
+gate X r[4] control r[5] end_gate
+
+gate X r[4] control r[5] end_gate
+gate X r[2] control r[4] end_gate
+gate Rz r[2] 8.214750631205e-02 end_gate
+gate X r[2] control r[4] end_gate
+gate X r[4] control r[5] end_gate
+
+gate X r[4] control r[5] end_gate
+gate X r[3] control r[4] end_gate
+gate Rz r[3] 1.642950126241e-01 end_gate
+gate X r[3] control r[4] end_gate
+gate X r[4] control r[5] end_gate
+
+gate X r[4] control r[6] end_gate
+gate Rz r[4] -7.684313554697e-01 end_gate
+gate X r[4] control r[6] end_gate
+
+gate X r[4] control r[6] end_gate
+gate X r[0] control r[4] end_gate
+gate Rz r[0] 5.122875703132e-02 end_gate
+gate X r[0] control r[4] end_gate
+gate X r[4] control r[6] end_gate
+
+gate X r[4] control r[6] end_gate
+gate X r[1] control r[4] end_gate
+gate Rz r[1] 1.024575140626e-01 end_gate
+gate X r[1] control r[4] end_gate
+gate X r[4] control r[6] end_gate
+
+gate X r[4] control r[6] end_gate
+gate X r[2] control r[4] end_gate
+gate Rz r[2] 2.049150281253e-01 end_gate
+gate X r[2] control r[4] end_gate
+gate X r[4] control r[6] end_gate
+
+gate X r[4] control r[6] end_gate
+gate X r[3] control r[4] end_gate
+gate Rz r[3] 4.098300562505e-01 end_gate
+gate X r[3] control r[4] end_gate
+gate X r[4] control r[6] end_gate
+
+gate X r[5] control r[6] end_gate
+gate Rz r[5] -1.609584194708e+00 end_gate
+gate X r[5] control r[6] end_gate
+
+gate X r[5] control r[6] end_gate
+gate X r[0] control r[5] end_gate
+gate Rz r[0] 1.073056129806e-01 end_gate
+gate X r[0] control r[5] end_gate
+gate X r[5] control r[6] end_gate
+
+gate X r[5] control r[6] end_gate
+gate X r[1] control r[5] end_gate
+gate Rz r[1] 2.146112259611e-01 end_gate
+gate X r[1] control r[5] end_gate
+gate X r[5] control r[6] end_gate
+
+gate X r[5] control r[6] end_gate
+gate X r[2] control r[5] end_gate
+gate Rz r[2] 4.292224519223e-01 end_gate
+gate X r[2] control r[5] end_gate
+gate X r[5] control r[6] end_gate
+
+gate X r[5] control r[6] end_gate
+gate X r[3] control r[5] end_gate
+gate Rz r[3] 8.584449038445e-01 end_gate
+gate X r[3] control r[5] end_gate
+gate X r[5] control r[6] end_gate
+
+gate X r[4] control r[7] end_gate
+gate Rz r[4] 6.582976399393e+00 end_gate
+gate X r[4] control r[7] end_gate
+
+gate X r[4] control r[7] end_gate
+gate X r[0] control r[4] end_gate
+gate Rz r[0] -4.388650932929e-01 end_gate
+gate X r[0] control r[4] end_gate
+gate X r[4] control r[7] end_gate
+
+gate X r[4] control r[7] end_gate
+gate X r[1] control r[4] end_gate
+gate Rz r[1] -8.777301865858e-01 end_gate
+gate X r[1] control r[4] end_gate
+gate X r[4] control r[7] end_gate
+
+gate X r[4] control r[7] end_gate
+gate X r[2] control r[4] end_gate
+gate Rz r[2] -1.755460373172e+00 end_gate
+gate X r[2] control r[4] end_gate
+gate X r[4] control r[7] end_gate
+
+gate X r[4] control r[7] end_gate
+gate X r[3] control r[4] end_gate
+gate Rz r[3] -3.510920746343e+00 end_gate
+gate X r[3] control r[4] end_gate
+gate X r[4] control r[7] end_gate
+
+gate X r[5] control r[7] end_gate
+gate Rz r[5] 1.378894118672e+01 end_gate
+gate X r[5] control r[7] end_gate
+
+gate X r[5] control r[7] end_gate
+gate X r[0] control r[5] end_gate
+gate Rz r[0] -9.192627457812e-01 end_gate
+gate X r[0] control r[5] end_gate
+gate X r[5] control r[7] end_gate
+
+gate X r[5] control r[7] end_gate
+gate X r[1] control r[5] end_gate
+gate Rz r[1] -1.838525491562e+00 end_gate
+gate X r[1] control r[5] end_gate
+gate X r[5] control r[7] end_gate
+
+gate X r[5] control r[7] end_gate
+gate X r[2] control r[5] end_gate
+gate Rz r[2] -3.677050983125e+00 end_gate
+gate X r[2] control r[5] end_gate
+gate X r[5] control r[7] end_gate
+
+gate X r[5] control r[7] end_gate
+gate X r[3] control r[5] end_gate
+gate Rz r[3] -7.354101966250e+00 end_gate
+gate X r[3] control r[5] end_gate
+gate X r[5] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate Rz r[6] 3.439619043773e+01 end_gate
+gate X r[6] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate X r[0] control r[6] end_gate
+gate Rz r[0] -2.293079362515e+00 end_gate
+gate X r[0] control r[6] end_gate
+gate X r[6] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate X r[1] control r[6] end_gate
+gate Rz r[1] -4.586158725031e+00 end_gate
+gate X r[1] control r[6] end_gate
+gate X r[6] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate X r[2] control r[6] end_gate
+gate Rz r[2] -9.172317450062e+00 end_gate
+gate X r[2] control r[6] end_gate
+gate X r[6] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate X r[3] control r[6] end_gate
+gate Rz r[3] -1.834463490012e+01 end_gate
+gate X r[3] control r[6] end_gate
+gate X r[6] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[4] control r[5] end_gate
+gate Rz r[4] -3.255127457812e+00 end_gate
+gate X r[4] control r[5] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[6] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[4] control r[5] end_gate
+gate X r[0] control r[4] end_gate
+gate Rz r[0] 2.170084971875e-01 end_gate
+gate X r[0] control r[4] end_gate
+gate X r[4] control r[5] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[6] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[4] control r[5] end_gate
+gate X r[1] control r[4] end_gate
+gate Rz r[1] 4.340169943749e-01 end_gate
+gate X r[1] control r[4] end_gate
+gate X r[4] control r[5] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[6] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[4] control r[5] end_gate
+gate X r[2] control r[4] end_gate
+gate Rz r[2] 8.680339887499e-01 end_gate
+gate X r[2] control r[4] end_gate
+gate X r[4] control r[5] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[6] control r[7] end_gate
+
+gate X r[6] control r[7] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[4] control r[5] end_gate
+gate X r[3] control r[4] end_gate
+gate Rz r[3] 1.736067977500e+00 end_gate
+gate X r[3] control r[4] end_gate
+gate X r[4] control r[5] end_gate
+gate X r[5] control r[6] end_gate
+gate X r[6] control r[7] end_gate
+

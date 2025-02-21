@@ -1,0 +1,217 @@
+// $qucf test ./ 
+
+CONSTANTS
+	nx   4
+
+	// layer 1
+	alpha_00   -1.571e+00
+	beta_00   1.676e+00
+
+	alpha_01   0.0
+	beta_01    1.676e+00    
+
+	alpha_02   0.0
+	beta_02    1.676e+00
+
+	alpha_03  0.4
+	beta_03   6.2
+
+	theta_00  0.6
+	theta_01  1.6
+	theta_02  2.6
+	theta_03  3.6
+
+	// layer 2
+	alpha_10  0.4
+	beta_10   6.2
+
+	theta_10  1.8
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     1
+	tex_CL  8 
+
+	// flag_matrix 2
+END_OPTIONS
+
+
+CIRCUITS_DECLARATION  
+	U    3 as <nx> 1  af <nx> 1 rx <nx> 0
+END_CIRCUITS_DECLARATION
+
+
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0 
+END_MAIN_CIRCUIT
+
+
+
+// --- Final circuit ---
+CIRCUIT_STRUCTURE   U
+	gate H rx -1 end_gate
+
+	// -- layer 1 ---
+	gate sin af[0] <alpha_00> <beta_00> rx -1 end_gate
+	gate sin af[1] <alpha_01> <beta_01> rx -1 end_gate
+	gate sin af[2] <alpha_02> <beta_02> rx -1 end_gate
+	gate sin af[3] <alpha_03> <beta_03> rx -1 end_gate
+
+	// gate Rx af[0] <theta_00> end_gate
+	// gate Rx af[1] <theta_01> end_gate
+	// gate Rx af[2] <theta_02> end_gate
+	// gate Rx af[3] <theta_03> end_gate
+
+	// gate H af -1 end_gate
+
+	// // --- layer 2 ---
+	// gate sin as[0] <alpha_10> <beta_10> af -1 end_gate
+	// gate sin as[1] <alpha_10> <beta_10> af -1 end_gate
+
+	// gate Rx as[0] <theta_10> end_gate
+	// gate Rx as[1] <theta_10> end_gate
+
+
+	// --- layer 2 (apply to the previous qubits) ---
+	// gate sin rx[0] <alpha_00> <beta_00> af -1 end_gate
+	// gate sin rx[1] <alpha_01> <beta_01> af -1 end_gate
+	// gate sin rx[2] <alpha_02> <beta_02> af -1 end_gate
+	// gate sin rx[3] <alpha_03> <beta_03> af -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+// CONSTANTS
+// 	// --- nx = 7, condition number = 88.0; sin(x) = [-0.99, 0.99] ---
+// 	// nx 	2
+//     // alpha_x_00 	-1.429256853470e+00
+//     // alpha_x_01 	1.440510844443e+00
+
+// 	// alpha_x_10 	-1.429256853470e+00
+//     // alpha_x_11 	1.440510844443e+00
+
+// 	// alpha_y_00 	-1.429256853470e+00
+//     // alpha_y_01 	1.440510844443e+00
+
+// 	// alpha_y_10 	-1.429256853470e+00
+//     // alpha_y_11 	1.440510844443e+00
+
+// 	// theta_1   0.7853981633974483
+
+// 	nx   6
+// 	alpha_0   -1.571e+00
+// 	alpha_1   1.596e+00
+// END_CONSTANTS
+
+
+// OPTIONS
+//     sel_compute_output all
+// 	sel_print_output   none  // none, all, zero-ancillae
+// 	flag_circuit 0 
+// 	flag_tex     1
+// 	tex_CL  6 
+
+// 	// flag_matrix 2
+// END_OPTIONS
+
+
+// CIRCUITS_DECLARATION  
+// 	// Uw  1                rx <nx> 0
+// 	// U   3  ay 2 1 ax 2 1 rx <nx> 0
+
+// 	Uw   3 av 1 1  ax 1 1 rx <nx> 0
+// 	U    3 av 1 1  ax 1 1 rx <nx> 0
+// END_CIRCUITS_DECLARATION
+
+
+// MAIN_CIRCUIT   U       
+// 	INPUT_STATE  0
+// 	INPUT_STATE  2 ax 1 rx 1
+// END_MAIN_CIRCUIT
+
+
+// CIRCUIT_STRUCTURE   Uw
+// 	// gate Ry rx[0] 1.30 end_gate
+// 	// gate Ry rx[1] 1.20 end_gate
+// 	// gate Ry rx[2] 1.10 end_gate
+// 	gate sin ax[0]  <alpha_0>  <alpha_1> rx -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// // --- Final circuit ---
+// CIRCUIT_STRUCTURE   U
+// 	gate H rx -1 end_gate
+
+
+// 	circuit Uw -1 end_circuit
+// 	gate X av[0] ocontrol av[0] end_gate
+// 	icircuit Uw -1 end_circuit
+
+
+
+
+
+
+
+// 	// gate H rx -8 end_gate
+// 	// igate Ry rx[0] 1.30 end_gate
+// 	// igate Ry rx[1] 1.20 end_gate
+// 	// igate Ry rx[2] 1.20 end_gate
+
+// 	// gate H rx -2 end_gate
+// 	// gate Ry rx[0] 1.30 end_gate
+
+// 	// gate H rx[0] end_gate
+// 	// gate Ry rx -2 0.8 end_gate
+
+// 	// gate H rx -1 end_gate
+// 	// gate sin ax[0]  <alpha_0>  <alpha_1> rx -1 end_gate
+
+// 	// gate X ax[0] end_gate
+// 	// gate H ax[0] end_gate
+// 	// gate Ry ax[0] <theta_1> end_gate
+// 	// gate sin ax[0]  <alpha_x_00>  <alpha_x_01> rx -1 end_gate
+
+
+// 	// // --- first layer ---
+// 	// gate sin ax[0]  <alpha_x_00>  <alpha_x_01> rx -1 end_gate
+// 	// gate sin ax[1]  <alpha_x_10>  <alpha_x_11> rx -1 end_gate
+// 	// gate Ry ax[0] 0.2 end_gate
+// 	// gate Ry ax[1] 0.4 end_gate
+
+// 	// // --- second layer ---
+// 	// gate sin ay[0]  <alpha_y_00>  <alpha_y_01> ax -1 end_gate
+// 	// gate sin ay[1]  <alpha_y_10>  <alpha_y_11> ax -1 end_gate
+// 	// gate Ry ay[0] 0.2 end_gate
+// 	// gate Ry ay[1] 0.4 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+

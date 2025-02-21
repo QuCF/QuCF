@@ -1,0 +1,199 @@
+// $qucf be ./ 
+CONSTANTS
+	nx   2
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output all
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_circuit 0 
+	flag_tex     1
+	tex_CL  8 
+	flag_matrix 1
+END_OPTIONS
+
+// ---------------------------------------------------------------
+CIRCUITS_DECLARATION  
+	OF_B_H   4 ab 2 1 ae 1 1 rb <nx> 0 re <nx> 0
+	OF_B_NH  4 ab 2 1 ae 1 1 rb <nx> 0 re <nx> 0
+	OF_E_H   4 ab 2 1 ae 1 1 rb <nx> 0 re <nx> 0
+	OF_E_NH  4 ab 2 1 ae 1 1 rb <nx> 0 re <nx> 0
+
+	OM  4 ab 2 1 ae 1 1 rb <nx> 0 re <nx> 0
+
+	U   4 ab 2 1 ae 1 1 rb <nx> 0 re <nx> 0
+END_CIRCUITS_DECLARATION
+
+// ---------------------------------------------------------------
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0 
+	// INPUT_STATE  re  1
+	// INPUT_STATE  re -1
+
+	// INPUT_STATE    rb 1 
+	// INPUT_STATE  2 rb 1 re 1
+	// INPUT_STATE  2 rb 1 re -1
+
+	// INPUT_STATE    rb -1 
+	// INPUT_STATE  2 rb -1 re 1
+	// INPUT_STATE  2 rb -1 re -1
+END_MAIN_CIRCUIT
+
+
+// ---------------------------------------------------------------
+CIRCUIT_STRUCTURE  OF_B_H
+	// --- bulk blocks ---
+	gate H ab[1] end_gate
+	gate H ab[0] control ab[1] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+// ---------------------------------------------------------------
+CIRCUIT_STRUCTURE  OF_B_NH
+	// --- global left boundary conditions ---
+	gate H ab[0] control   ab[1] ocontrol rb -1 end_gate
+	gate X ab[0] control   ab[1] ocontrol rb -1 end_gate
+
+	// --- global right boundary conditions ---
+	gate H ab[0] control   ab[1] control rb -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+// ---------------------------------------------------------------
+CIRCUIT_STRUCTURE  OF_E_H
+	// --- bulk elements ---
+	gate H ae[0] control ab[1] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+// ---------------------------------------------------------------
+CIRCUIT_STRUCTURE  OF_E_NH
+	// --- local boundary conditions ---
+	gate H ae[0] control   ab -1 ocontrol re -1 end_gate
+	gate H ae[0] control_e ab[1]  control re -1 end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+// ---------------------------------------------------------------
+CIRCUIT_STRUCTURE OM
+	// --- block shift ---
+	gate incrementor rb -1 control_e ab -1 end_gate
+	gate decrementor rb -1 control_e ab[1] end_gate
+
+	// --- shift of elements within each block ---
+	gate incrementor re -1 control_e ab[1] control ae[0] end_gate
+	gate decrementor re -1 control_e ab -1 control ae[0] end_gate
+
+END_CIRCUIT_STRUCTURE
+
+
+// ---------------------------------------------------------------
+// --- BE oracle ---
+CIRCUIT_STRUCTURE   U
+	circuit OF_B_H  -1 end_circuit
+	circuit OF_B_NH -1 end_circuit
+	circuit OF_E_H  -1 end_circuit
+	circuit OF_E_NH -1 end_circuit
+
+	circuit OM -1 end_circuit
+
+	icircuit OF_E_H    -1 end_circuit
+	icircuit OF_B_H    -1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+// CONSTANTS
+// 	nx   2
+// END_CONSTANTS
+
+
+// OPTIONS
+//     sel_compute_output all
+// 	sel_print_output   all  // none, all, zero-ancillae
+// 	flag_circuit 0 
+// 	flag_tex     1
+// 	tex_CL  8 
+// 	flag_matrix 1
+// END_OPTIONS
+
+// // ---------------------------------------------------------------
+// CIRCUITS_DECLARATION  
+// 	OF  4 ab 2 1 ae 1 1 rb <nx> 0 re <nx> 0
+// 	OM  4 ab 2 1 ae 1 1 rb <nx> 0 re <nx> 0
+
+
+// 	U   4 ab 2 1 ae 1 1 rb <nx> 0 re <nx> 0
+// END_CIRCUITS_DECLARATION
+
+// // ---------------------------------------------------------------
+// MAIN_CIRCUIT   U       
+// 	INPUT_STATE  0 
+// 	// INPUT_STATE  re  1
+// 	// INPUT_STATE  re -1
+
+// 	// INPUT_STATE    rb 1 
+// 	// INPUT_STATE  2 rb 1 re 1
+// 	// INPUT_STATE  2 rb 1 re -1
+
+// 	// INPUT_STATE    rb -1 
+// 	// INPUT_STATE  2 rb -1 re 1
+// 	// INPUT_STATE  2 rb -1 re -1
+// END_MAIN_CIRCUIT
+
+
+// // ---------------------------------------------------------------
+// CIRCUIT_STRUCTURE  OF
+// 	// --- bulk blocks ---
+// 	gate H ab[1] end_gate
+// 	gate H ab[0] control ab[1] end_gate
+
+// 	// --- global left boundary conditions ---
+// 	gate H ab[0] control   ab[1] ocontrol rb -1 end_gate
+// 	gate X ab[0] control   ab[1] ocontrol rb -1 end_gate
+
+// 	// --- global right boundary conditions ---
+// 	gate H ab[0] control   ab[1] control rb -1 end_gate
+
+// 	// --- bulk elements ---
+// 	gate H ae[0] control ab[1] end_gate
+
+// 	// --- local boundary conditions ---
+// 	gate H ae[0] control   ab -1 ocontrol re -1 end_gate
+// 	gate H ae[0] control_e ab[1]  control re -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// // ---------------------------------------------------------------
+// CIRCUIT_STRUCTURE OM
+// 	// --- block shift ---
+// 	gate incrementor rb -1 control_e ab -1 end_gate
+// 	gate decrementor rb -1 control_e ab[1] end_gate
+
+// 	// --- shift of elements within each block ---
+// 	gate incrementor re -1 control_e ab[1] control ae[0] end_gate
+// 	gate decrementor re -1 control_e ab -1 control ae[0] end_gate
+
+// END_CIRCUIT_STRUCTURE
+
+
+// // ---------------------------------------------------------------
+// // --- BE oracle ---
+// CIRCUIT_STRUCTURE   U
+// 	circuit OF -1 end_circuit
+// 	circuit OM -1 end_circuit
+//     icircuit OF -1 end_circuit
+// END_CIRCUIT_STRUCTURE

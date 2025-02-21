@@ -47,9 +47,15 @@ private:
     void  calc(std::shared_ptr<QCircuit>& u_work, YCI count_init_state);
 
     /**
-     * If flag_sparse_format = true, then store the matrix in the column
+     * sel_matrix = 1: the matrix entangled with the zero state of all ancillary qubits;
+     * sel_matrix = 1: the entire unitary matrix of the circuit.
+     * Here, it is assumed that all ancillary qubits have a higher significance than the state qubits.
     */
-    void calc_matrix(std::shared_ptr<QCircuit>& u_work, bool flag_sparse_format=false);
+    void calc_matrix(
+        std::shared_ptr<QCircuit>& u_work, 
+        bool flag_sparse_format=false,
+        int sel_matrix=1
+    );
 
 private:
     // dictionary with constants to create the oracle:
@@ -74,7 +80,7 @@ private:
      * (only states entangled with zero-ancilla states are considered);
      * the resulting matrix is written to the .hdf5 file;
      */ 
-    bool flag_matrix_;
+    int flag_matrix_;
 
     /**
      * none          - do not compute/print any output states (no printing on the sceen);
