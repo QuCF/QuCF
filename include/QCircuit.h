@@ -265,7 +265,7 @@ class QCircuit{
     void read_structure_gate_comparator_fixed(YISS istr, YCS path_in, YCB flag_inv=false);
     void read_structure_gate_swap(YISS istr, YCS path_in, YCB flag_inv=false);
     void read_structure_gate_fourier(YISS istr, YCS path_in, YCB flag_inv=false);
-    void read_structure_sin(YISS istr, YCS path_in, YCB flag_inv=false);
+    void read_structure_sin(YISS istr, YCS path_in, YCB flag_sin=true, YCB flag_inv=false);
     void read_structure_sinC(YISS istr, YCS path_in, YCB flag_inv=false);
     void read_structure_gate_phase_estimation(
         YISS istr, YCS path_in, std::map<std::string, YSQ>& ocs, YCB flag_inv
@@ -674,6 +674,7 @@ class QCircuit{
         YCQR alpha_0, 
         YCQR alpha, 
         YCVI cs_unit = {}, YCVI cs_zero = {}, 
+        YCB flag_sin = true,
         YCB flag_inv = false, 
         YCB flag_box = false
     );

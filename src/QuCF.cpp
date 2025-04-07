@@ -26,6 +26,13 @@ QuCF__::QuCF__(
     flag_stop_gates_ = true;
     flag_repeat_insert_ = false;
     flag_progress_bar_ = false;
+
+    // --- Predefined constants ---
+    constants_["M_PI"] = M_PI;
+    constants_["M_PI_HALF"] = M_PI_2;
+    constants_["M_2PI"] = 2.*M_PI;
+
+    // --- Read input data ---
     read_data();
 }
 
@@ -565,7 +572,11 @@ void QuCF__::read_gate(YISS istr, YPQC oc, YCB flag_inv)
         }
         if(YMIX::compare_strings(gate_name, "sin"))
         {
-            oc->read_structure_sin(istr, path_inputs_, flag_inv);
+            oc->read_structure_sin(istr, path_inputs_, true, flag_inv);
+        }
+        if(YMIX::compare_strings(gate_name, "cos"))
+        {
+            oc->read_structure_sin(istr, path_inputs_, false, flag_inv);
         }
         if(YMIX::compare_strings(gate_name, "sinCO"))
         {

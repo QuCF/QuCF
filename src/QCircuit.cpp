@@ -1374,7 +1374,7 @@ void QCircuit::read_structure_gate_fourier(YISS istr, YCS path_in, YCB flag_inv)
 }
 
 
-void QCircuit::read_structure_sin(YISS istr, YCS path_in, YCB flag_inv)
+void QCircuit::read_structure_sin(YISS istr, YCS path_in, YCB flag_sin, YCB flag_inv)
 {
     YVIv ids_a, ids_main, ids_unit, ids_zero;
     qreal alpha_0, alpha;
@@ -1396,8 +1396,8 @@ void QCircuit::read_structure_sin(YISS istr, YCS path_in, YCB flag_inv)
     // --- read end of gate structure ---
     read_end_gate(istr, ids_unit, ids_zero);
 
-    // add the quantum Fourier circuit:
-    gate_sin(ids_a, ids_main, alpha_0, alpha, ids_unit, ids_zero, flag_inv);
+    // add the sin circuit
+    gate_sin(ids_a, ids_main, alpha_0, alpha, ids_unit, ids_zero, flag_sin, flag_inv);
 }
 
 
@@ -1429,7 +1429,7 @@ void QCircuit::read_structure_sinC(YISS istr, YCS path_in, YCB flag_inv)
     // --- read end of gate structure ---
     read_end_gate(istr, ids_unit, ids_zero);
 
-    // add the quantum Fourier circuit:
+    // add the sinCO circuit
     gate_sinC(
         ids_a, ids_main, 
         alpha_0_y, alpha_y, alpha_0_z, alpha_z, 
@@ -2556,6 +2556,7 @@ YQCP QCircuit::gate_sin(
         YCQR alpha_0, 
         YCQR alpha, 
         YCVI cs_unit, YCVI cs_zero, 
+        YCB flag_sin,
         YCB flag_inv, 
         YCB flag_box
 ){
@@ -2581,7 +2582,8 @@ YQCP QCircuit::gate_sin(
         qreal aa = 2*alpha / pow(2., n_cond - 1 - ii);
         oc_sin->ry(a_loc, aa, YVIv{cond_loc[ii]});
     }
-    oc_sin->x(a_loc);
+    if(flag_sin)
+        oc_sin->x(a_loc);
 
     // --- invert the circuit if necessary ---
     if(flag_inv)
@@ -2592,8 +2594,12 @@ YQCP QCircuit::gate_sin(
 
     // --- copy the env. circuit to the current circuit ---
     auto box = YSB(nullptr);
+    string name_box = "COS";
+    if(flag_sin)
+        name_box = "SIN";
+        
     if(flag_box)
-        box = YMBo("SIN", qubits_tot, YVIv{}, YVIv{}, name_tex);
+        box = YMBo(name_box, qubits_tot, YVIv{}, YVIv{}, name_tex);
     copy_gates_from(
         oc_sin,
         qubits_tot,

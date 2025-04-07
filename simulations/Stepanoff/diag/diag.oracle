@@ -1,0 +1,129 @@
+// $qucf diag ./ 
+CONSTANTS
+	nx   4
+	nxD  8
+
+	alpha_qsp_0 	0.000000000000e+00
+	alpha_qsp_1 	3.351032163829e+00
+END_CONSTANTS
+
+
+OPTIONS
+    sel_compute_output none
+	sel_print_output   none  // none, all, zero-ancillae
+	flag_tex     0
+	tex_CL  10
+	flag_matrix 1
+END_OPTIONS
+
+
+// ---------------------------------------------------------------
+CIRCUITS_DECLARATION  
+	U_be_sin_M1    2 a 2 1 r <nx> 0
+	U_be_sin_M2    2 a 2 1 r <nx> 0
+	U_diag_M1   4 a_qsp 2 1 a_be 2 1 rb <nx> 0 re <nx> 0
+	U_diag_M2   4 a_qsp 2 1 a_be 2 1 rb <nx> 0 re <nx> 0
+	U           2 a 4 1 r <nxD> 0
+END_CIRCUITS_DECLARATION
+
+
+// ---------------------------------------------------------------
+MAIN_CIRCUIT   U       
+	INPUT_STATE  0 
+END_MAIN_CIRCUIT
+
+
+// ---------------------------------------------------------------
+// --- BE diagonal matrix ---
+CIRCUIT_STRUCTURE   U_be_sin_M1
+	gate H a[1] end_gate
+	gate cos a[0] <alpha_qsp_0> <alpha_qsp_1> r -1 ocontrol a[1] end_gate
+	gate H a[1] end_gate
+	gate X a[1] end_gate  // to choose -(1 - cos)
+END_CIRCUIT_STRUCTURE
+
+
+CIRCUIT_STRUCTURE   U_be_sin_M2
+	gate H a[1] end_gate
+	gate cos a[0] <alpha_qsp_0> <alpha_qsp_1> r -1  control a[1] end_gate
+	gate H a[1] end_gate
+	gate X a[1] end_gate  // to choose (1 - cos)
+END_CIRCUIT_STRUCTURE
+
+
+
+// --- Attention: target register ---
+CIRCUIT_STRUCTURE  U_diag_M1  
+	gate QSVT qsp_M1_0   a_qsp -1  U_be_sin_M1 2 a_be -1 rb -1 control re[0] end_gate
+	gate QSVT qsp_M1_1   a_qsp -1  U_be_sin_M1 2 a_be -1 rb -1 control re[1] end_gate
+	gate QSVT qsp_M1_2   a_qsp -1  U_be_sin_M1 2 a_be -1 rb -1 control re[2] end_gate
+	gate QSVT qsp_M1_3   a_qsp -1  U_be_sin_M1 2 a_be -1 rb -1 control re[3] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+CIRCUIT_STRUCTURE  U_diag_M2  
+	gate QSVT qsp_M2_0   a_qsp -1  U_be_sin_M2 2 a_be -1 rb -1 control re[0] end_gate
+	gate QSVT qsp_M2_1   a_qsp -1  U_be_sin_M2 2 a_be -1 rb -1 control re[1] end_gate
+	gate QSVT qsp_M2_2   a_qsp -1  U_be_sin_M2 2 a_be -1 rb -1 control re[2] end_gate
+	gate QSVT qsp_M2_3   a_qsp -1  U_be_sin_M2 2 a_be -1 rb -1 control re[3] end_gate
+END_CIRCUIT_STRUCTURE
+
+
+
+// ---------------------------------------------------------------
+CIRCUIT_STRUCTURE   U
+	// circuit U_diag_M1 -1 end_circuit
+	circuit U_diag_M2 -1 end_circuit
+END_CIRCUIT_STRUCTURE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // --- sin ---
+// // ---------------------------------------------------------------
+// CIRCUITS_DECLARATION  
+// 	U_be_sin    2 a 1 1 r <nx> 0
+// 	U_diag      4 a_qsp 2 1 a_be 1 1 rb <nx> 0 re <nx> 0
+// 	U           2 a 3 1 r <nxD> 0
+// END_CIRCUITS_DECLARATION
+
+
+// // ---------------------------------------------------------------
+// MAIN_CIRCUIT   U       
+// 	INPUT_STATE  0 
+// END_MAIN_CIRCUIT
+
+
+// // ---------------------------------------------------------------
+// // --- BE diagonal matrix ---
+// CIRCUIT_STRUCTURE   U_be_sin
+// 	gate sin a 1 <alpha_qsp_0> <alpha_qsp_1> r -1 end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+// CIRCUIT_STRUCTURE  U_diag  
+// 	gate QSVT qsp_0   a_qsp -1  U_be_sin 2 a_be -1 rb -1 control re[0] end_gate
+// 	gate QSVT qsp_1   a_qsp -1  U_be_sin 2 a_be -1 rb -1 control re[1] end_gate
+// 	gate QSVT qsp_2   a_qsp -1  U_be_sin 2 a_be -1 rb -1 control re[2] end_gate
+// 	gate QSVT qsp_3   a_qsp -1  U_be_sin 2 a_be -1 rb -1 control re[3] end_gate
+// END_CIRCUIT_STRUCTURE
+
+
+
+// // ---------------------------------------------------------------
+// CIRCUIT_STRUCTURE   U
+// 	circuit U_diag -1 end_circuit
+// END_CIRCUIT_STRUCTURE
