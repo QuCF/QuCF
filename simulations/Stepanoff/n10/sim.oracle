@@ -63,32 +63,32 @@ CONSTANTS
 	// alpha_qsp_1 	3.153912624780e+00
 
 
-	// --- nx = 9 ----------------------------------------------------------------
-	// --- For spatial and time grids ---
-	Nt 	10
-	nx 	9
-	nxD 	18
-	// --- For initialization subcircuit ---
-	alpha_init_0 	0.000000000000e+00
-	alpha_init_1 	1.573870292209e+00
-	// --- For QSP BE sin oracle ---
-	alpha_qsp_0 	0.000000000000e+00
-	alpha_qsp_1 	3.147740584419e+00
-
-
-
-
-	// // --- nx = 10 ----------------------------------------------------------------
+	// // --- nx = 9 ----------------------------------------------------------------
 	// // --- For spatial and time grids ---
 	// Nt 	10
-	// nx 	10
-	// nxD 	20
+	// nx 	9
+	// nxD 	18
 	// // --- For initialization subcircuit ---
 	// alpha_init_0 	0.000000000000e+00
-	// alpha_init_1 	1.572331807075e+00
+	// alpha_init_1 	1.573870292209e+00
 	// // --- For QSP BE sin oracle ---
 	// alpha_qsp_0 	0.000000000000e+00
-	// alpha_qsp_1 	3.144663614150e+00
+	// alpha_qsp_1 	3.147740584419e+00
+
+
+
+
+	// --- nx = 10 ----------------------------------------------------------------
+	// --- For spatial and time grids ---
+	Nt 	10
+	nx 	10
+	nxD 	20
+	// --- For initialization subcircuit ---
+	alpha_init_0 	0.000000000000e+00
+	alpha_init_1 	1.572331807075e+00
+	// --- For QSP BE sin oracle ---
+	alpha_qsp_0 	0.000000000000e+00
+	alpha_qsp_1 	3.144663614150e+00
 
 
 	// --- for AA of initial conditions ----------------------------------------------------------------
@@ -247,10 +247,10 @@ CIRCUIT_STRUCTURE  U_diag_M1
 	gate QSVT qsp_M1_6   a_qsp -1  U_be_sin_M1 2 a_be -1 rb -1 control re[6] end_gate
 	gate QSVT qsp_M1_7   a_qsp -1  U_be_sin_M1 2 a_be -1 rb -1 control re[7] end_gate
 	gate QSVT qsp_M1_8   a_qsp -1  U_be_sin_M1 2 a_be -1 rb -1 control re[8] end_gate
-	// gate QSVT qsp_M1_9   a_qsp -1  U_be_sin_M1 2 a_be -1 rb -1 control re[9] end_gate
+	gate QSVT qsp_M1_9   a_qsp -1  U_be_sin_M1 2 a_be -1 rb -1 control re[9] end_gate
 
 	// --- shift by N_half: (!) must apply the QSVT controlled by the high-priority qubit ---
-	gate QSVT qsp_M1_8   a_qsp -1  U_be_sin_M1_minus 2 a_be -1 rb -1  end_gate 
+	gate QSVT qsp_M1_9   a_qsp -1  U_be_sin_M1_minus 2 a_be -1 rb -1  end_gate 
 END_CIRCUIT_STRUCTURE
 
 
@@ -264,10 +264,10 @@ CIRCUIT_STRUCTURE  U_diag_M2
 	gate QSVT qsp_M2_6   a_qsp -1  U_be_sin_M2 2 a_be -1 re -1 control rb[6] end_gate
 	gate QSVT qsp_M2_7   a_qsp -1  U_be_sin_M2 2 a_be -1 re -1 control rb[7] end_gate
 	gate QSVT qsp_M2_8   a_qsp -1  U_be_sin_M2 2 a_be -1 re -1 control rb[8] end_gate
-	// gate QSVT qsp_M2_9   a_qsp -1  U_be_sin_M2 2 a_be -1 re -1 control rb[9] end_gate
+	gate QSVT qsp_M2_9   a_qsp -1  U_be_sin_M2 2 a_be -1 re -1 control rb[9] end_gate
 
 	// --- shift by N_half: (!) must apply the QSVT controlled by the high-priority qubit ---
-	gate QSVT qsp_M2_8   a_qsp -1  U_be_sin_M2_minus 2 a_be -1 re -1  end_gate 
+	gate QSVT qsp_M2_9   a_qsp -1  U_be_sin_M2_minus 2 a_be -1 re -1  end_gate 
 END_CIRCUIT_STRUCTURE
 
 
