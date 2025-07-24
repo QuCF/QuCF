@@ -12,10 +12,9 @@ CONSTANTS
 	// alpha_qsp_0 	0.000000000000e+00
 	// alpha_qsp_1 	3.351032163829e+00
 
-
 	// --- nx = 6 ----------------------------------------------------------------
 	// --- For spatial and time grids ---
-	Nt 	40
+	Nt 	10
 	nx 	6
 	nxD 	12
 	// --- For initialization subcircuit ---
@@ -92,6 +91,7 @@ OPTIONS
 	tex_CL  10
 	flag_matrix 0
 	flag_stop_gates    1 
+	flag_repeat_insert 0  // !!!
 END_OPTIONS
 
 
@@ -120,13 +120,13 @@ CIRCUITS_DECLARATION
 	U_sim_dt     4 a_qsp 2 1 a_be 2 1 rb <nx> 0 re <nx> 0 
 
 	// --- Preparation circuit ---
-	U_PREP  4        a_meas 1 1 a_init 4 1 a 4 1 r <nxD> 0
+	U_PREP  5          a_meas 1 1 a_init 4 1 a 4 1 rb <nx> 0 re <nx> 0
 
 	// --- AA circuit for measurement ---
-	U_AA    4        a_meas 1 1 a_init 4 1 a 4 1 r <nxD> 0
+	U_AA    4          a_meas 1 1 a_init 4 1 a 4 1 r <nxD> 0
 
 	// --- Amplitude Estimation circuit (main circuit) ---
-	U_AE    5 y <ny> a_meas 1 1 a_init 4 1 a 4 1 r <nxD> 0
+	U_AE    5 y <ny> 1 a_meas 1 1 a_init 4 1 a 4 1 r <nxD> 0
 END_CIRCUITS_DECLARATION
 
 
@@ -284,16 +284,16 @@ END_CIRCUIT_STRUCTURE
 // ---------------------------------------------------------------
 CIRCUIT_STRUCTURE   U_PREP
 	// --- Initialization (with AA) ---
-	circuit PREP_init   2 r -1 a_init -1 end_circuit
-	gate repeat RA_init 2 r -1 a_init -1 <N_AA_init> end_gate
+	circuit PREP_init   3 re -1 rb -1 a_init -1 end_circuit
+	gate repeat RA_init 3 re -1 rb -1 a_init -1 <N_AA_init> end_gate
 	gate X a_init[-1] end_gate  // to entangle the result with the zero state of the ancilla
 
 	// --- Simulation: Nt time steps ---
-	gate repeat U_sim_dt 2 r -1 a -1 <Nt> ocontrol a_init -1 end_gate
+	gate repeat U_sim_dt 3 re -1 rb -1 a -1 <Nt> ocontrol a_init -1 end_gate
 
 	// --- Form the observable: cos along phi (entangled with a_meas = 1) ---
-	gate cos a_meas 1 <alpha_qsp_0> <alpha_qsp_1> r -1 ocontrol 2 a_init -1 a -1 end_gate
-	gate X   a_meas 1                                  ocontrol 2 a_init -1 a -1 end_gate 
+	gate cos a_meas 1 <alpha_qsp_0> <alpha_qsp_1> rb -1 ocontrol 2 a_init -1 a -1 end_gate
+	gate X   a_meas 1                                   ocontrol 2 a_init -1 a -1 end_gate 
 END_CIRCUIT_STRUCTURE
 
 
@@ -302,7 +302,7 @@ END_CIRCUIT_STRUCTURE
 // ---------------------------------------------------------------
 CIRCUIT_STRUCTURE   U_AA
 	// sign change of the "good" state (state |1>_{a_meas})
-	gate  Z a_meas 1 end_gate 
+	gate Z a_meas 1 end_gate 
 	//
 	icircuit U_PREP 4 r -1 a -1 a_init -1 a_meas -1 end_circuit
 	// sign change of the "bad" state (zero state):
