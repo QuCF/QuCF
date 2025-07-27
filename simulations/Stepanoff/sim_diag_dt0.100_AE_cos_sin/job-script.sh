@@ -15,8 +15,8 @@
 
 ##SBATCH --mem=64G
 
-#SBATCH -t 06:00:00
-#SBATCH -J sin_ny4
+#SBATCH -t 12:00:00
+#SBATCH -J sin_ny6
 #
 ## To run
 export SLURM_CPU_BIND="cores"
