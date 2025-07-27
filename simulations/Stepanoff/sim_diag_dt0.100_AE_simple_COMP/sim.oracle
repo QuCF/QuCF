@@ -239,13 +239,13 @@ CIRCUIT_STRUCTURE   U_AA
 	// sign change of the "good" state (state |1>_{a_meas})
 	gate Z a_meas 1 ocontrol 2 a -1 a_init -1 end_gate 
 	//
-	icircuit U_PREP 3 r -1 a -1 a_init -1 end_circuit
+	icircuit U_PREP 4 r -1 a -1 a_init -1 a_meas -1 end_circuit
 	// sign change of the "bad" state (zero state):
 	gate X a_meas 1 ocontrol 3 r -1 a -1 a_init -1 end_gate
 	gate Z a_meas 1 ocontrol 3 r -1 a -1 a_init -1 end_gate
 	gate X a_meas 1 ocontrol 3 r -1 a -1 a_init -1 end_gate
 	//
-	circuit U_PREP 3 r -1 a -1 a_init -1 end_circuit
+	circuit U_PREP 4 r -1 a -1 a_init -1 a_meas -1 end_circuit
 END_CIRCUIT_STRUCTURE
 
 
