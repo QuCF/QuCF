@@ -80,7 +80,7 @@ CONSTANTS
 	N_AA_init   2   // for kappa = 1, nx = 8
 
 	// --- For AE ---
-	ny   7
+	ny  6 
 END_CONSTANTS
 
 
@@ -302,7 +302,7 @@ END_CIRCUIT_STRUCTURE
 // ---------------------------------------------------------------
 CIRCUIT_STRUCTURE   U_AA
 	// sign change of the "good" state (state |1>_{a_meas})
-	gate Z a_meas 1 end_gate 
+	gate Z a_meas 1 ocontrol 2 a -1 a_init -1 end_gate 
 	//
 	icircuit U_PREP 4 r -1 a -1 a_init -1 a_meas -1 end_circuit
 	// sign change of the "bad" state (zero state):
