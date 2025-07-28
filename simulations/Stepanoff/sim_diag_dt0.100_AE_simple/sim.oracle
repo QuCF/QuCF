@@ -16,7 +16,7 @@ CONSTANTS
 	N_AA_init   2   // for kappa = 1, nx = 8
 
 	// --- For AE ---
-	ny   6
+	ny   7
 END_CONSTANTS
 
 
