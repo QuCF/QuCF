@@ -1,12 +1,18 @@
 // $qucf init ./ 
 CONSTANTS
-	nx 	  8
-	nxD   16
-
-	// --- For initialization subcircuit ---
+	// --- nx = 6 ----------------------------------------------------------------
+	nx 	6
+	nxD 	12
 	alpha_init_0 	0.000000000000e+00
-	alpha_init_1 	1.576956312390e+00
+	alpha_init_1 	1.595729601823e+00
 
+	// // --- nx = 8 ----------------------------------------------------------------
+	// nx 	  8
+	// nxD   16
+	// alpha_init_0 	0.000000000000e+00
+	// alpha_init_1 	1.576956312390e+00
+
+	// -------------------------------------------------------------------
 	N_AA_init   2   // for kappa = 1, nx = 8
 END_CONSTANTS
 
@@ -21,11 +27,12 @@ END_OPTIONS
 
 // ---------------------------------------------------------------
 CIRCUITS_DECLARATION  
-	U_BE_init_theta_phi  3 a 1 1 rb <nx> 0 re <nx> 0
-	U_BE_init_phi        2 a 1 1 r <nx> 0 
-	U_init               3 a 3 1 rb <nx> 0 re <nx> 0
-	// PREP_init  3 aAA    1 1 a_be 4 1 r <nxD> 0 
-	// RA_init    3 aAA    1 1 a_be 4 1 r <nxD> 0
+	U_BE_init_theta_phi   3 a 1 1 rb <nx> 0 re <nx> 0
+	U_BE_init_phi         2 a 1 1 r <nx> 0 
+	U_init                3 a 3 1 rb <nx> 0 re <nx> 0
+
+	PREP_init  3 aAA 1 1 a_be 3 1 r <nxD> 0 
+	RA_init    3 aAA 1 1 a_be 3 1 r <nxD> 0
 
 	U_FFT_theta   2 rb <nx> 0 re <nx> 0 
 
@@ -60,24 +67,24 @@ CIRCUIT_STRUCTURE  U_init
 END_CIRCUIT_STRUCTURE
 
 
-// CIRCUIT_STRUCTURE   PREP_init
-// 	circuit U_init 2 r -1 a_be -1  end_circuit
-// 	gate X aAA 1 ocontrol 1 a_be -1  end_gate
-// END_CIRCUIT_STRUCTURE
+CIRCUIT_STRUCTURE   PREP_init
+	circuit U_init 2 r -1 a_be -1  end_circuit
+	gate X aAA 1 ocontrol 1 a_be -1  end_gate
+END_CIRCUIT_STRUCTURE
 
 
-// CIRCUIT_STRUCTURE RA_init
-// 	// sign change of the good state (state |1>)
-// 	gate  Z aAA 1 end_gate     
-// 	//
-// 	icircuit PREP_init 3 r -1 a_be -1 aAA 1 end_circuit
-// 	// sign change of the initial state
-// 	gate X aAA 1 ocontrol 2 r -1 a_be -1  end_gate
-// 	gate Z aAA 1 ocontrol 2 r -1 a_be -1  end_gate
-// 	gate X aAA 1 ocontrol 2 r -1 a_be -1  end_gate
-// 	// 
-// 	circuit PREP_init 3 r -1 a_be -1 aAA 1 end_circuit
-// END_CIRCUIT_STRUCTURE
+CIRCUIT_STRUCTURE RA_init
+	// sign change of the good state (state |1>)
+	gate  Z aAA 1 end_gate     
+	//
+	icircuit PREP_init 3 r -1 a_be -1 aAA 1 end_circuit
+	// sign change of the initial state
+	gate X aAA 1 ocontrol 2 r -1 a_be -1  end_gate
+	gate Z aAA 1 ocontrol 2 r -1 a_be -1  end_gate
+	gate X aAA 1 ocontrol 2 r -1 a_be -1  end_gate
+	// 
+	circuit PREP_init 3 r -1 a_be -1 aAA 1 end_circuit
+END_CIRCUIT_STRUCTURE
 
 
 // ---------------------------------------------------------------
@@ -90,16 +97,17 @@ END_CIRCUIT_STRUCTURE
 
 // ---------------------------------------------------------------
 CIRCUIT_STRUCTURE   U
-	// // --- Initialization (with AA) ---
-	// circuit PREP_init   2 r -1 a_init -1 end_circuit
-	// gate repeat RA_init 2 r -1 a_init -1 <N_AA_init> end_gate
-	// // gate Z a_init[-1] end_gate  // to adjust the sign (necessary for QSVT)
-	// gate X a_init[-1] end_gate  // to entangle the result with the zero state of the ancilla
+	// --- Initialization (with AA) ---
+	circuit PREP_init   2 r -1 a_init -1 end_circuit
+	gate repeat RA_init 2 r -1 a_init -1 <N_AA_init> end_gate
+	gate X a_init[-1] end_gate  // to entangle the result with the zero state of the ancilla
 
-	// --- Initialization (without AA) ---
-	circuit U_init -1 end_circuit
+	// // --- Initialization (without AA) ---
+	// circuit U_init -1 end_circuit
 
-	// --- Fourier transform ---
-	circuit U_FFT_theta -1 end_circuit
 
+
+
+	// // --- Fourier transform ---
+	// circuit U_FFT_theta -1 end_circuit
 END_CIRCUIT_STRUCTURE
