@@ -2,6 +2,7 @@
 .cspell/*
 
 CMakeFiles
+build_*/build
 build_*/CMakeCache.txt
 build_*/Makefile
 build_*/QuEST
@@ -15,6 +16,11 @@ build_*/approx_polyn
 tests/*/*_OUTPUT.hdf5
 tests/*/*/*_OUTPUT.hdf5
 
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.dir
+*x64
 
 *.png
 *.jpg
