@@ -8,7 +8,7 @@ END_CONSTANTS
 
 
 OPTIONS
-    sel_compute_output all
+    sel_compute_output zero-ancillae
 	sel_print_output   none  // none, all, zero-ancillae
 	flag_circuit 0 
 	flag_tex     1

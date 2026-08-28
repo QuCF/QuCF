@@ -1,6 +1,8 @@
 #include "../include/QLib.h"
 using namespace std;
 
+#include <bit>
+
 std::string YMIX::LogFile::name_global_ = "output.log";
 
 
@@ -152,15 +154,42 @@ bool YMATH::is_zero(YCQR x)
         return false;
 }
 
-void YMATH::intToBinary(int x, std::vector<short>& binaryNum)
+void YMATH::intToBinary(int x_in, std::vector<short>& binaryNum)
 {
+    if(x_in < 0)
+    {
+        YMIX::print_log( ">>> WARNING in intToBinary function: "
+            "given integer is negative, its absolute value is taken.");
+        x_in = abs(x_in);
+    }
+    unsigned int xu = x_in;
+
+    // --- increase the vector if necessary ---
+    int n_bits_for_int_sub = (xu == 0) ? 1 : std::bit_width(xu);
+    unsigned int n_curr = binaryNum.size();
+    if(n_bits_for_int_sub > n_curr)
+    {
+        YMIX::print_log( ">>> WARNING in intToBinary function: "
+            "the given array is of a smaller size than necessary, the array has been increased.");
+        binaryNum = std::vector<short>(n_bits_for_int_sub);
+    }
+
+    // --- compute bitstrings ---
     int i = 0;
-    while (x > 0) {
-        binaryNum[i] = x % 2;
-        x = x / 2;
+    while (xu) {
+        binaryNum[i] = xu % 2;
+        xu = xu / 2;
         i++;
     }
     std::reverse(binaryNum.begin(), binaryNum.end());
+
+    // --- reduce the vector if necessary ---
+    if(n_bits_for_int_sub > n_curr)
+    {
+        auto start_it = binaryNum.end() - n_curr;
+        std::vector<short> lastNElements(start_it, binaryNum.end());
+        binaryNum = lastNElements;
+    }
 }
 
 long long int YMATH::binaryToInt(const std::vector<short>& bb)
@@ -679,14 +708,7 @@ void YMIX::H5File::close()
 
 void YMIX::H5File::add_group(YCS gname)
 {
-    // if(!flag_opened) throw "HDF5 File " + name_ + " is not opened. One cannot add a group " + gname;
-
-    // if(find(grp_names_.begin(), grp_names_.end(), gname) == grp_names_.end())
-    // {
-    //     grp_names_.push_back(gname);
-    //     H5::Group grp(f_->createGroup(gname));
-    // }
-    H5::Group grp(f_->createGroup(gname));
+    H5::Group grp(f_->createGroup(gname.c_str()));
 }
 
 
@@ -759,7 +781,7 @@ void YMIX::read_input_file(YS data, YCS file_name)
         data_clr += line + "\n";
     }
     // std::transform(data_clr.begin(), data_clr.end(), data_clr.begin(), ::tolower);
-    data = data_clr;
+    data = data_clr; 
 }
 
 void YMIX::copy_array(

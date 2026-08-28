@@ -173,7 +173,7 @@ protected:
 
 public:
     ComputeAngles_(YCS pname) :
-        project_name_(pname), work_directory_(std::filesystem::current_path())
+        project_name_(pname), work_directory_(std::filesystem::current_path().string())
     {
         using namespace std::complex_literals;
 
@@ -643,8 +643,14 @@ protected:
         else
             fname = output_name_;
 
+    #ifndef _WIN32
         string filename_hdf5 = work_directory_ +"/" + fname + ".hdf5";
         hfo_.create(filename_hdf5);
+    #else
+        string filename_hdf5 = work_directory_ +"\\" + fname + ".hdf5";
+        hfo_.create(filename_hdf5.c_str());
+    #endif
+
         hfo_.add_group("basic");
         hfo_.add_group("results");
 
@@ -672,7 +678,7 @@ protected:
         string filename_ca = work_directory_ +"/" + project_name_ + ".ca";
 
         // remove comments:
-        YMIX::read_input_file(data, filename_ca);
+        YMIX::read_input_file(data, filename_ca); 
 
         // read the data:
         string word;
@@ -696,8 +702,7 @@ protected:
 
             if(YMIX::compare_strings(word, "output_name"))
             {
-                cout << "here";
-                istr >> output_name_;
+                istr >> output_name_; 
             }
         }
         
@@ -726,10 +731,13 @@ protected:
         vector<double> coefs_real;
         // vector<double> coefs_imag;
 
-        string filename_coefs = work_directory_ + "/" + filename_coefs_ + ".hdf5";
+        // string filename_coefs = work_directory_ + "/" + filename_coefs_ + ".hdf5";
+        string filename_coefs = work_directory_ + "\\" + filename_coefs_ + ".hdf5";
+
+        cout << "Reading from: " << filename_coefs << endl;
 
         YMIX::H5File ff;
-        ff.set_name(filename_coefs);
+        ff.set_name(filename_coefs); 
         ff.open_r();
         ff.read_scalar(date_sim,          "date-of-simulation", "basic");
         ff.read_scalar(dd_.function_type, "descr",              "basic");

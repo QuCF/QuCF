@@ -51,6 +51,14 @@ simulations/MI/QSVT-est-angles/est_mi_k9*e4_*
 
 
 
+build_angles/tests_angles/
+build_polynomial/test_poly/
+build_qucf/test_qucf/
+tests/amplitude-estimation/angles_mu0_eps6.hdf5
+tests/qsvt-gauss/angles_mu0_eps6.hdf5
+tests/quantum-fourier/angles_mu0_eps6.hdf5
+
+
 
 
 

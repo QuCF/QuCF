@@ -218,20 +218,20 @@ void QCircuit::finish_tex_file()
         {
             if(id_layer%YGV::tex_circuit_length == 0)
             {
-                for(auto id_q = 0; id_q < nq_; id_q++)
+                for(unsigned int id_q = 0; id_q < nq_; id_q++)
                     q_widths[id_q] = 0;
                 continue;
             }
 
-            for(auto id_q = 0; id_q < nq_; id_q++)
+            for(unsigned int id_q = 0; id_q < nq_; id_q++)
                 q_widths[id_q] += tex_lines_[id_q][id_layer-1].length();
 
             width_max = 0;
-            for(auto id_q = 0; id_q < nq_; id_q++)
+            for(unsigned int id_q = 0; id_q < nq_; id_q++)
                 if(width_max < q_widths[id_q])
                     width_max = q_widths[id_q];
 
-            for(auto id_q = 0; id_q < nq_; id_q++)
+            for(unsigned int id_q = 0; id_q < nq_; id_q++)
             {
                 width_curr = q_widths[id_q];
                 string line_padding(width_max - width_curr, ' ');
@@ -1154,7 +1154,6 @@ void QCircuit::read_structure_gate_adder_subtractor(
     YISS istr, YCS path_in, YCB flag_inv, YCI gate_type
 ){
     YVIv ids_target, ids_unit, ids_zero;
-    long long nt;
 
     // --- read target qubits ---
     read_reg_int(istr, ids_target);
@@ -1176,7 +1175,6 @@ void QCircuit::read_structure_gate_adder_subtractor(
 void QCircuit::read_structure_gate_adder(YISS istr, YCS path_in, YCB flag_inv)
 {
     YVIv ids_target_1, ids_target_2, ids_target_3, ids_unit, ids_zero;
-    long long nt;
 
     // --- read target qubits ---
     read_reg_int(istr, ids_target_1);
@@ -1201,7 +1199,6 @@ void QCircuit::read_structure_gate_adder(YISS istr, YCS path_in, YCB flag_inv)
 void QCircuit::read_structure_gate_subtractor(YISS istr, YCS path_in, YCB flag_inv)
 {
     YVIv ids_target_1, ids_target_2, ids_target_3, ids_unit, ids_zero;
-    long long nt;
 
     // --- read target qubits ---
     read_reg_int(istr, ids_target_1);
@@ -1227,7 +1224,6 @@ void QCircuit::read_structure_gate_adder_qft(YISS istr, YCS path_in, YCB flag_in
 {
     YVIv qs_v1, qs_v2, qs_carry, ids_unit, ids_zero;
     int q_carry;
-    long long nt;
 
     // --- read target qubits ---
     read_reg_int(istr, qs_v1);
@@ -1250,7 +1246,6 @@ void QCircuit::read_structure_gate_subtractor_qft(YISS istr, YCS path_in, YCB fl
 {
     YVIv qs_v1, qs_v2, qs_sign, ids_unit, ids_zero;
     int q_sign;
-    long long nt;
 
     // --- read target qubits ---
     read_reg_int(istr, qs_v1);
@@ -2384,7 +2379,14 @@ YQCP QCircuit::adder_fixed(
     int nt_total = nv + 1;
     string oracle_name_tex = "ADDFIXED";
 
-    // --- represent the unisgned integer as a bitstring ---
+    // int n_bits_for_int_sub = (int_sub == 0) ? 1 : std::bit_width(int_sub);
+    // if(ids_target.size() < n_bits_for_int_sub)
+    // {
+    //     throw std::string("Error in AdderFixed: number of qubits in the target register is not large enough "
+    //         "to deal with the comparable unsigned integer.");
+    // }
+
+    // --- represent the unsigned integer as a bitstring ---
     YVshv bitstring_int(nt_total);
     YMATH::intToBinary(int_sub, bitstring_int);
 
@@ -2446,6 +2448,13 @@ YQCP QCircuit::subtractor_fixed(
     // adder_fixed(ids_target, id_carry, int_sub, cs_unit, cs_zero, flag_inv);
     // x(ts_total, cs_unit, cs_zero);
 
+    // int n_bits_for_int_sub = (int_sub == 0) ? 1 : std::bit_width(int_sub);
+    // if(ids_target.size() < n_bits_for_int_sub)
+    // {
+    //     throw std::string("Error in SubtractorFixed: number of qubits in the target register is not large enough "
+    //         "to deal with the comparable unsigned integer.");
+    // }
+
     adder_fixed(ids_target, id_carry, int_sub, cs_unit, cs_zero, !flag_inv);
     return get_the_circuit();
 }
@@ -2458,6 +2467,13 @@ YQCP QCircuit::comparator_fixed(
 ){
     auto cs_total_for_x = YVIv(cs_unit);
     cs_total_for_x.push_back(ids_carry[0]);
+
+    int n_bits_for_int_sub = (int_sub == 0) ? 1 : std::bit_width(int_sub);
+    if(ids_target.size() < n_bits_for_int_sub)
+    {
+        throw std::string("Error in ComparatorFixed: number of qubits in the target register is not large enough "
+            "to deal with the comparable unsigned integer.");
+    }
 
     subtractor_fixed(ids_target, ids_carry[0], int_sub, cs_unit, cs_zero);
     x(ids_carry[1], cs_total_for_x, cs_zero);

@@ -4,13 +4,18 @@
 # author: Tyson Jones (testing)
 
 # CMake initialisation.
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.17)
 
 message(STATUS "CMake version: ${CMAKE_VERSION}")
 message(STATUS "CMake build type: ${CMAKE_BUILD_TYPE}")
 
 # Project name
-project(QuEST_Project)
+project(QuEST_Project CXX)
+
+# if (MSVC)
+#     # Suppress data truncation warnings globally across all targets
+#     add_compile_options(/wd4267)
+# endif()
 
 # -----------------------------------------------------------------------------
 # ----- USER OPTIONS ----------------------------------------------------------
@@ -32,13 +37,20 @@ find_package(HDF5 REQUIRED COMPONENTS CXX HL)
 # ----------------------------------------------------------------------------- 
 
 # Build the QuEST library if the path to libQuEST.so is not specified
-if (NOT DEFINED ${QuEST_LIB_PATH})
+# if (NOT DEFINED ${QuEST_LIB_PATH})
+if (NOT DEFINED QuEST_LIB_PATH)
     # Build libQuEST.so
     set(QuEST_DIR "QuEST" CACHE STRING 
         "Name of the directory containing the QuEST library sources. It must be located in the same directory as the root CMakeLists.txt")
     add_subdirectory(${QuEST_DIR})
     set(QuEST_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/${QuEST_DIR}")
-    set(QuEST_LIB_EXACT "${QuEST_LIB_PATH}/libQuEST.so")
+
+    # set(QuEST_LIB_EXACT "${QuEST_LIB_PATH}/libQuEST.so")
+    if (WIN32)
+        set(QuEST_LIB_EXACT "${QuEST_LIB_PATH}/QuEST.lib")
+    else()
+        set(QuEST_LIB_EXACT "${QuEST_LIB_PATH}/libQuEST.so")
+    endif()
 endif()
 
 # -----------------------------------------------------------------------------
@@ -53,7 +65,8 @@ if (NOT TESTING)
 
     # Link libraries to user executable, including QuEST library
     if (WIN32)
-        target_link_libraries(${OUTPUT_EXE} QuEST)
+        # target_link_libraries(${OUTPUT_EXE} QuEST)
+        target_link_libraries(${OUTPUT_EXE} QuEST HDF5::HDF5)
     else ()
         target_link_libraries(${OUTPUT_EXE} QuEST m HDF5::HDF5)
     endif()

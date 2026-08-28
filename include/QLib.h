@@ -31,7 +31,17 @@
 #include <stdarg.h>
 #include <memory>
 #include <numeric>
-#include <unistd.h>
+
+
+#ifndef _WIN32
+    #include <unistd.h>
+#else
+    #include <numbers>
+    #define M_PI std::numbers::pi
+    #define M_PI_2  std::numbers::pi/2.
+    #define M_PI_4  std::numbers::pi/4.
+#endif 
+
 
 #include <cuda_runtime_api.h>
 #include "H5Cpp.h"
@@ -177,7 +187,7 @@ struct QuCF_complex_data
     // void check_name(YCS name_structure)
     // {
     //     // if(
-    //     //     qsvt.find(name_structure) != qsvt.end() or
+    //     //     qsvt.find(name_structure) != qsvt.end() ||
     //     //     gadgets.find(name_structure) != gadgets.end()
     //     // ) 
     //     //     throw std::string("In QuCF_complex_data: the name " + name_structure + " has alredy been used.");
@@ -187,7 +197,7 @@ struct QuCF_complex_data
     bool check_name(YCS name_structure)
     {
         if(
-            qsvt.find(name_structure) != qsvt.end() or
+            qsvt.find(name_structure) != qsvt.end() ||
             gadgets.find(name_structure) != gadgets.end()
         ) 
             return true;
@@ -394,10 +404,10 @@ namespace YMATH{
                 nz_rows    = new int[nr_+1];
 
                 uint64_t counter = 0;
-                for(int ir = 0; ir < nr_; ir++)
+                for(unsigned int ir = 0; ir < nr_; ir++)
                 {
                     nz_rows[ir] = counter;
-                    for(int ic = 0; ic < nc_; ic++)
+                    for(unsigned int ic = 0; ic < nc_; ic++)
                         if(abs(a_[ir][ic]) > ZERO_ERROR)
                         {
                             nz_values[counter]  = a_[ir][ic];
@@ -651,13 +661,13 @@ namespace YMATH{
 
         void set_diff(const VectorD_& vec1, const VectorD_& vec2)
         {
-            for(auto ii = 0; ii < N_; ii++)
+            for(unsigned int ii = 0; ii < N_; ii++)
                 arr_[ii] = vec1.arr_[ii] - vec2.arr_[ii];
         }
 
         void copy_mult_by(const VectorD_& vec, const double& v)
         {
-            for(auto ii = 0; ii < N_; ii++)
+            for(unsigned int ii = 0; ii < N_; ii++)
                 arr_[ii] = v * vec.arr_[ii];
         }
 
@@ -954,9 +964,9 @@ namespace YMIX{
          */
         void add_group(YCS gname);
 
-        bool is_exist(YCS grp_name)
+        bool is_exist(YCS gname)
         {
-            return H5Lexists(f_->getId(), grp_name.c_str(), H5P_DEFAULT) > 0;
+            return H5Lexists(f_->getId(), gname.c_str(), H5P_DEFAULT) > 0;
         }
 
         /**
@@ -967,23 +977,30 @@ namespace YMIX{
         void add_scalar(const T& v, YCS dname, YCS gname)
         {
             if(!flag_opened) 
-                throw "HDF5 File " + name_ + 
-                    " is not opened to add a dataset " + dname + " to a group " + gname;
-            // add_group(gname);
-
-            H5::Group grp(f_->openGroup(gname));
+            {
+                throw std::runtime_error("HDF5 File " + name_ + 
+                                    " is not opened to add a dataset " + dname + " to a group " + gname);
+            }
+            H5::Group grp(f_->openGroup(gname.c_str()));
             write(v, dname, grp);
         }
+
+        // void add_scalar(const std::string& v, YCS dname, YCS gname)
+        // {
+        //     if(!flag_opened) 
+        //         throw std::runtime_error("HDF5 File " + name_ + 
+        //             " is not opened to add a dataset " + dname + " to a group " + gname);
+        //     H5::Group grp(f_->openGroup(gname.c_str()));
+        //     write(v.c_str(), dname, grp);
+        // }
 
         template<class T>
         void add_vector(const std::vector<T>& v, YCS dname, YCS gname)
         {
             if(!flag_opened) 
-                throw "HDF5 File " + name_ + 
-                    " is not opened to add a dataset " + dname + " to a group " + gname;
-            // add_group(gname);
-
-            H5::Group grp(f_->openGroup(gname));
+                throw std::runtime_error("HDF5 File " + name_ + 
+                    " is not opened to add a dataset " + dname + " to a group " + gname);
+            H5::Group grp(f_->openGroup(gname.c_str()));
             write(v, dname, grp);
         }
 
@@ -991,11 +1008,9 @@ namespace YMIX{
         void add_array(const T* v, YCUL N, YCS dname, YCS gname)
         {
             if(!flag_opened) 
-                throw "HDF5 File " + name_ + 
-                    " is not opened to add a dataset " + dname + " to a group " + gname;
-            // add_group(gname);
-
-            H5::Group grp(f_->openGroup(gname));
+                throw std::runtime_error("HDF5 File " + name_ + 
+                    " is not opened to add a dataset " + dname + " to a group " + gname);
+            H5::Group grp(f_->openGroup(gname.c_str()));
             write(v, N, dname, grp);
         }
 
@@ -1003,9 +1018,8 @@ namespace YMIX{
         void add_matrix(const std::list<std::vector<T>>& v, YCS dname, YCS gname)
         {
             if(!flag_opened) 
-                throw "HDF5 File " + name_ + 
-                    " is not opened to add a dataset " + dname + " to a group " + gname;
-            // add_group(gname);
+                throw std::runtime_error("HDF5 File " + name_ + 
+                    " is not opened to add a dataset " + dname + " to a group " + gname);
 
             T* array_1d;
             unsigned long nr, nc;
@@ -1016,7 +1030,7 @@ namespace YMIX{
 
             YMIX::get_array_from_list(v, array_1d, nr, nc);
 
-            H5::Group grp(f_->openGroup(gname));
+            H5::Group grp(f_->openGroup(gname.c_str()));
             write(array_1d, nc, nr, dname, grp);
 
             delete [] array_1d;
@@ -1026,19 +1040,33 @@ namespace YMIX{
         void read_scalar(T& v, YCS dname, YCS gname)
         {
             if(!flag_opened) 
-                throw "HDF5 File " + name_ + 
-                    " is not opened to read a dataset " + dname + " from a group " + gname;    
-            H5::Group grp(f_->openGroup(gname));
+                throw std::runtime_error("HDF5 File " + name_ + 
+                    " is not opened to read a dataset " + dname + " from a group " + gname);    
+            H5::Group grp(f_->openGroup(gname.c_str()));
             read(v, dname, grp);
+        }
+
+        void read_scalar(std::string& line_out, YCS dname, YCS gname)
+        {
+            if(!flag_opened) 
+                throw std::runtime_error("HDF5 File " + name_ + 
+                    " is not opened to read a dataset " + dname + " from a group " + gname);    
+            H5::Group grp(f_->openGroup(gname.c_str()));
+
+            // char raw_buffer[256] = {0};
+            // read(raw_buffer, dname, grp);
+            // line_out = std::string(raw_buffer);
+
+            read(line_out, dname, grp);
         }
 
         template<class T>
         void read_vector(std::vector<T>& v, YCS dname, YCS gname)
         {
             if(!flag_opened) 
-                throw "HDF5 File " + name_ + 
-                    " is not opened to add a dataset " + dname + " to a group " + gname;
-            H5::Group grp(f_->openGroup(gname));
+                throw std::runtime_error("HDF5 File " + name_ + 
+                    " is not opened to add a dataset " + dname + " to a group " + gname);
+            H5::Group grp(f_->openGroup(gname.c_str()));
             read(v, dname, grp);
         }
 
@@ -1048,35 +1076,42 @@ namespace YMIX{
             {
                 auto dspace = H5::DataSpace(H5S_SCALAR);
                 H5::StrType dtype(H5::PredType::C_S1, v.size()+1);
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
-                dataset.write(v, dtype);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
+                dataset.write(v.c_str(), dtype);
             }
             inline void write(YCI v, YCS dname, H5::Group& grp)
             {
                 auto dspace = H5::DataSpace(H5S_SCALAR);
                 auto dtype = H5::PredType::NATIVE_INT;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write((int*) &v, dtype);
             }
             inline void write(YCU v, YCS dname, H5::Group& grp)
             {
                 auto dspace = H5::DataSpace(H5S_SCALAR);
                 auto dtype = H5::PredType::NATIVE_UINT;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write((unsigned*) &v, dtype);
             }
+            inline void write(YCUL v, YCS dname, H5::Group& grp)
+            {
+                auto dspace = H5::DataSpace(H5S_SCALAR);
+                auto dtype = H5::PredType::NATIVE_UINT;
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
+                dataset.write((unsigned*) &v, dtype);
+            } 
             inline void write(const long unsigned int& v, YCS dname, H5::Group& grp)
             {
                 auto dspace = H5::DataSpace(H5S_SCALAR);
                 auto dtype = H5::PredType::NATIVE_ULONG;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write((long unsigned int*) &v, dtype);
             }
             inline void write(const double& v, YCS dname, H5::Group& grp)
             {
                 auto dspace = H5::DataSpace(H5S_SCALAR);
                 auto dtype = H5::PredType::NATIVE_DOUBLE;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write((int*) &v, dtype);
             }
 
@@ -1085,7 +1120,7 @@ namespace YMIX{
                 hsize_t dims[] = {v.size()};
                 H5::DataSpace dspace(1, dims);
                 auto dtype = H5::PredType::NATIVE_UINT;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write(&v[0], dtype);
             }
             inline void write(YCVI v, YCS dname, H5::Group& grp)
@@ -1093,7 +1128,7 @@ namespace YMIX{
                 hsize_t dims[] = {v.size()};
                 H5::DataSpace dspace(1, dims);
                 auto dtype = H5::PredType::NATIVE_INT;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write(&v[0], dtype);
             }
 
@@ -1102,7 +1137,7 @@ namespace YMIX{
                 hsize_t dims[] = {v.size()};
                 H5::DataSpace dspace(1, dims);
                 auto dtype = H5::PredType::NATIVE_SHORT;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write(&v[0], dtype);
             }
 
@@ -1111,7 +1146,7 @@ namespace YMIX{
                 hsize_t dims[] = {v.size()};
                 H5::DataSpace dspace(1, dims);
                 auto dtype = H5::PredType::NATIVE_DOUBLE;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write(&v[0], dtype);
             }
             inline void write(const std::vector<Complex>& v, YCS dname, H5::Group& grp)
@@ -1123,7 +1158,7 @@ namespace YMIX{
                 H5Tinsert (dtype, "real", HOFFSET(Complex,real), H5T_NATIVE_DOUBLE);
                 H5Tinsert (dtype, "imag", HOFFSET(Complex,imag), H5T_NATIVE_DOUBLE);
 
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write(&v[0], dtype);
             }
 
@@ -1132,7 +1167,7 @@ namespace YMIX{
                 hsize_t dims[] = {N};
                 H5::DataSpace dspace(1, dims);
                 auto dtype = H5::PredType::NATIVE_DOUBLE;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write(v, dtype);
             }
 
@@ -1141,17 +1176,16 @@ namespace YMIX{
                 hsize_t dims[] = {nr, nc};
                 H5::DataSpace dspace(2, dims);
                 auto dtype = H5::PredType::NATIVE_SHORT;
-                H5::DataSet dataset = grp.createDataSet(dname, dtype, dspace);
+                H5::DataSet dataset = grp.createDataSet(dname.c_str(), dtype, dspace);
                 dataset.write(v, dtype);
             }
-
 
             template<class T>
             inline void read(T& v, YCS dname, H5::Group& grp)
             {
                 if(H5Lexists(grp.getId(), dname.c_str(), H5P_DEFAULT))
                 {
-                    H5::DataSet dataset = grp.openDataSet(dname);
+                    H5::DataSet dataset = grp.openDataSet(dname.c_str());
                     H5::DataType dtype = dataset.getDataType();
                     dataset.read(&v, dtype);
                 } 
@@ -1161,22 +1195,105 @@ namespace YMIX{
                         << " does not exist in the group " << grp.getObjName() << ".\n" << std::endl;
                 } 
             }
-            inline void read(YS v, YCS dname, H5::Group& grp)
-            {
-                H5::DataSet dataset = grp.openDataSet(dname);
-                H5::DataType dtype = dataset.getDataType();
-                v="";
-                dataset.read(v, dtype);
+
+            inline void read(std::string& out_str, YCS dname, H5::Group& grp) 
+            { 
+                if (H5Lexists(grp.getId(), dname.c_str(), H5P_DEFAULT)) 
+                { 
+                    H5::DataSet dataset = grp.openDataSet(dname.c_str()); 
+                    H5::DataType dtype = dataset.getDataType(); 
+
+                    // // Debug information
+                    // H5::DataSpace dataspace = dataset.getSpace();
+                    // std::cout << "Dataset: " << dname << std::endl;
+                    // std::cout << "  Class: " << dtype.getClass() << " (STRING=" << H5T_STRING << ")" << std::endl;
+                    // std::cout << "  Size: " << dtype.getSize() << std::endl;
+                    // std::cout << "  Is variable string: " << (dtype.isVariableStr() ? "yes" : "no") << std::endl;
+                    // std::cout << "  Dataspace dims: " << dataspace.getSimpleExtentNdims() << std::endl;
+                    
+                    // Check if it's a string type
+                    if (dtype.getClass() != H5T_STRING)
+                    {
+                        std::cout << "Dataset " << dname << " is not a string type" << std::endl;
+                        out_str.clear();
+                        return;
+                    }
+                    
+                    if (dtype.isVariableStr()) 
+                    { 
+                        // For scalar variable-length string (dataspace dims = 0)
+                        // We need to use the file's datatype, not a new one
+                        char* h5_raw_ptr = nullptr; 
+                        
+                        // Read directly using the file's datatype
+                        dataset.read(&h5_raw_ptr, dtype); 
+                        
+                        if (h5_raw_ptr != nullptr) 
+                        { 
+                            out_str = std::string(h5_raw_ptr); 
+                            // Free the memory allocated by HDF5
+                            H5::DataSet::vlenReclaim(&h5_raw_ptr, dtype, H5::DataSpace(H5S_SCALAR));
+                        } 
+                        else 
+                        {
+                            out_str.clear();
+                        }
+                    } 
+                    else 
+                    { 
+                        // Handle Fixed-Length Strings
+                        size_t string_size = dtype.getSize(); 
+                        std::vector<char> buffer(string_size + 1, 0); 
+                        
+                        dataset.read(buffer.data(), dtype); 
+                        
+                        out_str = std::string(buffer.data()); 
+                    } 
+                } 
+                else 
+                { 
+                    std::cout << "\n>>> HDF5 WARNING READING: the dataset " << dname 
+                            << " does not exist in the group " << grp.getObjName() << ".\n" << std::endl; 
+                    out_str.clear();
+                } 
             }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            // inline void read(YS v, YCS dname, H5::Group& grp)
+            // {
+            //     H5::DataSet dataset = grp.openDataSet(dname.c_str());
+            //     H5::DataType dtype = dataset.getDataType();
+            //     v="";
+            //     dataset.read(v, dtype);
+            // }
+
             template<class T>
             inline void read(std::vector<T>& v, YCS dname, H5::Group& grp)
             {
-                H5::DataSet dataset = grp.openDataSet(dname);
+                H5::DataSet dataset = grp.openDataSet(dname.c_str());
 
                 H5::DataSpace dataspace = dataset.getSpace();
                 int rank = dataspace.getSimpleExtentNdims();
-                hsize_t dims_out[rank];
-                int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
+
+                #ifndef _WIN32
+                    hsize_t dims_out[rank];
+                    int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
+                #else
+                    std::unique_ptr<hsize_t[]> dims_out(new hsize_t[rank]);
+                    int ndims = dataspace.getSimpleExtentDims(dims_out.get(), nullptr);
+                #endif 
 
                 unsigned long long N = 1;
                 for(unsigned i_dim = 0; i_dim < rank; i_dim++)

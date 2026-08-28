@@ -35,7 +35,6 @@ public:
 
         // find the first layer, which has enough free qubits to place the gate: 
         uint64_t id_first_noc_layer = 0;
-        int id_qubit;
         for(auto& id_qubit: ids_qubits_of_gate)
             if(id_first_noc_layer < noc_layers_[id_qubit])
                 id_first_noc_layer = noc_layers_[id_qubit];

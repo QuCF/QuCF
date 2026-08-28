@@ -3,14 +3,14 @@
 CONSTANTS
 	nx 		6       // describes half of the spatial domain;
 	alpha_0 	-1.00000000000000e+00
-	// alpha 		1.01587301587302e+00
-	alpha 		0.0
+	alpha 		1.01587301587302e+00
+	// alpha 		0.0
 END_CONSTANTS
 
 
 OPTIONS
     sel_compute_output all
-	sel_print_output   zero-ancillae  // none, all, zero-ancillae
+	sel_print_output   all  // none, all, zero-ancillae
 	flag_tex     1
 	tex_CL  6 
 END_OPTIONS

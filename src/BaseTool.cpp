@@ -23,7 +23,7 @@ BaseTool__::BaseTool__(
     flag_layers_(flag_layers),
     flag_hdf5_(flag_hdf5)
 {
-    string current_path = filesystem::current_path();
+    string current_path = filesystem::current_path().string();
     YMIX::print_log("Current path: " + current_path);
 
     if(flag_hdf5_)
@@ -44,7 +44,7 @@ BaseTool__::BaseTool__(
         // save the project name and the path to input files:
         hfo_.add_scalar(pname_, "project-name", "basic");
         hfo_.add_scalar(path_inputs_, "path-inputs", "basic");
-        hfo_.add_scalar(filesystem::current_path(), "launch-path", "basic");
+        hfo_.add_scalar(filesystem::current_path().string(), "launch-path", "basic");
 
         // close the file:
         hfo_.close();

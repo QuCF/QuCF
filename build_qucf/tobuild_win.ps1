@@ -12,6 +12,7 @@ cmake `
     -DCMAKE_TOOLCHAIN_FILE="..\..\..\..\vcpkg/scripts/buildsystems/vcpkg.cmake" `
     -DOUTPUT_EXE="QuCF" `
     -DUSER_SOURCE="$CPPFiles" `
+    -DMULTITHREADED=0 `
     -DGPUACCELERATED=1 `
     -DGPU_COMPUTE_CAPABILITY=89 `
     -DCUDA_LIBRARIES=CUDA::cudart

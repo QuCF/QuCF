@@ -19,7 +19,7 @@
 # eg
 #   cmake -DDISTRIBUTED=1 ..
 
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.17)
 project(QuEST_Library)
 
 option(MULTITHREADED "Switches on OpenMP Threading if an OpenMP implementation can be found. Set to 0 to disable." 1)
@@ -110,9 +110,9 @@ if (DISTRIBUTED)
   include_directories(${MPI_INCLUDE_PATH})
 endif()
 
-if (GPUACCELERATED)
-    find_package(CUDA REQUIRED)
-endif()
+# if (GPUACCELERATED)
+#     find_package(CUDA REQUIRED)
+# endif()
 
 
 
@@ -122,7 +122,6 @@ endif()
 
 
 # ----- OPENMP ----------------------------------------------------------------
-
 if (${MULTITHREADED} AND NOT ${GPUACCELERATED})
   find_package(OpenMP)
 
@@ -145,8 +144,9 @@ if (${MULTITHREADED} AND NOT ${GPUACCELERATED})
 endif ()
 
 # ----- CUDA FLAGS ------------------------------------------------------------
-
 if (GPUACCELERATED)
+    enable_language(CUDA)
+
     set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \
         -arch=compute_${GPU_COMPUTE_CAPABILITY} -code=sm_${GPU_COMPUTE_CAPABILITY}"
     )
@@ -220,11 +220,22 @@ endif()
 # ----- C++ COMPILER FLAGS --------------------------------------------------
 
 # set C++ flags that are common between compilers and build types
-set (CMAKE_CXX_STANDARD 98)
+# set (CMAKE_CXX_STANDARD 98)
+
+set (CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Use -O2 for all but debug mode by default 
+
+# if (NOT("${CMAKE_BUILD_TYPE}" STREQUAL "Debug"))
+#     set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} \
+#         -O2"
+#     )
+# endif()
+
 if (NOT("${CMAKE_BUILD_TYPE}" STREQUAL "Debug"))
-    set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} \
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
         -O2"
     )
 endif()
@@ -257,11 +268,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio
-  string(REGEX REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-  string(REGEX REPLACE "-W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-    -w"
-  )
+  string(REGEX REPLACE "/W3" "" CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS})
+  string(REGEX REPLACE "-W3" "" CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS})
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w")
 endif()
 
 if (VERBOSE_CMAKE)
@@ -298,14 +307,19 @@ endif ()
 
 
 if (GPUACCELERATED)
-    cuda_add_library(QuEST
-        ${QuEST_SRC}
-    )
+    # cuda_add_library(QuEST
+    #     ${QuEST_SRC}
+    # )
+    add_library(QuEST ${QuEST_SRC})
+
+    set_target_properties(QuEST PROPERTIES CUDA_ARCHITECTURES native)
 else ()
     add_library(QuEST
         ${QuEST_SRC}
     )
 endif()
+
+target_compile_features(QuEST PUBLIC cxx_std_20) 
 
 # ----- Location of header files ----------------------------------------------
 
@@ -334,10 +348,16 @@ endif ()
 
 # ----- MPI -------------------------------------------------------------------
 
-target_link_libraries(QuEST PUBLIC ${MPI_C_LIBRARIES})
+if (DISTRIBUTED)
+  target_link_libraries(QuEST PUBLIC ${MPI_C_LIBRARIES})
+endif()
+
+if (NOT WIN32)
+    target_link_libraries(QuEST PUBLIC m)
+endif()
 
 # ----- GPU -------------------------------------------------------------------
-
+find_package(CUDAToolkit REQUIRED)
 target_link_libraries(QuEST ${CUDA_LIBRARIES})
 
 

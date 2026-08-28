@@ -17,7 +17,20 @@
 #include <stdarg.h>
 #include <memory>
 #include <numeric>
-#include <unistd.h>
+
+
+
+#ifndef _WIN32
+    #include <unistd.h>
+#else
+    #include <numbers>
+    #define M_PI std::numbers::pi
+    #define M_PI_2  std::numbers::pi/2.
+    #define M_PI_4  std::numbers::pi/4.
+#endif 
+
+
+
 #include <cuda_runtime_api.h>
 #include "H5Cpp.h"
 
@@ -109,6 +122,9 @@ void remove_hdf5_ext(std::string& str)
  *             -param [parameter-value] 
  *             -Nd [number-of-coefficients-in-Fourier] 
  *             -work_path [where-output-will-be-saved]  (optional)
+ * ---
+ * --- Example Win ---
+ * .\approx_polyn.exe -sel_function inversion -param 10 -Nd 100 -work_path .\\ -filename_out output_poly
 */
 int main(int argc, char *argv[])
 {
@@ -182,7 +198,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    string current_path = filesystem::current_path();
+    string current_path = filesystem::current_path().string();
 
     cout << "Function to approximate: " << avail_functions_[function_h.id].sel << "\n";
     cout << "Its parity: \t" << function_h.parity << "\n";
@@ -603,7 +619,12 @@ void save_coefs(
     // sstr << work_path << "/" << pars_func.sel << "_" << to_string(param) << "_" << round(-log10(err_res)) << ".hdf5";
 
     // --- filename based on N_coefs ---
-    sstr << work_path << "/";
+    #ifndef _WIN32
+        sstr << work_path << "/";
+    #else
+        sstr << work_path << "\\";
+    #endif
+    
     if(filename_out.empty())
         sstr << pars_func.sel << "_param_" << 
             std::setprecision(3) << param << "_Nc_" << N_coefs << ".hdf5";
@@ -611,7 +632,7 @@ void save_coefs(
         sstr << filename_out << ".hdf5";
 
     string filename_hdf5 = sstr.str(); 
-    H5::H5File* f_ = new H5::H5File(filename_hdf5, H5F_ACC_TRUNC);
+    H5::H5File* f_ = new H5::H5File(filename_hdf5.c_str(), H5F_ACC_TRUNC);
     H5::Group grp_basic(f_->createGroup("basic"));
     H5::Group grp_coefs(f_->createGroup("coefs"));
     H5::Group grp_functions(f_->createGroup("functions"));
@@ -624,7 +645,7 @@ void save_coefs(
         dtype_descr, 
         H5::DataSpace(H5S_SCALAR)
     );
-    dataset_descr.write(descr, dtype_descr);
+    dataset_descr.write(descr.c_str(), dtype_descr);
 
     // save the date of the simulation:
     string str_date_time;
@@ -636,7 +657,7 @@ void save_coefs(
         dtype_str_time, 
         H5::DataSpace(H5S_SCALAR)
     );
-    dataset_str_time.write(str_date_time, dtype_str_time);
+    dataset_str_time.write(str_date_time.c_str(), dtype_str_time);
 
 
     // save the function parity:

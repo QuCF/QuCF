@@ -1054,7 +1054,6 @@ void QuCF__::calc(shared_ptr<QCircuit>& u_work, YCI count_init_state)
         {
             // generate the circuit:
             // timer_comp.Start();
-            // YMIX::print_log( "Calculating the circuit... ", 0, false, false);
             u_work->generate(stop_point_name, id_current_gate);
 
             if(YMIX::compare_strings(sel_compute_output_, "zero-ancillae"))

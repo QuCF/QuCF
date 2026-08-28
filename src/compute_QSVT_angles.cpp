@@ -3,6 +3,13 @@
 
 #include "../include/compute_angles_class.h"
 
+#ifdef _WIN32
+    #include <iostream>
+    #include <windows.h>
+    #include <thread>
+    #include <chrono>
+#endif
+
 using namespace std;
 
 
@@ -29,9 +36,18 @@ int main(int argc, char *argv[])
 
     id_arg = 1;
     string pname(argv[id_arg]); // project name
-    cout << "\n\n********************************************************" << endl;
+    cout << "********************************************************" << endl;
     cout << "********************************************************" << endl;
     cout << "Project name: "   << pname << endl;
+
+    // // --- for debuging !!! ---
+    // #ifdef _WIN32
+    //     std::cout << "Waiting for a debugger..." << std::endl;
+    //     while (!IsDebuggerPresent()) {
+    //         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //     }
+    //     std::cout << "Debugger attached! Continuing..." << std::endl;
+    // #endif
 
     try
     {

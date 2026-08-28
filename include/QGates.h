@@ -158,7 +158,7 @@ class Gate__
         inline
         void mc_st_u(Qureg& oc, YCI t, YVI cs_unit, YVI cs_zero, const ComplexMatrix2& u)
         {
-            multiMixControlledUnitary(oc, &cs_unit[0], cs_unit.size(), t, u, &cs_zero[0], cs_zero.size());
+            multiMixControlledUnitary(oc, cs_unit.data(), cs_unit.size(), t, u, cs_zero.data(), cs_zero.size());
         }
 
         inline
@@ -632,7 +632,7 @@ class Rc_gadget__ : public SQGate__
         {
             if(flag_activated_)
             {
-                int nc = cs_counter_.size();
+                unsigned int nc = cs_counter_.size();
                 YVIv cs_unit_total, cs_zero_total;
 
                 std::vector<short> binArray(nc);

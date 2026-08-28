@@ -6,17 +6,10 @@ set(OUTPUT_EXE "compute_angles")
 
 # DEBUG or RELEASE:
 set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Release)
 
 # Set the project:
-project(APP LANGUAGES CUDA CXX VERSION 0.0)
-
-# if(NOT DEFINED CMAKE_CUDA_STANDARD)
-#     set(CMAKE_CUDA_STANDARD 11)
-#     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-# endif()
-
-# SET(CMAKE_CUDA_COMPILER /usr/local/cuda-11.6/bin/nvcc)
-# SET(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES /usr/local/cuda-11.6/targets/x86_64-linux/include)
+project(APP LANGUAGES CXX VERSION 0.0)
 
 
 # output some information:
@@ -29,33 +22,54 @@ message(STATUS "CMake build type: ${CMAKE_BUILD_TYPE}")
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "./")
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "./")
 
-# find CUDA Toolkit:
-# find_package(CUDAToolkit)
-find_package(CUDA REQUIRED)
+# --- CUDA ---
+include(CheckLanguage)
+check_language(CUDA)
+if(CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
+else()
+    message(STATUS "CUDA compiler not found.")
+endif()
 
-# # find MPI
-# find_package(MPI REQUIRED  COMPONENTS MPICXX)
-
-# find HDF5
+# --- HDF5 ---
 find_package(HDF5 REQUIRED  COMPONENTS CXX HL)
 
-# !!! CREATE THE TARGET !!!
+if(TARGET HDF5::HDF5)
+    get_target_property(HDF5_TYPE HDF5::HDF5 TYPE)
+    message(STATUS "HDF5 Target Type: ${HDF5_TYPE}")
+    
+    # Try to extract the imported location paths
+    get_target_property(HDF5_LOC HDF5::HDF5 IMPORTED_LOCATION_DEBUG)
+    if(NOT HDF5_LOC)
+        get_target_property(HDF5_LOC HDF5::HDF5 IMPORTED_LOCATION)
+    endif()
+    message(STATUS "HDF5 Main Library Location: ${HDF5_LOC}")
+endif()
+
+
+# create the target:
 add_executable(${OUTPUT_EXE} ../src/compute_QSVT_angles.cpp ../src/QLib.cpp)
 
 # set C++ compiler version:
-set_property(TARGET ${OUTPUT_EXE} PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${OUTPUT_EXE} PROPERTY CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # set CUDA architecture:
 set_property(TARGET ${OUTPUT_EXE} PROPERTY CUDA_ARCHITECTURES 75)
 
-# # link CUDA libraries:
-# target_link_libraries(${OUTPUT_EXE} PRIVATE CUDA::cudart_static)
-
-# #link MPI library
-# target_link_libraries(${OUTPUT_EXE} PRIVATE MPI::MPI_CXX)
-
 #link HDF5 library
 target_link_libraries(${OUTPUT_EXE} PRIVATE HDF5::HDF5)
+target_compile_definitions(${OUTPUT_EXE} PRIVATE H5_BUILT_AS_DYNAMIC_LIB)
+
+# To supress warning about std::string 
+target_compile_options(${OUTPUT_EXE} PRIVATE 
+    # MSVC specific warnings
+    $<$<COMPILE_LANGUAGE:CXX>:/wd4251>
+    
+    # NVCC specific warnings
+    $<$<COMPILE_LANGUAGE:CUDA>:-diag-suppress=1394>
+)
 
 # for correct debuging on device:
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
